@@ -3,6 +3,7 @@
 # for examples
 
 PATH="$PATH:$HOME/bin"
+source /home/matthew/.cargo/env
 
 # If not running interactively, don't do anything
 case $- in
@@ -117,3 +118,4 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
