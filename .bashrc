@@ -4,6 +4,8 @@
 
 PATH="$PATH:$HOME/bin"
 source /home/matthew/.cargo/env
+export VISUAL=vim
+export EDITOR="$VISUAL"
 
 # If not running interactively, don't do anything
 case $- in
