@@ -160,6 +160,6 @@
     "vim.highlightedyank.enable": true,
     "vim.hlsearch": true,
     "vim.incsearch": true,
-    "window.zoomLevel": 1
+    "window.zoomLevel": 0
 
 }

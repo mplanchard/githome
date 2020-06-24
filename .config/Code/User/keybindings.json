@@ -51,15 +51,19 @@
         "command": "workbench.action.terminal.toggleTerminal"
     },
     {
+        "key": "meta+j",
+        "command": "workbench.action.terminal.toggleTerminal"
+    },
+    {
         "key": "ctrl+`",
         "command": "-workbench.action.terminal.toggleTerminal"
     },
     {
-        "key": "ctrl+/",
+        "key": "meta+/",
         "command": "workbench.action.splitEditorRight"
     },
     {
-        "key": "ctrl+-",
+        "key": "meta+-",
         "command": "workbench.action.splitEditorDown"
     },
     {
@@ -91,5 +95,5 @@
         "key": "ctrl+/",
         "command": "-editor.action.commentLine",
         "when": "editorTextFocus && !editorReadonly"
-    }
+    },
 ]
