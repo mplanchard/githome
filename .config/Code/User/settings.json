@@ -1,0 +1,165 @@
+// Place your settings in this file to overwrite the default settings
+{
+    "[markdown]": {
+        "editor.wordWrap": "on",
+        "editor.quickSuggestions": false
+    },
+
+    "cSpell.userWords": [
+        "AMQP",
+        "Popen",
+        "Unprocessable",
+        "acyclic",
+        "Webserver",
+        "affordance",
+        "ansible",
+        "attribs",
+        "backend",
+        "boto",
+        "chdir",
+        "concat",
+        "customizations",
+        "deserialization",
+        "deserialize",
+        "deserialized",
+        "devs",
+        "docstring",
+        "enthought",
+        "entrypoint",
+        "functools",
+        "getcwd",
+        "getenv",
+        "idempotently",
+        "itertools",
+        "noqa",
+        "orgs",
+        "parametrize",
+        "postgresql",
+        "presentational",
+        "pylint",
+        "pymongo",
+        "pypiserver",
+        "pytest",
+        "qstring",
+        "reconstructor",
+        "repo",
+        "rfind",
+        "rtype",
+        "secretfiles",
+        "serializable",
+        "snmp",
+        "strftime",
+        "stringify",
+        "truthy",
+        "unmonitored",
+        "unmount",
+        "vhost",
+        "werkzeug"
+    ],
+
+    "editor.lineNumbers": "relative",
+    "editor.minimap.enabled": false,
+    "editor.minimap.renderCharacters": true,
+    "editor.minimap.showSlider": "always",
+    "editor.renderControlCharactrs": false,
+    "editor.renderWhitespace": "none",
+    "editor.rulers": [72, 79, 119],
+
+    "explorer.autoReveal": false,
+
+    "files.associations": {
+        "*.bson": "json"
+    },
+    "files.autoSave": "onFocusChange",
+    "files.exclude": {
+        "**/.git": false,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/__pycache__": true,
+        "**/.mypy_cache": true,
+        "**/.idea": true,
+        "**/.tox": true
+    },
+    "files.trimTrailingWhitespace": true,
+
+    "gitlens.advanced.messages": {
+        "suppressCommitHasNoPreviousCommitWarning": false,
+        "suppressCommitNotFoundWarning": false,
+        "suppressFileNotUnderSourceControlWarning": false,
+        "suppressGitVersionWarning": false,
+        "suppressLineUncommittedWarning": false,
+        "suppressNoRepositoryWarning": false,
+        "suppressResultsExplorerNotice": false,
+        "suppressShowKeyBindingsNotice": true
+    },
+
+    "liveshare.featureSet": "insiders",
+
+	"markdown.extension.italic.indicator": "_",
+
+    "python.linting.flake8Args": [
+        "--ignore",
+        "E121,E123,E126,E226,E24,E402,E704,W503,W504"
+    ],
+    "python.linting.flake8Enabled": true,
+    "python.linting.pydocstyleArgs": [
+        "--ignore",
+        "D203,D210,D213"
+    ],
+    "python.linting.pydocstyleEnabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.unitTest.pyTestEnabled": true,
+    "python.unitTest.pyTestArgs": [
+        "-x"
+    ],
+    "python.venvPath": "~/.pyvenv",
+
+	"rust-analyzer.cargo.allFeatures": true,
+
+    "search.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/__pycache__": true,
+        "**/.mypy_cache": true,
+        "**/.idea": true,
+        "**/.tox": true,
+        "**/.venv": true,
+        "**/venv": true,
+        "**/venv*": true,
+        "**/.eggs": true,
+        "build/": true
+    },
+
+    "terminal.external.osxExec": "iTerm.app",
+    "terminal.integrated.scrollback": 50000,
+    "terminal.integrated.shellArgs.osx": [
+        "-l",
+        "-c",
+        "tmux",
+    ],
+    // "terminal.integrated.fontFamily": "'Fira Mono for Powerline'",
+
+    "vscode-neovim.neovimInitPath": "~/.config/nvim/init.vim",
+	"vscode-neovim.neovimPath": "/usr/bin/nvim",
+
+    "typescript.updateImportsOnFileMove.enabled": "always",
+
+    "workbench.editor.tabSizing": "shrink",
+    "workbench.list.keyboardNavigation": "simple",
+    "workbench.settings.editor": "json",
+    "workbench.settings.openDefaultSettings": true,
+
+    "vim.highlightedyank.enable": true,
+    "vim.hlsearch": true,
+    "vim.incsearch": true,
+    "window.zoomLevel": 1
+
+}
