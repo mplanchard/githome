@@ -112,8 +112,8 @@
     "python.linting.pydocstyleEnabled": true,
     "python.linting.pylintEnabled": true,
     "python.linting.mypyEnabled": true,
-    "python.unitTest.pyTestEnabled": true,
-    "python.unitTest.pyTestArgs": [
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
         "-x"
     ],
     "python.venvPath": "~/.pyvenv",
@@ -145,6 +145,11 @@
         "-c",
         "tmux",
     ],
+    "terminal.integrated.shellArgs.linux": [
+        "-l",
+        "-c",
+        "tmux new-session -A -s ${workspaceFolderBasename}",
+    ],
     // "terminal.integrated.fontFamily": "'Fira Mono for Powerline'",
 
     "vscode-neovim.neovimInitPath": "~/.config/nvim/init.vim",
@@ -160,6 +165,6 @@
     "vim.highlightedyank.enable": true,
     "vim.hlsearch": true,
     "vim.incsearch": true,
-    "window.zoomLevel": 0
+    "window.zoomLevel": 1
 
 }

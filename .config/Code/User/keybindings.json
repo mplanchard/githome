@@ -67,6 +67,14 @@
         "command": "workbench.action.splitEditorDown"
     },
     {
+        "key": "meta+shift+p",
+        "command": "workbench.action.showCommands"
+    },
+    {
+        "key": "meta+p",
+        "command": "workbench.action.quickOpen"
+    },
+    {
         "key": "ctrl+shift+5",
         "command": "-workbench.action.terminal.split",
         "when": "terminalFocus"
@@ -95,5 +103,13 @@
         "key": "ctrl+/",
         "command": "-editor.action.commentLine",
         "when": "editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "ctrl+shift+b",
+        "command": "workbench.action.toggleSidebarVisibility"
+    },
+    {
+        "key": "ctrl+b",
+        "command": "-workbench.action.toggleSidebarVisibility"
     },
 ]
