@@ -3,6 +3,8 @@
 # for examples
 
 PATH="$PATH:$HOME/bin"
+PATH="$PATH:$HOME/.emacs.d/bin"
+
 source /home/matthew/.cargo/env
 export VISUAL=vim
 export EDITOR="$VISUAL"
