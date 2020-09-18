@@ -9,12 +9,13 @@
         "AMQP",
         "Popen",
         "Unprocessable",
-        "acyclic",
         "Webserver",
+        "acyclic",
         "affordance",
         "ansible",
         "attribs",
         "backend",
+        "bitboard",
         "boto",
         "chdir",
         "concat",
@@ -165,6 +166,9 @@
     "vim.highlightedyank.enable": true,
     "vim.hlsearch": true,
     "vim.incsearch": true,
-    "window.zoomLevel": 1
+    "window.zoomLevel": 1,
+    "[rust]": {
+        "editor.defaultFormatter": "matklad.rust-analyzer"
+    }
 
 }

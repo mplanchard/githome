@@ -2,12 +2,19 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
-PATH="$PATH:$HOME/bin"
-PATH="$PATH:$HOME/.emacs.d/bin"
+export PATH="$PATH:$HOME/bin"
+export PATH="$PATH:$HOME/.emacs.d/bin"
+export PATH="$PATH:$HOME/.pyenv/bin"
+export PATH="/snap/bin:$PATH"
 
 source /home/matthew/.cargo/env
 export VISUAL=vim
 export EDITOR="$VISUAL"
+
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+pyenv global 3.8.3
 
 # If not running interactively, don't do anything
 case $- in
@@ -119,6 +126,10 @@ if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
 
+if [ -f ~/.localenv ]; then
+    . ~/.localenv
+fi
+
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -132,4 +143,5 @@ if ! shopt -oq posix; then
 fi
 
 eval "$(starship init bash)"
+
 
