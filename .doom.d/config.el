@@ -63,6 +63,15 @@
 (setq org-export-with-toc nil)
 (setq org-export-with-sub-superscripts '{})
 
+(setq rustic-format-on-save t)
+(setq lsp-rust-all-features t)
+(setq lsp-rust-cfg-test t)
+
+(setq lsp-signature-auto-activate nil)
+
+(use-package! direnv :config (direnv-mode))
+(use-package! ace-window)
+
 
 (map! :map org-mode-map
       :localleader
@@ -71,6 +80,38 @@
 (map! :leader
       :prefix "w"
       :desc "ace-window" :nv "/" #'ace-window)
+
+(map! :prefix "g"
+      :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Python
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq flycheck-python-mypy-executable "mypy")
+
+;; The mspyls server doesn't do type checking, so we add in mypy explicitly
+;; to the checker chain so we don't have to run it manually.
+;; see doom-emacs/issues#1530 for explanation
+(add-hook
+ 'lsp-after-initialize-hook
+ (lambda () (flycheck-add-next-checker 'lsp 'python-mypy 'python-flake8)))
+
+(use-package! python-black
+  :demand t
+  :after python)
+;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
+;; Feel free to throw your own personal keybindings here
+(map! :map python-mode-map
+      :localleader
+      :desc "Blacken Buffer" "b b" #'python-black-buffer)
+(map! :map python-mode-map
+      :localleader
+      :desc "Blacken Region" "b r" #'python-black-region)
+(map! :map python-mode-map
+      :localleader
+      :desc "Blacken Statement" "b s" #'python-black-statement)
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

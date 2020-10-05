@@ -14,7 +14,7 @@ export EDITOR="$VISUAL"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
-pyenv global 3.8.3
+pyenv global 3.8.6 3.7.9 3.6.12
 
 # If not running interactively, don't do anything
 case $- in
