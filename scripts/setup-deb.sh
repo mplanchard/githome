@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Repositories
+echo "Checking for emacs PPA ..."
 if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ]; then
     sudo add-apt-repository ppa:kelleyk/emacs
 fi
@@ -26,24 +27,24 @@ PKGS=(
     libssl-dev          # pyenv
     llvm                # pyenv
     python-openssl      # pyenv
-    ripgrep             # doom-emacs
     tk-dev              # pyenv
     wget                # pyenv
     xz-utils            # pyenv
     zlib1g-dev          # pyenv
 )
 
-
 sudo apt-get update
 
 sudo apt-get install -y "${PKGS[@]}"
+# See https://github.com/sharkdp/bat/issues/938
+sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
 
 mkdir -p ~/github/
 
 # Rust
+echo "Installing Rust ..."
 if [[ $(command -v rustc) == "" ]]; then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    rustup component add clippy rustfmt rust-src
     mkdir -p ~/github/rust-analyzer/
     git clone \
         https://github.com/rust-analyzer/rust-analyzer.git \
@@ -52,14 +53,18 @@ if [[ $(command -v rustc) == "" ]]; then
     cargo xtask install
     popd ~/github/rust-analyzer/rust-analyzer
 fi
+echo "Installing Rust components ..."
+~/.cargo/bin/rustup component add clippy rustfmt rust-src
 
 # Doom Emacs
+echo "Installing Doom emacs ..."
 if [ ! -f "$HOME/.emacs.d/README.md" ]; then
     git clone https://github.com/hlissner/doom-emacs ~/.emacs.d
     ~/.emacs.d/bin/doom install
 fi
 
 # Vim
+echo "Configuring vim ..."
 mkdir -p ~/.vim/backup/
 mkdir -p ~/.vim/swap/
 if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
@@ -68,6 +73,7 @@ if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
 fi
 
 # Python
+echo "Installing python versions ..."
 if [[ $(command -v pyenv) == "" ]]; then
     curl https://pyenv.run | bash
 fi
@@ -76,12 +82,14 @@ fi
 ~/.pyenv/bin/pyenv install --skip-existing 3.6.12
 
 # Tmux
+echo "Adding tmux themes ..."
 if [ ! -d "$HOME/github/jimeh/tmux-themepack" ]; then
     mkdir -p ~/github/jimeh/
     git clone https://github.com/jimeh/tmux-themepack.git ~/github/jimeh/tmux-themepack
 fi
 
 # Starship command prompt
+echo "Installing starship ..."
 if [[ $(command -v starship) == "" ]];then
     curl -fsSL https://starship.rs/install.sh | bash
 fi
