@@ -92,6 +92,7 @@
 
 (use-package! direnv :config (direnv-mode))
 (use-package! ace-window)
+(use-package! shfmt)
 
 ;; **********************************************************************
 ;; Keybindings

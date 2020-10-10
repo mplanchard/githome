@@ -26,6 +26,7 @@ PKGS=(
     libsqlite3-dev      # pyenv
     libssl-dev          # pyenv
     llvm                # pyenv
+    neovim
     python-openssl      # pyenv
     tk-dev              # pyenv
     wget                # pyenv
