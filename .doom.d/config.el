@@ -35,7 +35,6 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type 'relative)
 
-
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
@@ -53,25 +52,50 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+;; **********************************************************************
+;; Settings
+;; **********************************************************************
+
+(setq typescript-indent-level 2)
+(setq js-indent-level 2)
+
+;; Search the GH directory for projects by default
 (setq projectile-project-search-path '("~/github/"))
+
+;; For LSP performance
+(setq read-process-output-max (* 1024 1024)) ;; 1 mb
+(setq lsp-ui-sideline-delay 0.75)
+(setq lsp-ui-doc-delay 0.75)
+(setq lsp-idle-delay 1)
 
 (setq neo-theme 'ascii)
 
+;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
 
-(setq org-export-with-smart-quotes nil)
-(setq org-export-with-toc nil)
-(setq org-export-with-sub-superscripts '{})
+;; org-mode settings
+(after! org
+  (setq org-export-with-section-numbers nil)
+  (setq org-export-with-smart-quotes nil)
+  (setq org-export-with-sub-superscripts '{})
+  (setq org-export-with-toc nil)
+  )
 
+;; Rust-related LSP settings
 (setq rustic-format-on-save t)
 (setq lsp-rust-all-features t)
 (setq lsp-rust-cfg-test t)
 
-(setq lsp-signature-auto-activate nil)
+;; **********************************************************************
+;; Packages
+;; **********************************************************************
 
 (use-package! direnv :config (direnv-mode))
 (use-package! ace-window)
 
+;; **********************************************************************
+;; Keybindings
+;; **********************************************************************
 
 (map! :map org-mode-map
       :localleader
@@ -84,18 +108,25 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Python
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(map! (:after org
+       :map org-mode-map
+       :localleader
+       :prefix "l"
+       :desc "github-link" :nv "g" #'mp-insert-github-link))
+
+;; **********************************************************************
+;; Python (why is it such a pain)
+;; **********************************************************************
 
 (setq flycheck-python-mypy-executable "mypy")
 
 ;; The mspyls server doesn't do type checking, so we add in mypy explicitly
 ;; to the checker chain so we don't have to run it manually.
 ;; see doom-emacs/issues#1530 for explanation
-(add-hook
- 'lsp-after-initialize-hook
- (lambda () (flycheck-add-next-checker 'lsp 'python-mypy 'python-flake8)))
+(defun mp-py-enable-linters
+    ()
+  (interactive nil)
+  (flycheck-add-next-checker 'lsp  'python-flake8 'python-mypy))
 
 (use-package! python-black
   :demand t
@@ -112,6 +143,32 @@
       :localleader
       :desc "Blacken Statement" "b s" #'python-black-statement)
 
+
+;; **********************************************************************
+;; Custom Functions
+;; **********************************************************************
+
+(defun mp-parse-github-target (text)
+  (let ((split-url (split-string text "#" t "[[:space:]]+")))
+    (list (concat
+           "https://github.com/bestowinc/"
+           (car split-url)
+           "/pull/"
+           (car (last split-url)))
+          text)))
+
+(defun mp-make-github-link (text)
+  (interactive "sGithub Target: ")
+  (apply 'org-insert-link nil (mp-parse-github-target text)))
+
+(defun mp-insert-github-link (start end)
+  (interactive "r")
+  ;; check whether the region is actively selected
+  (if (use-region-p)
+      ;; If so, use the start and end to make the link
+      (mp-make-github-link (buffer-substring start end))
+      ;; Otherwise, call the function interactively
+      (call-interactively 'mp-make-github-link)))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

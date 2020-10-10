@@ -13,6 +13,7 @@ export EDITOR="$VISUAL"
 
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
+eval "$(direnv hook bash)"
 
 pyenv global 3.8.6 3.7.9 3.6.12
 
