@@ -7,8 +7,10 @@ export PATH="$PATH:$HOME/.emacs.d/bin"
 export PATH="$PATH:$HOME/.pyenv/bin"
 
 if $(uname -a | grep -q "Darwin"); then
-    export PATH="$PATH:/usr/local/bin"
+    # Any mac-specific config here
+    true
 else
+    # Any linux-specific config here
     export PATH="/snap/bin:$PATH"
 fi
 
