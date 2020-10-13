@@ -50,6 +50,109 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt-get install -y "${PKGS[@]}"
     # See https://github.com/sharkdp/bat/issues/938
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
+else
+    export HOMEBREW_NO_AUTO_UPDATE=1
+
+    brew update
+
+    # Just in case a mac update breaks this
+    sudo chown -R $(whoami) /usr/local/*
+
+    brew tap d12frosted/emacs-plus
+
+    BREW_PKGS=" \
+        bash-completion \
+        bat \
+        cmake \
+        coreutils \
+        direnv \
+        editorconfig \
+        emacs-plus \
+        exa \
+        fd \
+        fzf \
+        git \
+        go \
+        gpg \
+        htop \
+        mas \
+        neovim \
+        node \
+        ripgrep \
+        tmux \
+        tokei \
+        vim \
+        wget"
+
+    for PKG in $BREW_PKGS; do
+        brew install $PKG || brew upgrade $PKG
+    done
+
+    if [[ ! $(xcode-select --version) ]]; then
+        xcode-select --install
+    fi
+
+    if [[ ! -e /Applications/Emacs.app ]]; then
+        ln -s /usr/local/opt/emacs-plus/Emacs.app /Applications/Emacs.app
+    fi
+
+    [[ ! -d /Applications/Alacritty.app ]] && brew cask install alacritty
+    [[ ! -d /Applications/Docker.app ]] && brew cask install docker
+    [[ ! -d /Applications/Dropbox.app ]] && brew cask install dropbox
+    [[ ! -d "/Applications/Firefox Developer Edition.app" ]] && brew cask install homebrew/cask-versions/firefox-developer-edition
+    [[ ! -d "/Applications/Firefox Nightly.app" ]] && brew cask install homebrew/cask-versions/firefox-nightly
+    [[ ! -d /Applications/Firefox.app ]] && brew cask install firefox
+    [[ ! -d "/Applications/Google Chrome.app" ]] && brew cask install google-chrome
+    [[ ! -d "/Applications/GPG Keychain.app" ]] && brew cask install gpg-suite
+    [[ ! -d /Applications/Slack.app ]] && brew cask install slack
+    [[ ! -d /Applications/Virtualbox.app ]] && brew cask install virtualbox
+    [[ ! $(which vagrant) ]] && brew cask install vagrant
+    [[ ! -d "/Applications/Vagrant Manager.app" ]] && brew cask install vagrant-manager
+    [[ ! -d "/Applications/Visual Studio Code.app" ]] && brew cask install visual-studio-code
+
+    # Allow font installations
+    brew tap homebrew/cask-fonts
+
+    brew cask install font-powerline-symbols
+    brew cask install font-menlo-for-powerline
+    brew cask install font-fira-mono-for-powerline
+    brew cask install font-source-code-pro
+    brew cask install font-ubuntu
+    brew cask install font-ubuntu-mono
+
+    unset HOMEBREW_NO_AUTO_UPDATE
+
+    # Alacritty additions
+    mkdir -p /usr/local/share/man/man1
+    if [[ ! -d "$HOME/github/jwilm/alacritty" ]]; then
+        git clone https://github.com/jwilm/alacritty.git $HOME/github/jwilm/alacritty
+        # man page
+        gzip -c $HOME/github/jwilm/alacritty/extra/alacritty.man \
+            | tee /usr/local/share/man/man1/alacritty.1.gz > /dev/null
+        # terminfo
+        tic -xe alacritty,alacritty-direct $HOME/github/jwilm/extra/alacritty.info
+    fi
+
+    # Install Magnet from the app store
+    echo "checking magnet install"
+    MAGNET_ID=$(mas search magnet | /usr/local/bin/rg "Magnet +\(" | awk '{print $1}')
+    mas install "$MAGNET_ID"
+
+    # Install 1password from the app store
+    echo "checking 1password install"
+    ONEPW_ID=$(mas search 1Password | /usr/local/bin/rg "1Password 7 - Password Manager +\(" | awk '{print $1}')
+    mas install "$ONEPW_ID"
+
+    # Install 1password from the app store
+    echo "checking Evernote install"
+    EVERNOTE_ID=$(mas search Evernote | /usr/local/bin/rg "^ +\d+ +Evernote +\(" | awk '{print $1}')
+    mas install "$EVERNOTE_ID"
+
+    # Install amphetamine
+    echo "checking amphetamine install"
+    AMPHETAMINE_ID=$(mas search Amphetamine | /usr/local/bin/rg "Amphetamine +\(" | awk '{print $1}')
+    mas install "$AMPHETAMINE_ID"
+
 fi
 
 mkdir -p ~/github/
