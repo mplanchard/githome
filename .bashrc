@@ -5,9 +5,14 @@
 export PATH="$PATH:$HOME/bin"
 export PATH="$PATH:$HOME/.emacs.d/bin"
 export PATH="$PATH:$HOME/.pyenv/bin"
-export PATH="/snap/bin:$PATH"
 
-source /home/matthew/.cargo/env
+if $(uname -a | grep -q "Darwin"); then
+    export PATH="$PATH:/usr/local/bin"
+else
+    export PATH="/snap/bin:$PATH"
+fi
+
+source "$HOME/.cargo/env"
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
