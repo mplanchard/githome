@@ -64,11 +64,17 @@
 
 ;; For LSP performance
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
-(setq lsp-ui-sideline-delay 0.75)
-(setq lsp-ui-doc-delay 0.75)
-(setq lsp-idle-delay 1)
+(after! lsp
+        (setq lsp-ui-sideline-delay 0.75)
+        (setq lsp-ui-doc-delay 0.75)
+        (setq lsp-idle-delay 1)
+        (setq lsp-ui-sideline-diagnostic-max-lines 5)
+        (setq lsp-signature-auto-activate nil))
 
-(setq neo-theme 'ascii)
+
+(after! neotree
+        (setq neo-theme 'ascii)
+  )
 
 ;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
@@ -90,9 +96,15 @@
 ;; Packages
 ;; **********************************************************************
 
+(use-package! lsp-pyright
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))
 (use-package! direnv :config (direnv-mode))
 (use-package! ace-window)
-(use-package! shfmt)
+(use-package! exec-path-from-shell
+  :init (when (memq window-system '(mac ns x))
+                (exec-path-from-shell-initialize)))
 
 ;; **********************************************************************
 ;; Keybindings

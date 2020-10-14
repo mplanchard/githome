@@ -9,7 +9,9 @@
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;(package! some-package)
 
+(package! exec-path-from-shell)
 (package! python-black)
+(package! lsp-pyright)
 (package! direnv)
 (package! ace-window)
 (package! shfmt)
