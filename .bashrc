@@ -2,9 +2,8 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
-export PATH="$PATH:$HOME/bin"
-export PATH="$PATH:$HOME/.emacs.d/bin"
-export PATH="$PATH:$HOME/.pyenv/bin"
+export VISUAL=vim
+export EDITOR="$VISUAL"
 
 if $(uname -a | grep -q "Darwin"); then
     # Any mac-specific config here
@@ -14,18 +13,65 @@ else
     export PATH="/snap/bin:$PATH"
 fi
 
-source "$HOME/.cargo/env"
-export VISUAL=vim
-export EDITOR="$VISUAL"
+# Ensure we have a nice homedir for executables
+if [[ ! -d "$HOME/bin" ]]; then
+    mkdir -p "$HOME/bin"
+fi
+export PATH="$PATH:$HOME/bin"
 
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
-eval "$(direnv hook bash)"
+# Source binaries installed for emacs
+if [ -d "$HOME/.emacs.d/bin" ]; then
+    export PATH="$PATH:$HOME/.emacs.d/bin"
+fi
 
-pyenv global 3.8.6 3.7.9 3.6.12
+# For Rust
+if [ -d "$HOME/.cargo" ]; then
+    source "$HOME/.cargo/env"
+fi
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# Direnv
+if [[ $(command -v direnv) != "" ]]; then
+    eval "$(direnv hook bash)"
+fi
+
+# Haskell puts things in ~/.local/bin
+if [ -d "$HOME/.local/bin" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+
+# For homebrew on macos
+if [ -d "/usr/local/bin" ]; then
+    export PATH="/usr/local/bin:$PATH"
+fi
+
+# Export pyenv path
+if [ -d "$HOME/.pyenv/bin" ]; then
+    export PATH="$PATH:$HOME/.pyenv/bin"
+fi
+
+# Source pyenv stuff
+if [[ $(command -v pyenv) != "" ]]; then
+    eval "$(pyenv init -)"
+
+    # This appears to only be a thing on the linux version
+    if uname -a | grep -vq "Darwin"; then
+        eval "$(pyenv virtualenv-init -)"
+    fi
+
+    pyenv global 3.8.6 3.7.9 3.6.12
+fi
+
+# Source nvm stuff
+if [ -d "$HOME/.nvm" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+fi
+
+# Source google stuff
+if [ -d "$HOME/.ghcup" ]; then
+    source /Users/mplanchard/.ghcup/env
+fi
 
 # If not running interactively, don't do anything
 case $- in
@@ -153,7 +199,15 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# Set up the starship cmdline prompt
 eval "$(starship init bash)"
 
 # NVM
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [ -d "$HOME/.nvm" ]; then
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
+
+# Source alacritty completions on systems where we're using it
+if [ -f "$HOME/github/jwilm/alacritty/extra/completions/alacritty.bash" ]; then
+    source /Users/mplanchard/github/jwilm/alacritty/extra/completions/alacritty.bash
+fi

@@ -60,7 +60,13 @@ else
 
     brew tap d12frosted/emacs-plus
 
+    # Note: to make life easier, pyenv and nvm are installed using their
+    # standard install scripts rather than through brew, so that they'll
+    # wind up installed in the same locations on mac and linux, which is
+    # important for us to be able to set environments easily using the same
+    # commands on either system
     BREW_PKGS=" \
+        aspell \
         bash-completion \
         bat \
         cmake \
@@ -184,8 +190,9 @@ echo "Configuring vim ..."
 mkdir -p ~/.vim/backup/
 mkdir -p ~/.vim/swap/
 if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
-    curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    mkdir -p "$HOME/.vim/autoload/plug.vim"
+    curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+        "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
 fi
 
 # Python (mac or linux)
@@ -193,6 +200,7 @@ echo "Installing python versions ..."
 if [[ $(command -v pyenv) == "" ]]; then
     curl https://pyenv.run | bash
 fi
+# Note: these should be updated along with the `pyenv global` call in .bashrc
 ~/.pyenv/bin/pyenv install --skip-existing 3.8.6 
 ~/.pyenv/bin/pyenv install --skip-existing 3.7.9
 ~/.pyenv/bin/pyenv install --skip-existing 3.6.12
@@ -213,4 +221,14 @@ fi
 # NVM (mac or linux)
 if [[ $(command -v nvm) == "" ]]; then
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    nvm install stable
+    nvm alias default stable
+fi
+
+# Install pyright, which we use for a python LSP in emacs
+if [[ $(command -v pyright) == "" ]]; then
+    nvm use default
+    npm install -g pyright
 fi

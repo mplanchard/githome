@@ -5,12 +5,20 @@ alias ll='ls -lga@hF --group-directories-first'
 alias rm='rm -i'
 alias vim='nvim'
 
+alias git-clean-squashmerged='git checkout -q master && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base master $branch) && [[ $(git cherry master $(git commit-tree $(git rev-parse $branch^{tree}) -p $mergeBase -m _)) == "-"* ]] && echo "$branch is merged into master and can be deleted"; done'
+
 alias py3='source $HOME/.pyvenv/py3/bin/activate'
 alias py2='source $HOME/.pyvenv/py2/bin/activate'
 
 alias docker-container-rm-all='docker container ls -a --format "{{.ID}}" | xargs docker container rm -f'
 alias docker-image-rm-all='docker image ls -a --format "{{.ID}}" | xargs docker image rm'
 alias docker-volume-rm-all='docker volume ls --format "{{.Name}}" | xargs docker volume rm'
+
+alias kubetun='kubectl -n take-two port-forward service/take-two-database-proxy 6543:6543'
+
+alias kubedb='docker run -it postgres:10 psql --host host.docker.internal --port 6543 --username enrollment-ro --dbname enrollment'
+alias kubedb-rw='docker run -it postgres:10 psql --host host.docker.internal --port 6543 --username enrollment-rw --dbname enrollment'
+alias kubedb-owner='docker run -it postgres:10 psql --host host.docker.internal --port 6543 --username enrollment-owner --dbname enrollment'
 
 
 [[ -f "$HOME/.local_aliases" ]] && source "$HOME/.local_aliases"
