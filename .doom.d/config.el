@@ -68,7 +68,7 @@
         (setq lsp-ui-sideline-delay 0.75)
         (setq lsp-ui-doc-delay 0.75)
         (setq lsp-idle-delay 1)
-        (setq lsp-ui-sideline-diagnostic-max-lines 5)
+        (setq lsp-ui-sideline-diagnostic-max-lines 10)
         (setq lsp-signature-auto-activate nil))
 
 
