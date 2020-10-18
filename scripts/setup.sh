@@ -20,6 +20,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
     PKGS=(
         build-essential     # pyenv
+        cmake
         curl                # pyenv
         direnv
         editorconfig
@@ -36,6 +37,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libreadline-dev     # pyenv
         libsqlite3-dev      # pyenv
         libssl-dev          # pyenv
+        libtool
+        libtool-bin
         llvm                # pyenv
         neovim
         python-openssl      # pyenv
@@ -177,6 +180,11 @@ if [[ $(command -v rustc) == "" ]]; then
 fi
 echo "Installing Rust components ..."
 ~/.cargo/bin/rustup component add clippy rustfmt rust-src
+
+echo "Installing Rust utilities ..."
+if [[ $(command -v watchexec) == "" ]]; then
+    cargo install watchexec
+fi
 
 # Doom Emacs (mac or linux)
 echo "Installing Doom emacs ..."
