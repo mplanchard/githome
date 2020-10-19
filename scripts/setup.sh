@@ -240,3 +240,8 @@ if [[ $(command -v pyright) == "" ]]; then
     nvm use default
     npm install -g pyright
 fi
+
+# Go language server
+if [[ $(command -v gopls) == "" ]]; then
+    GO111MODULE=on go get golang.org/x/tools/gopls@latest
+fi

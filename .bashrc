@@ -29,6 +29,11 @@ if [ -d "$HOME/.cargo" ]; then
     source "$HOME/.cargo/env"
 fi
 
+# For Go
+if [ -d "$HOME/go/bin" ]; then
+    export PATH="$PATH:$HOME/go/bin"
+fi
+
 # Direnv
 if [[ $(command -v direnv) != "" ]]; then
     eval "$(direnv hook bash)"
