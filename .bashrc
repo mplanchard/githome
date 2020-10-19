@@ -29,9 +29,14 @@ if [ -d "$HOME/.cargo" ]; then
     source "$HOME/.cargo/env"
 fi
 
-# For Go
+# For Go (mac)
 if [ -d "$HOME/go/bin" ]; then
     export PATH="$PATH:$HOME/go/bin"
+fi
+
+# For Go (linux)
+if [ -d "/usr/local/go/bin" ]; then
+    export PATH="$PATH:/usr/local/go/bin"
 fi
 
 # Direnv

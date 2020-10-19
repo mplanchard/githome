@@ -53,6 +53,16 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt-get install -y "${PKGS[@]}"
     # See https://github.com/sharkdp/bat/issues/938
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
+
+    # we just use brew for golang on mac. Install manually here.
+
+    if [[ "$(command -v go)" == "" ]]; then
+        DL_PATH=/tmp/golang-cur.tar.gz
+        rm -f "$DL_PATH"
+        wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$DL_PATH"
+        sudo tar -C /usr/local -xzf "$DL_PATH"
+        rm -f "$DL_PATH"
+    fi
 else
     export HOMEBREW_NO_AUTO_UPDATE=1
 
