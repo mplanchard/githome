@@ -9,13 +9,15 @@
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;(package! some-package)
 
-(package! exec-path-from-shell)
-(package! python-black)
-(package! lsp-pyright)
-(package! direnv)
-(package! ace-window)
-(package! shfmt)
-(package! skewer-mode)
+(package! ace-window) ;; allow easy jumping between many windows
+(package! direnv) ;; automatically run .envrc commands for the emacs environment
+(package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
+(package! git-link) ;; generate github links to files, regions, etc.
+(package! lsp-pyright) ;; add support for the pyright lsp
+(package! python-black) ;; add commands for formatting python with black
+(package! protobuf-mode) ;; support for editing protos
+(package! shfmt) ;; format shell scripts
+(package! skewer-mode) ;; interactively edit JS/HTML
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
