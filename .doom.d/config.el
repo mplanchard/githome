@@ -93,7 +93,9 @@
 (setq lsp-rust-cfg-test t)
 
 ;; SQL
-(setq sql-postgres-login-params (append sql-postgres-login-params '(port)))
+(after!
+  sql
+  (setq sql-postgres-login-params (append sql-postgres-login-params '(port))))
 
 ;; **********************************************************************
 ;; Packages
