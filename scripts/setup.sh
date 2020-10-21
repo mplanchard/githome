@@ -38,6 +38,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libssl-dev          # pyenv
         llvm                # pyenv
         neovim
+        pandoc
         python-openssl      # pyenv
         tk-dev              # pyenv
         wget                # pyenv
@@ -84,6 +85,7 @@ else
         mas \
         neovim \
         node \
+        pandoc \
         ripgrep \
         tmux \
         tokei \
