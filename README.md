@@ -10,7 +10,7 @@ alias rather than `config`.
 You can bootstrap by running:
 
 ``` sh
-https://raw.githubusercontent.com/mplanchard/githome/master/scripts/githome.sh | bash
+curl https://raw.githubusercontent.com/mplanchard/githome/master/scripts/githome.sh | bash
 ```
 
 Note that if you have any existing files at any of the locations tracked

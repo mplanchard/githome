@@ -65,15 +65,15 @@
 ;; For LSP performance
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 (after! lsp
-        (setq lsp-ui-sideline-delay 0.75)
-        (setq lsp-ui-doc-delay 0.75)
-        (setq lsp-idle-delay 1)
-        (setq lsp-ui-sideline-diagnostic-max-lines 5)
-        (setq lsp-signature-auto-activate nil))
+  (setq lsp-ui-sideline-delay 0.75)
+  (setq lsp-ui-doc-delay 0.75)
+  (setq lsp-idle-delay 1)
+  (setq lsp-ui-sideline-diagnostic-max-lines 10)
+  (setq lsp-signature-auto-activate nil))
 
 
 (after! neotree
-        (setq neo-theme 'ascii)
+  (setq neo-theme 'ascii)
   )
 
 ;; Fill the 80th column to let me know I've gone too far
@@ -92,19 +92,22 @@
 (setq lsp-rust-all-features t)
 (setq lsp-rust-cfg-test t)
 
+;; SQL
+(setq sql-postgres-login-params (append sql-postgres-login-params '(port)))
+
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
 
 (use-package! lsp-pyright
   :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp))))
+                         (require 'lsp-pyright)
+                         (lsp))))
 (use-package! direnv :config (direnv-mode))
 (use-package! ace-window)
 (use-package! exec-path-from-shell
   :init (when (memq window-system '(mac ns x))
-                (exec-path-from-shell-initialize)))
+          (exec-path-from-shell-initialize)))
 
 ;; **********************************************************************
 ;; Keybindings
@@ -125,21 +128,13 @@
        :map org-mode-map
        :localleader
        :prefix "l"
-       :desc "github-link" :nv "g" #'mp-insert-github-link))
+       :desc "github-link" :nv "g" #'mp-insert-github-pr-link))
 
 ;; **********************************************************************
 ;; Python (why is it such a pain)
 ;; **********************************************************************
 
 (setq flycheck-python-mypy-executable "mypy")
-
-;; The mspyls server doesn't do type checking, so we add in mypy explicitly
-;; to the checker chain so we don't have to run it manually.
-;; see doom-emacs/issues#1530 for explanation
-(defun mp-py-enable-linters
-    ()
-  (interactive nil)
-  (flycheck-add-next-checker 'lsp  'python-flake8 'python-mypy))
 
 (use-package! python-black
   :demand t
@@ -161,27 +156,94 @@
 ;; Custom Functions
 ;; **********************************************************************
 
-(defun mp-parse-github-target (text)
-  (let ((split-url (split-string text "#" t "[[:space:]]+")))
-    (list (concat
-           "https://github.com/bestowinc/"
-           (car split-url)
-           "/pull/"
-           (car (last split-url)))
-          text)))
+(setq mp-default-github-org "bestowinc")
 
-(defun mp-make-github-link (text)
+
+(defun mp-parse-github-pr-target (target)
+  "Parse the given GitHub PR TARGET into a URL
+
+A TARGET is something that GitHub would automatically recognize as a GitHub
+link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
+
+If the TARGET does not contain an org name, the value of `mp-default-github-org'
+will be used as the org name."
+  ;; let*, as opposed to let, ensures that the variables are bound sequentially,
+  ;; so that each bound variable is available in the context of the next
+  ;; variable being bound
+  (let* ((split-url (split-string target "[#/]" t "[[:space:]]+"))
+         (split-len (length split-url)))
+    (multiple-value-bind
+        (org repo id)
+        (if (eq split-len 3)
+            (list (pop split-url) (pop split-url) (pop split-url))
+          (list mp-default-github-org (pop split-url) (pop split-url)))
+      (list
+       (concat "https://github.com/" org "/" repo "/pull/" id)
+       target))))
+
+(defun mp-make-github-pr-link (target)
+  "Construct an org link from the PR TARGET text
+
+A TARGET is something that GitHub would automatically recognize as a GitHub
+link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
+
+Prompt for the TARGET when called interactively."
   (interactive "sGithub Target: ")
-  (apply 'org-insert-link nil (mp-parse-github-target text)))
+  (apply 'org-insert-link nil (mp-parse-github-pr-target target)))
 
-(defun mp-insert-github-link (start end)
+(defun mp-insert-github-pr-link (start end)
+  "Insert an org link for the selected PR target
+
+A TARGET is something that GitHub would automatically recognize as a GitHub
+link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
+
+When a TARGET is selected, replace it with an org-mode link. If there is no
+active selection, prompt for a TARGET and insert the org-mode link at the
+cursor.
+"
   (interactive "r")
   ;; check whether the region is actively selected
   (if (use-region-p)
       ;; If so, use the start and end to make the link
-      (mp-make-github-link (buffer-substring start end))
-      ;; Otherwise, call the function interactively
-      (call-interactively 'mp-make-github-link)))
+      (mp-make-github-pr-link (buffer-substring start end))
+    ;; Otherwise, call the function interactively
+    (call-interactively 'mp-make-github-pr-link)))
+
+
+(defun mp-bestow-db (dbenv user)
+  (interactive "sEnvironment: \nsUser: ")
+  (let*
+      ((cmdstr
+         (format
+          "sops --decrypt --extract %s %s"
+          (format "'[\"%s\"]'"
+                  (cond
+                   ((string-equal user "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
+                   ((string-equal user "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
+                   ((string-equal user "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
+                   (t (throw 'no-user "No such user"))))
+          (format
+           "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
+           dbenv)))
+       (password (shell-command-to-string cmdstr))
+       (sql-connection-alist
+        (list (list
+               (concat "bestow-db-" dbenv)
+               '(sql-product 'postgres)
+               '(sql-server "localhost")
+               '(sql-port 5433)
+               '(sql-user user)
+               (list 'sql-database
+                     (format
+                      "postgresql://%s:%s@localhost:5433/enrollment"
+                      user
+                      password))))))
+    (sql-connect (concat "bestow-db-" dbenv))))
+
+
+;; **********************************************************************
+;; Auto-added custom stuff
+;; **********************************************************************
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

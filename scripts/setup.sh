@@ -20,6 +20,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
     PKGS=(
         build-essential     # pyenv
+        cmake
         curl                # pyenv
         direnv
         editorconfig
@@ -36,9 +37,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libreadline-dev     # pyenv
         libsqlite3-dev      # pyenv
         libssl-dev          # pyenv
+        libtool
+        libtool-bin
         llvm                # pyenv
         neovim
         pandoc
+        postgresql
+        postgresql-contrib
         python-openssl      # pyenv
         tk-dev              # pyenv
         wget                # pyenv
@@ -51,6 +56,16 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt-get install -y "${PKGS[@]}"
     # See https://github.com/sharkdp/bat/issues/938
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
+
+    # we just use brew for golang on mac. Install manually here.
+
+    if [[ "$(command -v go)" == "" ]]; then
+        DL_PATH=/tmp/golang-cur.tar.gz
+        rm -f "$DL_PATH"
+        wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$DL_PATH"
+        sudo tar -C /usr/local -xzf "$DL_PATH"
+        rm -f "$DL_PATH"
+    fi
 else
     export HOMEBREW_NO_AUTO_UPDATE=1
 
@@ -86,6 +101,7 @@ else
         neovim \
         node \
         pandoc \
+        postgresql \
         ripgrep \
         tmux \
         tokei \
@@ -180,6 +196,11 @@ fi
 echo "Installing Rust components ..."
 ~/.cargo/bin/rustup component add clippy rustfmt rust-src
 
+echo "Installing Rust utilities ..."
+if [[ $(command -v watchexec) == "" ]]; then
+    cargo install watchexec
+fi
+
 # Doom Emacs (mac or linux)
 echo "Installing Doom emacs ..."
 if [ ! -f "$HOME/.emacs.d/README.md" ]; then
@@ -233,4 +254,9 @@ fi
 if [[ $(command -v pyright) == "" ]]; then
     nvm use default
     npm install -g pyright
+fi
+
+# Go language server
+if [[ $(command -v gopls) == "" ]]; then
+    GO111MODULE=on go get golang.org/x/tools/gopls@latest
 fi
