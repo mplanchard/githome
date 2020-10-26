@@ -220,7 +220,6 @@ cursor.
     (call-interactively 'mp-make-github-pr-link)))
 
 
-<<<<<<< Updated upstream
 (defun mp-get-relative-path ()
   "Get the path relative to the project root, or nil if not in a project."
   (let
@@ -240,11 +239,7 @@ If not currently in a Projectile project, does not copy anything.
   (kill-new (mp-get-relative-path)))
 
 
-(defun mp-bestow-db (dbenv user)
-  "Connect to the bestow DB."
-=======
 (defun mp-bestow-db (dbenv dbuser)
->>>>>>> Stashed changes
   (interactive "sEnvironment: \nsUser: ")
   (let*
       ((cmdstr
