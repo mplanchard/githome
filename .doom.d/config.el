@@ -220,6 +220,27 @@ cursor.
     (call-interactively 'mp-make-github-pr-link)))
 
 
+(defun mp-parse-jira-ticket-link (target)
+  (let ((trimmed (car (split-string target nil t))))
+    (list
+     (concat "https://bestowinc.atlassian.net/browse/" trimmed)
+     target)))
+
+
+(defun mp-insert-org-jira-ticket-link (target)
+  "Insert an org link for a Jira ticket from a ticket identifier."
+  (interactive "sJira Target: ")
+  (apply 'org-insert-link nil (mp-parse-jira-ticket-link target)))
+
+
+(defun mp-insert-jira-ticket-link (start end)
+  "Insert an org link for a Jira ticket, either interactively or from a region."
+  (interactive "r")
+  (if (use-region-p)
+      (mp-insert-org-jira-ticket-link (buffer-substring start end))
+    (call-interactively 'mp-insert-org-jira-ticket-link)))
+
+
 (defun mp-get-relative-path ()
   "Get the path relative to the project root, or nil if not in a project."
   (let
