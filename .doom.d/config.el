@@ -130,7 +130,12 @@
        :map org-mode-map
        :localleader
        :prefix "l"
-       :desc "github-link" :nv "g" #'mp-insert-github-pr-link))
+       :desc "github-link" :nv "g" #'mp-insert-github-pr-link)
+      (:after org
+       :map org-mode-map
+       :localleader
+       :prefix "l"
+       :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link))
 
 ;; **********************************************************************
 ;; Python
@@ -262,6 +267,12 @@ If not currently in a Projectile project, does not copy anything.
 
 (defun mp-bestow-db (dbenv dbuser)
   (interactive "sEnvironment: \nsUser: ")
+  ;; Open a tunnel to the DB
+  (shell-command (format "source ~/.pyenv/take-two/bin/activate && ~/github/bestowinc/take-two/go db tunnel %s &" dbenv))
+  ;; ensure we have had time to establish the tunnel
+  (sleep-for 5)
+  ;; Decrypt the password and set up teh sql-connection-alist variable so that
+  ;; it's set to connect to the DB
   (let*
       ((cmdstr
          (format
@@ -289,6 +300,7 @@ If not currently in a Projectile project, does not copy anything.
                       dbuser
                       password))))))
     (sql-connect (concat "bestow-db-" dbenv))))
+
 
 
 ;; **********************************************************************
