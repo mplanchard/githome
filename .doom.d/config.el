@@ -221,6 +221,7 @@ cursor.
 
 
 (defun mp-bestow-db (dbenv user)
+  "Connect to the bestow DB."
   (interactive "sEnvironment: \nsUser: ")
   (let*
       ((cmdstr
