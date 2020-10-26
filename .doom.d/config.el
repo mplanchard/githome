@@ -220,6 +220,25 @@ cursor.
     (call-interactively 'mp-make-github-pr-link)))
 
 
+(defun mp-get-relative-path ()
+  "Get the path relative to the project root, or nil if not in a project."
+  (let
+      ((root-dir (projectile-project-root))
+       (local-dir (or load-file-name buffer-file-name)))
+    (cond
+     ((not root-dir) nil)
+     (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
+
+
+(defun mp-copy-relative-path ()
+  "Copy the path to the current file, relative to the project root.
+
+If not currently in a Projectile project, does not copy anything.
+"
+  (interactive)
+  (kill-new (mp-get-relative-path)))
+
+
 (defun mp-bestow-db (dbenv user)
   "Connect to the bestow DB."
   (interactive "sEnvironment: \nsUser: ")
