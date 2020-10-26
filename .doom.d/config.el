@@ -92,6 +92,11 @@
 (setq lsp-rust-all-features t)
 (setq lsp-rust-cfg-test t)
 
+;; SQL
+(after!
+  sql
+  (setq sql-postgres-login-params (append sql-postgres-login-params '(port))))
+
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
@@ -213,6 +218,37 @@ cursor.
       (mp-make-github-pr-link (buffer-substring start end))
     ;; Otherwise, call the function interactively
     (call-interactively 'mp-make-github-pr-link)))
+
+
+(defun mp-bestow-db (dbenv user)
+  (interactive "sEnvironment: \nsUser: ")
+  (let*
+      ((cmdstr
+         (format
+          "sops --decrypt --extract %s %s"
+          (format "'[\"%s\"]'"
+                  (cond
+                   ((string-equal user "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
+                   ((string-equal user "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
+                   ((string-equal user "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
+                   (t (throw 'no-user "No such user"))))
+          (format
+           "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
+           dbenv)))
+       (password (shell-command-to-string cmdstr))
+       (sql-connection-alist
+        (list (list
+               (concat "bestow-db-" dbenv)
+               '(sql-product 'postgres)
+               '(sql-server "localhost")
+               '(sql-port 5433)
+               '(sql-user user)
+               (list 'sql-database
+                     (format
+                      "postgresql://%s:%s@localhost:5433/enrollment"
+                      user
+                      password))))))
+    (sql-connect (concat "bestow-db-" dbenv))))
 
 
 ;; **********************************************************************

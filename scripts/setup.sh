@@ -41,6 +41,9 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libtool-bin
         llvm                # pyenv
         neovim
+        pandoc
+        postgresql
+        postgresql-contrib
         python-openssl      # pyenv
         tk-dev              # pyenv
         wget                # pyenv
@@ -97,6 +100,8 @@ else
         mas \
         neovim \
         node \
+        pandoc \
+        postgresql \
         ripgrep \
         tmux \
         tokei \
