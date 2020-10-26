@@ -45,6 +45,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         postgresql
         postgresql-contrib
         python-openssl      # pyenv
+        shellcheck
         tk-dev              # pyenv
         wget                # pyenv
         xz-utils            # pyenv
@@ -103,6 +104,7 @@ else
         pandoc \
         postgresql \
         ripgrep \
+        shellcheck \
         tmux \
         tokei \
         vim \
