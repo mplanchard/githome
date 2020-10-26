@@ -68,7 +68,7 @@
   (setq lsp-ui-sideline-delay 0.75)
   (setq lsp-ui-doc-delay 0.75)
   (setq lsp-idle-delay 1)
-  (setq lsp-ui-sideline-diagnostic-max-lines 10)
+  (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-signature-auto-activate nil))
 
 
@@ -128,7 +128,7 @@
        :desc "github-link" :nv "g" #'mp-insert-github-pr-link))
 
 ;; **********************************************************************
-;; Python (why is it such a pain)
+;; Python
 ;; **********************************************************************
 
 (setq flycheck-python-mypy-executable "mypy")
@@ -136,6 +136,14 @@
 (use-package! python-black
   :demand t
   :after python)
+
+;; Have mypy and pylint run after any LSP checks
+(add-hook
+ 'python-mode-hook
+ (lambda ()
+   (flycheck-add-next-checker 'lsp 'python-mypy)
+   (flycheck-add-next-checker 'python-mypy 'python-pylint)))
+
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here
 (map! :map python-mode-map

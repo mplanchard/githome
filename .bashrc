@@ -69,7 +69,7 @@ if [[ $(command -v pyenv) != "" ]]; then
         eval "$(pyenv virtualenv-init -)"
     fi
 
-    pyenv global 3.8.6 3.7.9 3.6.12
+    pyenv global 3.8.6 3.7.9 3.6.12 3.9.0
 fi
 
 # Source nvm stuff

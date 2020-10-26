@@ -218,10 +218,19 @@ echo "Installing python versions ..."
 if [[ $(command -v pyenv) == "" ]]; then
     curl https://pyenv.run | bash
 fi
+
+# Ensure pyenv is on the latest version
+echo "Ensure pyenv is up to date ..."
+pushd "$HOME/.pyenv"
+git pull
+popd
+
 # Note: these should be updated along with the `pyenv global` call in .bashrc
+echo "Installing python versions ..."
 ~/.pyenv/bin/pyenv install --skip-existing 3.8.6 
 ~/.pyenv/bin/pyenv install --skip-existing 3.7.9
 ~/.pyenv/bin/pyenv install --skip-existing 3.6.12
+~/.pyenv/bin/pyenv install --skip-existing 3.9.0
 
 # Tmux (mac or linux)
 echo "Adding tmux themes ..."
@@ -237,18 +246,12 @@ if [[ $(command -v starship) == "" ]];then
 fi
 
 # NVM (mac or linux)
-if [[ $(command -v nvm) == "" ]]; then
+if [[ ! -d "$HOME/.nvm" ]]; then
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
     nvm install stable
     nvm alias default stable
-fi
-
-# Install pyright, which we use for a python LSP in emacs
-if [[ $(command -v pyright) == "" ]]; then
-    nvm use default
-    npm install -g pyright
 fi
 
 # Go language server
