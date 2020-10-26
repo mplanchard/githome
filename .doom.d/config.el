@@ -220,6 +220,7 @@ cursor.
     (call-interactively 'mp-make-github-pr-link)))
 
 
+<<<<<<< Updated upstream
 (defun mp-get-relative-path ()
   "Get the path relative to the project root, or nil if not in a project."
   (let
@@ -241,6 +242,9 @@ If not currently in a Projectile project, does not copy anything.
 
 (defun mp-bestow-db (dbenv user)
   "Connect to the bestow DB."
+=======
+(defun mp-bestow-db (dbenv dbuser)
+>>>>>>> Stashed changes
   (interactive "sEnvironment: \nsUser: ")
   (let*
       ((cmdstr
@@ -248,9 +252,9 @@ If not currently in a Projectile project, does not copy anything.
           "sops --decrypt --extract %s %s"
           (format "'[\"%s\"]'"
                   (cond
-                   ((string-equal user "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
-                   ((string-equal user "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
-                   ((string-equal user "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
+                   ((string-equal dbuser "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
+                   ((string-equal dbuser "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
+                   ((string-equal dbuser "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
                    (t (throw 'no-user "No such user"))))
           (format
            "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
@@ -262,11 +266,11 @@ If not currently in a Projectile project, does not copy anything.
                '(sql-product 'postgres)
                '(sql-server "localhost")
                '(sql-port 5433)
-               '(sql-user user)
+               (list 'sql-user dbuser)
                (list 'sql-database
                      (format
                       "postgresql://%s:%s@localhost:5433/enrollment"
-                      user
+                      dbuser
                       password))))))
     (sql-connect (concat "bestow-db-" dbenv))))
 
