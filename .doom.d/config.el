@@ -87,6 +87,7 @@
   (setq org-export-with-toc nil)
   )
 
+;; deft notes
 (setq
  deft-directory org-directory
  deft-extensions '("org" "md")
@@ -307,6 +308,12 @@ If not currently in a Projectile project, does not copy anything.
                       password))))))
     (sql-connect (concat "bestow-db-" dbenv))))
 
+
+(defun mp-run-system-setup ()
+  "Run my system setup script."
+  (interactive)
+  (async-shell-command "bash ~/scripts/setup.sh")
+  (get-buffer "*Async Shell Command*"))
 
 
 ;; **********************************************************************

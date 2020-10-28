@@ -46,6 +46,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         postgresql-contrib
         python-openssl      # pyenv
         shellcheck
+        sqlite3
         tk-dev              # pyenv
         wget                # pyenv
         xz-utils            # pyenv
@@ -265,3 +266,5 @@ fi
 if [[ $(command -v gopls) == "" ]]; then
     GO111MODULE=on go get golang.org/x/tools/gopls@latest
 fi
+
+echo "Done!"
