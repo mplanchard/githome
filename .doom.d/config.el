@@ -309,11 +309,30 @@ If not currently in a Projectile project, does not copy anything.
     (sql-connect (concat "bestow-db-" dbenv))))
 
 
+(defun mp-echo-async-run-shell-command (command)
+  "Echo the shell command to the *Async Shell Command* buffer, then run it, opening the buffer."
+  (async-shell-command (format "echo '%s' && %s" command command))
+  (get-buffer "*Async Shell Command*"))
+
+
+(defun mp-githome (git_command)
+  (interactive "sGit Command: ")
+  (mp-echo-async-run-shell-command
+   (format
+    "git --git-dir $HOME/.dotfiles --work-tree=$HOME %s"
+    git_command)))
+
+
 (defun mp-run-system-setup ()
   "Run my system setup script."
   (interactive)
-  (async-shell-command "bash ~/scripts/setup.sh")
-  (get-buffer "*Async Shell Command*"))
+  (mp-echo-async-run-shell-command "bash ~/scripts/setup.sh"))
+
+
+(defun mp-githome-pull ()
+  "Pull any changes to the githome"
+  (interactive)
+  (mp-githome "pull")
 
 
 ;; **********************************************************************
