@@ -87,6 +87,11 @@
   (setq org-export-with-toc nil)
   )
 
+(setq
+ deft-directory org-directory
+ deft-extensions '("org" "md")
+ deft-recursive t)
+
 ;; Rust-related LSP settings
 (setq rustic-format-on-save t)
 (setq lsp-rust-all-features t)
