@@ -26,6 +26,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         editorconfig
         emacs27             # emacs
         fd-find             # doom-emacs
+        gconf2
         git                 # emacs, pyenv
         htop
         jq                  # doom-emacs
@@ -60,7 +61,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
 
     # we just use brew for golang on mac. Install manually here.
-
     if [[ "$(command -v go)" == "" ]]; then
         DL_PATH=/tmp/golang-cur.tar.gz
         rm -f "$DL_PATH"
@@ -140,6 +140,8 @@ else
     # Allow font installations
     brew tap homebrew/cask-fonts
 
+    # for org-protocol capture
+    brew cask install emacsclient
     brew cask install font-powerline-symbols
     brew cask install font-menlo-for-powerline
     brew cask install font-fira-mono-for-powerline

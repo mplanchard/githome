@@ -88,8 +88,8 @@
   )
 
 ;; org-roam
-(setq org-roam-directory org-directory)
-(add-hook 'after-init-hook 'org-roam-mode)
+(after! org-roam
+  (setq org-roam-directory org-directory))
 
 ;; deft notes
 (setq
@@ -116,8 +116,6 @@
 (use-package! exec-path-from-shell
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
-
-(require 'org-protocol)
 
 ;; **********************************************************************
 ;; Keybindings
