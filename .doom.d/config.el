@@ -275,7 +275,8 @@ If not currently in a Projectile project, does not copy anything.
   ;; Open a tunnel to the DB
   (shell-command (format "source ~/.pyenv/take-two/bin/activate && ~/github/bestowinc/take-two/go db tunnel %s &" dbenv))
   ;; ensure we have had time to establish the tunnel
-  (sleep-for 5)
+  (message "Establishing a tunnel...")
+  (sleep-for 10)
   ;; Decrypt the password and set up teh sql-connection-alist variable so that
   ;; it's set to connect to the DB
   (let*
