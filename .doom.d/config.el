@@ -87,6 +87,10 @@
   (setq org-export-with-toc nil)
   )
 
+;; org-roam
+(setq org-roam-directory org-directory)
+(add-hook 'after-init-hook 'org-roam-mode)
+
 ;; deft notes
 (setq
  deft-directory org-directory
@@ -107,15 +111,13 @@
 ;; Packages
 ;; **********************************************************************
 
-(use-package! lsp-pyright
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp))))
 (use-package! direnv :config (direnv-mode))
 (use-package! ace-window)
 (use-package! exec-path-from-shell
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
+
+(require 'org-protocol)
 
 ;; **********************************************************************
 ;; Keybindings
