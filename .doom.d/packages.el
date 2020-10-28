@@ -10,6 +10,7 @@
 ;(package! some-package)
 
 (package! ace-window) ;; allow easy jumping between many windows
+(package! csv-mode)  ;; some support for CSVs
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! git-link) ;; generate github links to files, regions, etc.

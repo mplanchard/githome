@@ -135,7 +135,12 @@
        :map org-mode-map
        :localleader
        :prefix "l"
-       :desc "github-link" :nv "g" #'mp-insert-github-pr-link))
+       :desc "github-link" :nv "g" #'mp-insert-github-pr-link)
+      (:after org
+       :map org-mode-map
+       :localleader
+       :prefix "l"
+       :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link))
 
 ;; **********************************************************************
 ;; Python
@@ -225,6 +230,27 @@ cursor.
     (call-interactively 'mp-make-github-pr-link)))
 
 
+(defun mp-parse-jira-ticket-link (target)
+  (let ((trimmed (car (split-string target nil t))))
+    (list
+     (concat "https://bestowinc.atlassian.net/browse/" trimmed)
+     target)))
+
+
+(defun mp-insert-org-jira-ticket-link (target)
+  "Insert an org link for a Jira ticket from a ticket identifier."
+  (interactive "sJira Target: ")
+  (apply 'org-insert-link nil (mp-parse-jira-ticket-link target)))
+
+
+(defun mp-insert-jira-ticket-link (start end)
+  "Insert an org link for a Jira ticket, either interactively or from a region."
+  (interactive "r")
+  (if (use-region-p)
+      (mp-insert-org-jira-ticket-link (buffer-substring start end))
+    (call-interactively 'mp-insert-org-jira-ticket-link)))
+
+
 (defun mp-get-relative-path ()
   "Get the path relative to the project root, or nil if not in a project."
   (let
@@ -244,18 +270,23 @@ If not currently in a Projectile project, does not copy anything.
   (kill-new (mp-get-relative-path)))
 
 
-(defun mp-bestow-db (dbenv user)
-  "Connect to the bestow DB."
+(defun mp-bestow-db (dbenv dbuser)
   (interactive "sEnvironment: \nsUser: ")
+  ;; Open a tunnel to the DB
+  (shell-command (format "source ~/.pyenv/take-two/bin/activate && ~/github/bestowinc/take-two/go db tunnel %s &" dbenv))
+  ;; ensure we have had time to establish the tunnel
+  (sleep-for 5)
+  ;; Decrypt the password and set up teh sql-connection-alist variable so that
+  ;; it's set to connect to the DB
   (let*
       ((cmdstr
          (format
           "sops --decrypt --extract %s %s"
           (format "'[\"%s\"]'"
                   (cond
-                   ((string-equal user "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
-                   ((string-equal user "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
-                   ((string-equal user "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
+                   ((string-equal dbuser "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
+                   ((string-equal dbuser "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
+                   ((string-equal dbuser "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
                    (t (throw 'no-user "No such user"))))
           (format
            "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
@@ -267,13 +298,14 @@ If not currently in a Projectile project, does not copy anything.
                '(sql-product 'postgres)
                '(sql-server "localhost")
                '(sql-port 5433)
-               '(sql-user user)
+               (list 'sql-user dbuser)
                (list 'sql-database
                      (format
                       "postgresql://%s:%s@localhost:5433/enrollment"
-                      user
+                      dbuser
                       password))))))
     (sql-connect (concat "bestow-db-" dbenv))))
+
 
 
 ;; **********************************************************************
