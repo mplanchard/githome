@@ -332,7 +332,7 @@ If not currently in a Projectile project, does not copy anything.
 (defun mp-githome-pull ()
   "Pull any changes to the githome"
   (interactive)
-  (mp-githome "pull")
+  (mp-githome "pull"))
 
 
 ;; **********************************************************************
