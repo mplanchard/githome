@@ -84,12 +84,20 @@
   (setq org-export-with-section-numbers nil)
   (setq org-export-with-smart-quotes nil)
   (setq org-export-with-sub-superscripts '{})
-  (setq org-export-with-toc nil)
-  )
+  (setq org-export-with-toc nil))
+
+;; Allow executing JS code blocks
+(require 'ob-js)
+
+;; Allow executing TS code blocks
+(after! ob-typescript
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((typescript . t))))
 
 ;; org-roam
 (after! org-roam
-  (setq org-roam-directory org-directory))
+  (setq org-roam-directory (file-truename org-directory)))
 
 ;; deft notes
 (setq
@@ -106,6 +114,11 @@
 (after!
   sql
   (setq sql-postgres-login-params (append sql-postgres-login-params '(port))))
+
+;; direnv
+(after!
+  direnv
+  (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
 
 ;; **********************************************************************
 ;; Packages
@@ -152,6 +165,11 @@
 (use-package! python-black
   :demand t
   :after python)
+
+(use-package! lsp-pyright
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp))))  ; or lsp-deferred
 
 ;; Have mypy and pylint run after any LSP checks
 (add-hook
@@ -282,17 +300,17 @@ If not currently in a Projectile project, does not copy anything.
   ;; it's set to connect to the DB
   (let*
       ((cmdstr
+        (format
+         "sops --decrypt --extract %s %s"
+         (format "'[\"%s\"]'"
+                 (cond
+                  ((string-equal dbuser "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
+                  ((string-equal dbuser "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
+                  ((string-equal dbuser "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
+                  (t (throw 'no-user "No such user"))))
          (format
-          "sops --decrypt --extract %s %s"
-          (format "'[\"%s\"]'"
-                  (cond
-                   ((string-equal dbuser "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
-                   ((string-equal dbuser "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
-                   ((string-equal dbuser "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
-                   (t (throw 'no-user "No such user"))))
-          (format
-           "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
-           dbenv)))
+          "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
+          dbenv)))
        (password (shell-command-to-string cmdstr))
        (sql-connection-alist
         (list (list
@@ -357,9 +375,6 @@ If not currently in a Projectile project, does not copy anything.
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
- '(safe-local-variable-values
-   (quote
-    ((lsp-python-ms-python-executable-cmd . "venv/bin/python"))))
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
