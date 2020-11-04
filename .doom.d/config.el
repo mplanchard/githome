@@ -142,6 +142,9 @@
       :prefix "w"
       :desc "ace-window" :nv "/" #'ace-window)
 
+(map! :leader
+      :desc "paste from kill ring" :nv "P" #'counsel-yank-pop)
+
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
