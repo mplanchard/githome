@@ -81,9 +81,14 @@
 
 ;; org-mode settings
 (after! org
+  ;; don't add section numbers to heaadings on export
   (setq org-export-with-section-numbers nil)
+  ;; keep quotes as I wrote them, don't automatically use smart quotes
   (setq org-export-with-smart-quotes nil)
+  ;; require brackets to use sub/superscripts, so that a straight underline or
+  ;; caret doesn't get interpreted as such
   (setq org-export-with-sub-superscripts '{})
+  ;; don't automatically add a ToC to exports
   (setq org-export-with-toc nil))
 
 ;; Allow executing JS code blocks
