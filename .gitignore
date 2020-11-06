@@ -1,0 +1,21 @@
+# This is where the githome stuff is defined. Ignore it to
+# avoid recursion.
+.gitconfig
+
+# Ensure we don't check in local stuff, where we put our
+# keys and whatnot.
+.localrc
+.local_aliases
+.local_profile
+
+# Obvious reasons for ignoring these
+.gnupg/
+.ssh/
+
+# Tool-related stuff that can have keys
+.aws/
+.kube/
+
+# Stuff there's just no reason to ever check int
+.nvm/
+.pyenv/
