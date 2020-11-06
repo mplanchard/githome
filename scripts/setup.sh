@@ -269,4 +269,8 @@ if [[ $(command -v gopls) == "" ]]; then
     GO111MODULE=on go get golang.org/x/tools/gopls@latest
 fi
 
+if [[ ! -e "$HOME/org" ]]; then
+    echo "Symlink org notes to ~/org!"
+fi
+
 echo "Done!"
