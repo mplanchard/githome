@@ -91,6 +91,7 @@
   ;; don't automatically add a ToC to exports
   (setq org-export-with-toc nil))
 
+<<<<<<< HEAD
 ;; org-journal settings
 (after! org-journal
   (setq
@@ -107,10 +108,10 @@
    ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
    org-journal-file-format "journal-%Y-%m-%d"))
 
-;; Allow executing JS code blocks
+;; Allow executing JS code blocks in org
 (require 'ob-js)
 
-;; Allow executing TS code blocks
+;; Allow executing TS code blocks in org
 (after! ob-typescript
   (org-babel-do-load-languages
    'org-babel-load-languages
