@@ -12,6 +12,7 @@
 (package! ace-window) ;; allow easy jumping between many windows
 (package! csv-mode)  ;; some support for CSVs
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
+(package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! lsp-pyright) ;; add support for the pyright lsp

@@ -91,6 +91,22 @@
   ;; don't automatically add a ToC to exports
   (setq org-export-with-toc nil))
 
+;; org-journal settings
+(after! org-journal
+  (setq
+   ;; One file per day
+   org-journal-file-type 'daily
+   ;; Since we're doing a file per day, put the date in as the note title,
+   ;; instead of the default top-level bullet
+   org-journal-date-prefix "#+TITLE: "
+   ;; The title is going to be like Journal: 2020-11-06, Friday
+   org-journal-date-format "Journal: %Y-%m-%d, %A"
+   ;; Since we're doing a file per day, each time entry is a top-level bullet,
+   ;; instead of the default second-level bullet
+   org-journal-time-prefix "* "
+   ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
+   org-journal-file-format "journal-%Y-%m-%d"))
+
 ;; Allow executing JS code blocks
 (require 'ob-js)
 
@@ -138,6 +154,10 @@
 (use-package! exec-path-from-shell
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
+
+(unless (display-graphic-p)
+  (require 'evil-terminal-cursor-changer)
+  (evil-terminal-cursor-changer-activate))
 
 ;; **********************************************************************
 ;; Keybindings
