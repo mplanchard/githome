@@ -59,6 +59,8 @@
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
 
+(setq ispell-dictionary "en_US")
+
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path '("~/github/"))
 
@@ -146,6 +148,7 @@
   direnv
   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
 
+
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
@@ -189,6 +192,21 @@
        :prefix "l"
        :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link))
 
+
+;; **********************************************************************
+;; Javascript/Typescript
+;; **********************************************************************
+
+;; add node-modules to exec path
+(add-hook 'js-mode-hook #'add-node-modules-path)
+(add-hook 'js2-mode-hook #'add-node-modules-path)
+(add-hook 'typescript-mode-hook #'add-node-modules-path)
+
+;; autoformat with prettier on save
+(add-hook 'js-mode-hook #'prettier-js-mode)
+(add-hook 'js2-mode-hook #'prettier-js-mode)
+(add-hook 'typescript-mode-hook #'prettier-js-mode)
+
 ;; **********************************************************************
 ;; Python
 ;; **********************************************************************
@@ -205,11 +223,11 @@
                          (lsp))))  ; or lsp-deferred
 
 ;; Have mypy and pylint run after any LSP checks
-(add-hook
- 'python-mode-hook
- (lambda ()
-   (flycheck-add-next-checker 'lsp 'python-mypy)
-   (flycheck-add-next-checker 'python-mypy 'python-pylint)))
+;; (add-hook
+;;  'python-mode-hook
+;;  (lambda ()
+;;    (flycheck-add-next-checker 'lsp 'python-mypy)
+;;    (flycheck-add-next-checker 'python-mypy 'python-pylint)))
 
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here
