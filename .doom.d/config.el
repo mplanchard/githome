@@ -93,7 +93,6 @@
   ;; don't automatically add a ToC to exports
   (setq org-export-with-toc nil))
 
-<<<<<<< HEAD
 ;; org-journal settings
 (after! org-journal
   (setq
