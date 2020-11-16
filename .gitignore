@@ -11,6 +11,7 @@
 # Obvious reasons for ignoring these
 .gnupg/
 .ssh/
+*.gpg
 
 # Tool-related stuff that can have keys
 .aws/

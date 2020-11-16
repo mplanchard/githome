@@ -59,6 +59,8 @@
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
 
+(setq ispell-dictionary "en_US")
+
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path '("~/github/"))
 
@@ -107,10 +109,10 @@
    ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
    org-journal-file-format "journal-%Y-%m-%d"))
 
-;; Allow executing JS code blocks
+;; Allow executing JS code blocks in org
 (require 'ob-js)
 
-;; Allow executing TS code blocks
+;; Allow executing TS code blocks in org
 (after! ob-typescript
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -144,6 +146,7 @@
 (after!
   direnv
   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
+
 
 ;; **********************************************************************
 ;; Packages
@@ -207,6 +210,21 @@
                       (mu4e-refile-folder . "/work/[Gmail]/All Mail")
                       (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
 
+
+;; **********************************************************************
+;; Javascript/Typescript
+;; **********************************************************************
+
+;; add node-modules to exec path
+(add-hook 'js-mode-hook #'add-node-modules-path)
+(add-hook 'js2-mode-hook #'add-node-modules-path)
+(add-hook 'typescript-mode-hook #'add-node-modules-path)
+
+;; autoformat with prettier on save
+(add-hook 'js-mode-hook #'prettier-js-mode)
+(add-hook 'js2-mode-hook #'prettier-js-mode)
+(add-hook 'typescript-mode-hook #'prettier-js-mode)
+
 ;; **********************************************************************
 ;; Python
 ;; **********************************************************************
@@ -223,11 +241,11 @@
                          (lsp))))  ; or lsp-deferred
 
 ;; Have mypy and pylint run after any LSP checks
-(add-hook
- 'python-mode-hook
- (lambda ()
-   (flycheck-add-next-checker 'lsp 'python-mypy)
-   (flycheck-add-next-checker 'python-mypy 'python-pylint)))
+;; (add-hook
+;;  'python-mode-hook
+;;  (lambda ()
+;;    (flycheck-add-next-checker 'lsp 'python-mypy)
+;;    (flycheck-add-next-checker 'python-mypy 'python-pylint)))
 
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here

@@ -18,6 +18,7 @@
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
+(package! prettier-js)  ;; use prettier for formatting JS/TS
 (package! protobuf-mode) ;; support for editing protos
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
