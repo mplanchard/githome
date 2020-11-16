@@ -205,25 +205,6 @@
 
 
 ;; **********************************************************************
-;; Email
-;; **********************************************************************
-
-
-(set-email-account! "gmail"
-                    '((user-email-address . "msplanchard@gmail.com")
-                      (smtpmail-smtp-user . "msplanchard@gmail.com")
-                      (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")
-                      (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
-                      (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-(set-email-account! "work"
-                    '((user-email-address . "matthew@bestow.com")
-                      (smtpmail-smtp-user . "matthew@bestow.com")
-                      (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
-                      (mu4e-refile-folder . "/work/[Gmail]/All Mail")
-                      (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
-
-
-;; **********************************************************************
 ;; Javascript/Typescript
 ;; **********************************************************************
 
