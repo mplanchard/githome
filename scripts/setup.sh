@@ -20,6 +20,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
     PKGS=(
         build-essential     # pyenv
+        ca-certificates     # email
         cmake
         curl                # pyenv
         direnv
@@ -29,6 +30,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         gconf2
         git                 # emacs, pyenv
         htop
+        isync               # email
         jq                  # doom-emacs
         libbz2-dev          # pyenv
         libffi-dev          # pyenv
@@ -41,6 +43,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libtool
         libtool-bin
         llvm                # pyenv
+        maildir-utils       # email
+        mu                  # email
         neovim
         pandoc
         postgresql
@@ -99,7 +103,9 @@ else
         go \
         gpg \
         htop \
+        isync \
         mas \
+        mu \
         neovim \
         node \
         pandoc \
