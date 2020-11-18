@@ -220,6 +220,10 @@
   (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
   (require 'mu4e))
 
+(setq
+ ;; Don't pull in an entire archived thread when there are new messages in the thread
+ mu4e-headers-include-related nil)
+
 (set-email-account! "gmail"
                     '((user-email-address . "msplanchard@gmail.com")
                       (smtpmail-smtp-user . "msplanchard@gmail.com")
