@@ -8,8 +8,10 @@ PassCmd "gpg --decrypt -q ~/.gmailpass.gpg"
 #
 # Use SSL
 SSLType IMAPS
-# The following line should work. If get certificate errors, uncomment the two following lines and read the "Troubleshooting" section.
-CertificateFile /etc/ssl/certs/ca-certificates.crt
+AuthMechs PLAIN
+# Certs put into a common for mac and linux
+CertificateFile ~/.cert/cert.pem
+# CertificateFile /etc/ssl/certs/ca-certificates.crt
 #CertificateFile ~/.cert/imap.gmail.com.pem
 #CertificateFile ~/.cert/Equifax_Secure_CA.pem
 
@@ -25,7 +27,8 @@ Inbox ~/.mail/gmail/Inbox
 Channel gmail
 Master :gmail-remote:
 Slave :gmail-local:
-# Exclude everything under the internal [Gmail] folder, except the interesting folders
+# Exclude All Mail for first sync b/c it's massive
+# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starreda"
 Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
@@ -45,8 +48,10 @@ PassCmd "gpg --decrypt -q ~/.workemailpass.gpg"
 #
 # Use SSL
 SSLType IMAPS
-# The following line should work. If get certificate errors, uncomment the two following lines and read the "Troubleshooting" section.
-CertificateFile /etc/ssl/certs/ca-certificates.crt
+AuthMechs PLAIN
+# Certs put into a common for mac and linux
+CertificateFile ~/.cert/cert.pem
+# CertificateFile /etc/ssl/certs/ca-certificates.crt
 #CertificateFile ~/.cert/imap.gmail.com.pem
 #CertificateFile ~/.cert/Equifax_Secure_CA.pem
 
@@ -62,7 +67,8 @@ Inbox ~/.mail/work/Inbox
 Channel work
 Master :work-remote:
 Slave :work-local:
-# Exclude everything under the internal [Gmail] folder, except the interesting folders
+# Exclude All Mail for first sync b/c it's massive
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
 Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *

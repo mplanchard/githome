@@ -71,7 +71,9 @@
   (setq lsp-ui-doc-delay 0.75)
   (setq lsp-idle-delay 1)
   (setq lsp-ui-sideline-diagnostic-max-lines 20)
-  (setq lsp-signature-auto-activate nil))
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-headerline-breadcrumb-enable t))
+
 
 
 (after! neotree
@@ -192,6 +194,11 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
+(map! :map mu4e-header-mode-map
+      :desc "mark thread"
+      :nv "T"
+      #'mu4e-headers-mark-thread)
+
 (map! (:after org
        :map org-mode-map
        :localleader
@@ -208,6 +215,10 @@
 ;; Email
 ;; **********************************************************************
 
+;; MacOS particular weirdness
+(when (string-equal system-type "darwin")
+  (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+  (require 'mu4e))
 
 (set-email-account! "gmail"
                     '((user-email-address . "msplanchard@gmail.com")
@@ -222,6 +233,8 @@
                       (mu4e-refile-folder . "/work/[Gmail]/All Mail")
                       (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
 
+;; Check mail every ten minutes
+(run-with-timer 0 (* 60 10) #'mu4e-update-mail-and-index t)
 
 ;; **********************************************************************
 ;; Javascript/Typescript
@@ -237,10 +250,15 @@
 (add-hook 'js2-mode-hook #'prettier-js-mode)
 (add-hook 'typescript-mode-hook #'prettier-js-mode)
 
+
+(defun mp-flycheck-update-js-lsp-checkers ()
+  "Update JS checkers for LSP mode"
+  (when (bound-and-true-p lsp-mode) (flycheck-add-next-checker 'lsp 'javascript-eslint)))
+
 ;; Run the eslint langserv in addition to the major one
-(add-hook 'typescript-mode-hook (lambda () (flycheck-add-next-checker 'lsp 'javascript-eslint)))
-(add-hook 'js-mode-hook (lambda () (flycheck-add-next-checker 'lsp 'javascript-eslint)))
-(add-hook 'js2-mode-hook (lambda () (flycheck-add-next-checker 'lsp 'javascript-eslint)))
+(add-hook 'typescript-mode-hook #'mp-flycheck-update-js-lsp-checkers)
+(add-hook 'js-mode-hook #'mp-flycheck-update-js-lsp-checkers)
+(add-hook 'js2-mode-hook #'mp-flycheck-update-js-lsp-checkers)
 
 ;; **********************************************************************
 ;; Python
@@ -437,6 +455,89 @@ If not currently in a Projectile project, does not copy anything.
   "Pull any changes to the githome"
   (interactive)
   (mp-githome "pull"))
+
+;; **********************************************************************
+;; Externally Sourced Functions
+;; **********************************************************************
+
+
+;; mu thread folding from https://gist.github.com/felipeochoa/614308ac9d2c671a5830eb7847985202
+
+(defun mu4e~headers-msg-unread-p (msg)
+  "Check if MSG is unread."
+  (let ((flags (mu4e-message-field msg :flags)))
+    (and (member 'unread flags) (not (member 'trashed flags)))))
+
+(defvar mu4e-headers-folding-slug-function
+  (lambda (headers) (format " (%d)" (length headers)))
+  "Function to call to generate the slug that will be appended to folded threads.
+This function receives a single argument HEADERS, which is a list
+of headers about to be folded.")
+
+(defun mu4e~headers-folded-slug (headers)
+  "Generate a string to append to the message line indicating the fold status.
+HEADERS is a list with the messages being folded (including the root header)."
+  (funcall mu4e-headers-folding-slug-function headers))
+
+(defun mu4e~headers-fold-make-overlay (beg end headers)
+  "Hides text between BEG and END using an overlay.
+HEADERS is a list with the messages being folded (including the root header)."
+  (let ((o (make-overlay beg end)))
+    (overlay-put o 'mu4e-folded-thread t)
+    (overlay-put o 'display (mu4e~headers-folded-slug headers))
+    (overlay-put o 'evaporate t)
+    (overlay-put o 'invisible t)))
+
+(defun mu4e~headers-fold-find-overlay (loc)
+  "Find and return the 'mu4e-folded-thread overlay at LOC, or return nil."
+  (cl-dolist (o (overlays-in (1- loc) (1+ loc)))
+    (when (overlay-get o 'mu4e-folded-thread)
+      (cl-return o))))
+
+(defun mu4e-headers-fold-all ()
+  "Fold all the threads in the current view."
+  (interactive)
+  (let ((thread-id "") msgs fold-start fold-end)
+    (mu4e-headers-for-each
+     (lambda (msg)
+       (end-of-line)
+       (push msg msgs)
+       (let ((this-thread-id (mu4e~headers-get-thread-info msg 'thread-id)))
+         (if (string= thread-id this-thread-id)
+             (setq fold-end (point))
+           (when (< 1 (length msgs))
+             (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))
+           (setq fold-start (point)
+                 fold-end (point)
+                 msgs nil
+                 thread-id this-thread-id)))))
+    (when (< 1 (length msgs))
+      (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))))
+
+(defun mu4e-headers-toggle-thread-folding (&optional subthread)
+  "Toggle the folding state for the thread at point.
+If SUBTHREAD is non-nil, only fold the current subthread."
+  ;; Folding is accomplished using an overlay that starts at the end
+  ;; of the parent line and ends at the end of the last descendant
+  ;; line. If there's no overlay, it means it isn't folded
+  (interactive "P")
+  (if-let ((o (mu4e~headers-fold-find-overlay (point-at-eol))))
+      (delete-overlay o)
+    (let* ((msg (mu4e-message-at-point))
+           (thread-id (mu4e~headers-get-thread-info msg 'thread-id))
+           (path-re (concat "^" (mu4e~headers-get-thread-info msg 'path)))
+           msgs first-marked-point last-marked-point)
+      (mu4e-headers-for-each
+       (lambda (submsg)
+         (when (and (string= thread-id (mu4e~headers-get-thread-info submsg 'thread-id))
+                    (or (not subthread)
+                        (string-match-p path-re (mu4e~headers-get-thread-info submsg 'path))))
+           (push msg msgs)
+           (setq last-marked-point (point-at-eol))
+           (unless first-marked-point
+             (setq first-marked-point last-marked-point)))))
+      (when (< 1 (length msgs))
+        (mu4e~headers-fold-make-overlay first-marked-point last-marked-point (nreverse msgs))))))
 
 
 ;; **********************************************************************

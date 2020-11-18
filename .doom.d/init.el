@@ -147,6 +147,7 @@
        (org              ; organize your plain life in plain text
         +journal
         +pandoc
+        +present
         +roam)
        ;;php               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more

@@ -72,6 +72,12 @@ if [[ "$ENV" == "$LINUX" ]]; then
         sudo tar -C /usr/local -xzf "$DL_PATH"
         rm -f "$DL_PATH"
     fi
+
+    # Link certs into a common location for mac/linux
+    if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
+        mkdir -p "$HOME/.cert"
+        ln -s /etc/ssl/certs/ca-certificates.crt "$HOME/.cert/cert.pem"
+    fi
 else
     export HOMEBREW_NO_AUTO_UPDATE=1
 
@@ -108,6 +114,7 @@ else
         mu \
         neovim \
         node \
+        openssl \
         pandoc \
         postgresql \
         ripgrep \
@@ -188,8 +195,19 @@ else
     AMPHETAMINE_ID=$(mas search Amphetamine | /usr/local/bin/rg "Amphetamine +\(" | awk '{print $1}')
     mas install "$AMPHETAMINE_ID"
 
+    # Link certs into a common location for mac/linux
+    if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
+        mkdir -p "$HOME/.cert"
+        ln -s /usr/local/etc/openssl/cert.pem "$HOME/.cert/cert.pem"
+    fi
+
 fi
 
+# Make directories for mail
+mkdir -p ~/.mail/gmail
+mkdir -p ~/.mail/work
+
+# Ensure we've got our standard GH directory
 mkdir -p ~/github/
 
 # Rust (mac or linux)
