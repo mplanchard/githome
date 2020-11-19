@@ -28,8 +28,8 @@ Channel gmail
 Master :gmail-remote:
 Slave :gmail-local:
 # Exclude All Mail for first sync b/c it's massive
-# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starreda"
-Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starreda"
+# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
 # Automatically create missing mailboxes, both locally and on the server
@@ -68,8 +68,8 @@ Channel work
 Master :work-remote:
 Slave :work-local:
 # Exclude All Mail for first sync b/c it's massive
-# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
-Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
 # Automatically create missing mailboxes, both locally and on the server

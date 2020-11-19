@@ -77,8 +77,7 @@
 
 
 (after! neotree
-  (setq neo-theme 'ascii)
-  )
+  (setq neo-theme 'ascii))
 
 ;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
@@ -98,6 +97,8 @@
 ;; org-journal settings
 (after! org-journal
   (setq
+   ;; Just shove it straight into the org dir
+   org-journal-dir org-directory
    ;; One file per day
    org-journal-file-type 'daily
    ;; Since we're doing a file per day, put the date in as the note title,
@@ -109,7 +110,7 @@
    ;; instead of the default second-level bullet
    org-journal-time-prefix "* "
    ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
-   org-journal-file-format "journal-%Y-%m-%d"))
+   org-journal-file-format "journal-%Y-%m-%d.org"))
 
 ;; Allow executing JS code blocks in org
 (require 'ob-js)
@@ -172,6 +173,7 @@
   (kaolin-treemacs-theme))
 
 
+;; Use bar and block cursor in terminal emacs rather than just block
 (unless (display-graphic-p)
   (require 'evil-terminal-cursor-changer)
   (evil-terminal-cursor-changer-activate))
@@ -220,8 +222,8 @@
   (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
   (require 'mu4e))
 
+;; Don't pull in the entire thread from the archive when it gets a new message
 (setq
- ;; Don't pull in an entire archived thread when there are new messages in the thread
  mu4e-headers-include-related nil)
 
 (set-email-account! "gmail"
@@ -271,7 +273,6 @@
 (setq flycheck-python-mypy-executable "mypy")
 
 (use-package! python-black
-  :demand t
   :after python)
 
 (use-package! lsp-pyright

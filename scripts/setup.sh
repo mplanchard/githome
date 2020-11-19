@@ -108,6 +108,7 @@ else
         git \
         go \
         gpg \
+        graphviz \
         htop \
         isync \
         mas \

@@ -16,7 +16,9 @@
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(safe-local-variable-values
-   '((lsp-enable-on-type-formatting . f)
+   '((lsp-python-ms-python-executable . "~/.pyenv/take-two/bin/python")
+     (js-indent-level . 2)
+     (lsp-enable-on-type-formatting . f)
      (eval if
            (fboundp 'editorconfig-mode)
            (editorconfig-mode 1))))
@@ -48,3 +50,4 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:family "Ubuntu Mono" :foundry "DAMA" :slant normal :weight normal :height 158 :width normal)))))
+(put 'list-timers 'disabled nil)
