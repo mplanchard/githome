@@ -74,17 +74,19 @@
   (setq lsp-signature-auto-activate nil)
   (setq lsp-headerline-breadcrumb-enable t))
 
-
-
 (after! neotree
   (setq neo-theme 'ascii))
+
+(after! ispell
+  (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
+
 
 ;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
 
 ;; org-mode settings
 (after! org
-  ;; don't add section numbers to heaadings on export
+  ;; don't add section numbers to headings on export
   (setq org-export-with-section-numbers nil)
   ;; keep quotes as I wrote them, don't automatically use smart quotes
   (setq org-export-with-smart-quotes nil)
@@ -210,7 +212,12 @@
        :map org-mode-map
        :localleader
        :prefix "l"
-       :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link))
+       :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link)
+      (:after org
+       :prefix "g"
+       :desc "open at point"
+       :nv "o"
+       #'org-open-at-point))
 
 
 ;; **********************************************************************
