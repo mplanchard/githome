@@ -21,15 +21,15 @@ Account gmail
 MaildirStore gmail-local
 SubFolders Verbatim
 # The trailing "/" is important
-Path ~/.mail/gmail/
-Inbox ~/.mail/gmail/Inbox
+Path ~/mail/gmail/
+Inbox ~/mail/gmail/Inbox
 
 Channel gmail
 Master :gmail-remote:
 Slave :gmail-local:
 # Exclude All Mail for first sync b/c it's massive
-Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starreda"
-# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred"
+Patterns * ![Gmail]* "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
 # Automatically create missing mailboxes, both locally and on the server
@@ -61,15 +61,15 @@ Account work
 MaildirStore work-local
 SubFolders Verbatim
 # The trailing "/" is important
-Path ~/.mail/work/
-Inbox ~/.mail/work/Inbox
+Path ~/mail/work/
+Inbox ~/mail/work/Inbox
 
 Channel work
 Master :work-remote:
 Slave :work-local:
 # Exclude All Mail for first sync b/c it's massive
-Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
-# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
+Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
 # Automatically create missing mailboxes, both locally and on the server

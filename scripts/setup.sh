@@ -43,8 +43,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libtool
         libtool-bin
         llvm                # pyenv
-        maildir-utils       # email
-        mu                  # email
         neovim
         pandoc
         postgresql
@@ -58,11 +56,17 @@ if [[ "$ENV" == "$LINUX" ]]; then
         zlib1g-dev          # pyenv
     )
 
+    SNAPS=(
+        maildir-utils       # mu & mu4e
+    )
+
     sudo apt-get update
 
     sudo apt-get install -y "${PKGS[@]}"
     # See https://github.com/sharkdp/bat/issues/938
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
+
+    sudo snap install "${SNAPS[@]}"
 
     # we just use brew for golang on mac. Install manually here.
     if [[ "$(command -v go)" == "" ]]; then

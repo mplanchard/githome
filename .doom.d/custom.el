@@ -22,6 +22,8 @@
      (eval if
            (fboundp 'editorconfig-mode)
            (editorconfig-mode 1))))
+ '(smtpmail-smtp-server "smtp.gmail.com")
+ '(smtpmail-smtp-service 587)
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list

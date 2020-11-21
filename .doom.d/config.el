@@ -198,7 +198,7 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-(map! :map mu4e-header-mode-map
+(map! :map mu4e-headers-mode-map
       :desc "mark thread"
       :nv "T"
       #'mu4e-headers-mark-thread)
@@ -224,29 +224,53 @@
 ;; Email
 ;; **********************************************************************
 
-;; MacOS particular weirdness
-(when (string-equal system-type "darwin")
-  (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
-  (require 'mu4e))
+(if (string-equal system-type "darwin")
+    ;; Add homebrew-installed mu's mu4e path to the load path
+    (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+  ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
+  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e"))
 
-;; Don't pull in the entire thread from the archive when it gets a new message
 (setq
- mu4e-headers-include-related nil)
+ ;; Don't pull in the entire thread from the archive when it gets a new message
+ mu4e-headers-include-related nil
+ ;; Set the maildir to ~/mail -- the default is /mail, which was fine, except that
+ ;; the ubuntu snap for mu doesn't have access to private directories
+ mu4e-maildir "~/mail"  ;; deprecated, but keeping around for now
+ mu4e-root-maildir "~/mail")
+
+;; Ensure we can load it
+(require 'mu4e)
 
 (set-email-account! "gmail"
                     '((user-email-address . "msplanchard@gmail.com")
-                      (smtpmail-smtp-user . "msplanchard@gmail.com")
-                      (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")
-                      (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
+                      (smtpmail-smtp-user . "msplanchard")
+                      (smtpmail-local-domain . "gmail.com")
+                      (smtpmail-smtp-server . "smtp.gmail.com")
+                      (smtpmail-default-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-service . 587)
+                      (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
+                      (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
                       (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
 (set-email-account! "work"
                     '((user-email-address . "matthew@bestow.com")
                       (smtpmail-smtp-user . "matthew@bestow.com")
+                      (smtpmail-local-domain . "gmail.com")
+                      (smtpmail-smtp-server . "smtp.gmail.com")
+                      (smtpmail-default-smtp-server . "smtp.gmail.com")
+                      (smtpmail-smtp-service . 587)
                       (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
                       (mu4e-refile-folder . "/work/[Gmail]/All Mail")
                       (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
 
-;; Check mail every ten minutes
+;; Send HTML messages by default.
+(after! org-msg
+  (setq org-msg-default-alternatives '(html)))
+
+;; Check mail every ten minutes:
+;; first, cancel any running timers to avoid creating a multitude due to e.g.
+;; refreshing doom emacs
+(cancel-function-timers #'mu4e-update-mail-and-index)
+;; then set up the email checker to run every 10 minutes
 (run-with-timer 0 (* 60 10) #'mu4e-update-mail-and-index t)
 
 ;; **********************************************************************
