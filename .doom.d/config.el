@@ -266,6 +266,14 @@
 (after! org-msg
   (setq org-msg-default-alternatives '(html)))
 
+(defun mp-email-empty-trash ()
+  "Empty the mu4e trash directory of anything older than 10 days old"
+  (interactive)
+  (async-shell-command
+   (format
+    "%s find maildir:/trash AND date:10d..1000d --fields=l | xargs rm -f"
+    mu4e-mu-binary)))
+
 ;; Check mail every ten minutes:
 ;; first, cancel any running timers to avoid creating a multitude due to e.g.
 ;; refreshing doom emacs
