@@ -68,7 +68,7 @@ Channel work
 Master :work-remote:
 Slave :work-local:
 # Exclude All Mail for first sync b/c it's massive
-# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred" 
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred"
 Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
