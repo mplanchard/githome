@@ -16,7 +16,8 @@
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! kaolin-themes) ;; some themes
-(package! lsp-pyright) ;; add support for the pyright lsp
+;; disabling because it's quite slow for big projects
+;; (package! lsp-pyright) ;; add support for the pyright lsp
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS

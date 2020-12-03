@@ -50,6 +50,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
         python-openssl      # pyenv
         shellcheck
         sqlite3
+        tidy-html5          # org-mode html export
         tk-dev              # pyenv
         wget                # pyenv
         xz-utils            # pyenv

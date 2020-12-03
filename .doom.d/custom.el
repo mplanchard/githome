@@ -16,7 +16,8 @@
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(safe-local-variable-values
-   '((lsp-python-ms-python-executable . "~/.pyenv/take-two/bin/python")
+   '((lsp-enable-on-type-formatting . t)
+     (lsp-python-ms-python-executable . "~/.pyenv/take-two/bin/python")
      (js-indent-level . 2)
      (lsp-enable-on-type-formatting . f)
      (eval if

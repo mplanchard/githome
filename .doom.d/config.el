@@ -72,7 +72,13 @@
   (setq lsp-idle-delay 1)
   (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-signature-auto-activate nil)
-  (setq lsp-headerline-breadcrumb-enable t))
+  (setq lsp-headerline-breadcrumb-enable t)
+  (setq lsp-modeline-code-actions-enable nil)
+  (setq lsp-ui-sideline-show-code-actions nil))
+
+;; Allow lots of flycheck errors
+(after! flycheck
+  (setq flycheck-checker-error-threshold 1000))
 
 (after! neotree
   (setq neo-theme 'ascii))
@@ -314,17 +320,12 @@
 (use-package! python-black
   :after python)
 
-(use-package! lsp-pyright
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp))))  ; or lsp-deferred
-
-;; Have mypy and pylint run after any LSP checks
-;; (add-hook
-;;  'python-mode-hook
-;;  (lambda ()
-;;    (flycheck-add-next-checker 'lsp 'python-mypy)
-;;    (flycheck-add-next-checker 'python-mypy 'python-pylint)))
+;; Have pylint and flake8 run after any LSP checks
+(add-hook
+ 'python-mode-hook
+ (lambda ()
+   (flycheck-add-next-checker 'lsp 'python-flake8)
+   (flycheck-add-next-checker 'python-flake8 'python-pylint)))
 
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here
