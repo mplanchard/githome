@@ -501,6 +501,24 @@ If not currently in a Projectile project, does not copy anything.
   (interactive)
   (mp-githome "pull"))
 
+(defun mp-take-two-deploy-list (&optional target)
+  "Get a list of commits to deploy from up to TARGET, or master/HEAD if not provided"
+  (interactive "sTarget [default origin/master]: ")
+  (let (
+        (current
+         (cdr (assq
+               'commit_sha
+               (with-current-buffer (url-retrieve-synchronously "https://api.hellobestow.com/version")
+                 (goto-char url-http-end-of-headers)
+                 (json-read)))))
+        (target (if (string-empty-p target) "origin/master" target)))
+    (magit-git-fetch "origin" "master")
+    (shell-command
+     (format
+      "git log --graph --pretty=format:'%%h - %%d %%s (%%cr) (%%an)' %s..%s --abbrev-commit"
+      current
+      target))))
+
 ;; **********************************************************************
 ;; Externally Sourced Functions
 ;; **********************************************************************
