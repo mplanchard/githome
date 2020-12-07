@@ -186,6 +186,11 @@
   (require 'evil-terminal-cursor-changer)
   (evil-terminal-cursor-changer-activate))
 
+;; Use mermaid-mode for mermaid files
+(use-package! mermaid-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
+
 ;; **********************************************************************
 ;; Keybindings
 ;; **********************************************************************
@@ -504,15 +509,21 @@ If not currently in a Projectile project, does not copy anything.
 (defun mp-take-two-deploy-list (&optional target)
   "Get a list of commits to deploy from up to TARGET, or master/HEAD if not provided"
   (interactive "sTarget [default origin/master]: ")
-  (let (
-        (current
-         (cdr (assq
-               'commit_sha
-               (with-current-buffer (url-retrieve-synchronously "https://api.hellobestow.com/version")
-                 (goto-char url-http-end-of-headers)
-                 (json-read)))))
-        (target (if (string-empty-p target) "origin/master" target)))
+  (let ((current
+         ;; grab the current deployed
+         (cdr (assoc 'commit_sha
+                     (with-current-buffer (url-retrieve-synchronously "https://api.hellobestow.com/version")
+                       (goto-char url-http-end-of-headers)
+                       (json-read)))))
+        (target
+         (if (string-empty-p target) "origin/master" target)))
+    ;; ensure we're up to date with origin
     (magit-git-fetch "origin" "master")
+    ;; output git log to buffer (note we could use ~magit-log-other~ here, but
+    ;; I cannot figure out how to copy the git logs in a way that includes the
+    ;; author, even though it shows up in the log view. Since copying and pasting
+    ;; the logs into slack and tagging people for approval is a critical part of
+    ;; this workflow, we're sticking with running the shell command)
     (shell-command
      (format
       "git log --graph --pretty=format:'%%h - %%d %%s (%%cr) (%%an)' %s..%s --abbrev-commit"
