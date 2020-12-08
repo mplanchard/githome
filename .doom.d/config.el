@@ -209,7 +209,8 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-(map! :map mu4e-headers-mode-map
+(map! :after mu4e
+      :map mu4e-headers-mode-map
       :desc "mark thread"
       :nv "T"
       #'mu4e-headers-mark-thread)
