@@ -198,6 +198,14 @@ if [ -f ~/.localenv ]; then
     . ~/.localenv
 fi
 
+if [ -f ~/.localrc ]; then
+    . ~/.localrc
+fi
+
+if [ -f ~/.local_alises ]; then
+    . ~/.local_aliases
+fi
+
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
