@@ -67,13 +67,15 @@
 ;; For LSP performance
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 (after! lsp
-  (setq lsp-ui-sideline-delay 0.75)
-  (setq lsp-ui-doc-delay 0.75)
   (setq lsp-idle-delay 1)
-  (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-signature-auto-activate nil)
   (setq lsp-headerline-breadcrumb-enable t)
-  (setq lsp-modeline-code-actions-enable nil)
+  (setq lsp-modeline-code-actions-enable nil))
+
+(after! lsp-ui
+  (setq lsp-ui-sideline-delay 0.75)
+  (setq lsp-ui-doc-delay 0.75)
+  (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-ui-sideline-show-code-actions nil))
 
 ;; Allow lots of flycheck errors
@@ -277,6 +279,12 @@
 ;; Send HTML messages by default.
 (after! org-msg
   (setq org-msg-default-alternatives '(html)))
+
+(after! mu4e
+  (add-to-list 'mu4e-bookmarks
+               '(:name "Global Inbox"
+                :key ?i
+                :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed")))
 
 (defun mp-email-empty-trash ()
   "Empty the mu4e trash directory of anything older than 10 days old"

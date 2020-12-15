@@ -15,6 +15,7 @@
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! git-link) ;; generate github links to files, regions, etc.
+(package! hackernews)  ;; elitest tech news and commentary
 (package! kaolin-themes) ;; some themes
 ;; disabling because it's quite slow for big projects
 ;; (package! lsp-pyright) ;; add support for the pyright lsp
