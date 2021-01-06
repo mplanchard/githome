@@ -61,6 +61,11 @@
 
 (setq ispell-dictionary "en_US")
 
+;; Autosave when losing focus
+(add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
+(add-to-list 'doom-switch-window-hook (lambda () (when buffer-file-name (save-buffer))))
+(add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
+
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path '("~/github/"))
 
@@ -77,6 +82,8 @@
   (setq lsp-ui-doc-delay 0.75)
   (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-ui-sideline-show-code-actions nil))
+
+(setq flycheck-idle-change-delay 1.5)
 
 ;; Allow lots of flycheck errors
 (after! flycheck
@@ -160,6 +167,9 @@
   direnv
   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
 
+;; use guile for schema programming
+(setq scheme-program-name "guile")
+
 
 ;; **********************************************************************
 ;; Packages
@@ -192,6 +202,10 @@
 (use-package! mermaid-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
+
+(use-package! edit-server
+  :config
+  (edit-server-start))
 
 ;; **********************************************************************
 ;; Keybindings
@@ -334,12 +348,15 @@
 (use-package! python-black
   :after python)
 
-;; Have pylint and flake8 run after any LSP checks
+;; Try to find combinations of things that aren't slow
 (add-hook
  'python-mode-hook
  (lambda ()
    (flycheck-add-next-checker 'lsp 'python-flake8)
-   (flycheck-add-next-checker 'python-flake8 'python-pylint)))
+   ;; (flycheck-add-next-checker 'python-flake8 'python-pylint)
+   ;; they're so slooooow, do them manually
+   ;; (add-to-list 'flycheck-disabled-checkers 'python-mypy)
+   ))
 
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here

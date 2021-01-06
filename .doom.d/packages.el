@@ -12,6 +12,7 @@
 (package! ace-window) ;; allow easy jumping between many windows
 (package! csv-mode)  ;; some support for CSVs
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
+(package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! git-link) ;; generate github links to files, regions, etc.
@@ -24,6 +25,7 @@
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
 (package! protobuf-mode) ;; support for editing protos
+(package! pyvenv) ;; oh python
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
 
