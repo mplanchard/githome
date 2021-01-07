@@ -30,6 +30,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		gconf2
 		git # emacs, pyenv
 		htop
+		i3
 		isync            # email
 		jq               # doom-emacs
 		libbz2-dev       # pyenv
@@ -44,13 +45,15 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libtool-bin
 		llvm # pyenv
 		neovim
+		nodejs
+		npm
 		pandoc
 		postgresql
 		postgresql-contrib
 		python-openssl # pyenv
 		shellcheck
 		sqlite3
-		tidy-html5 # org-mode html export
+		tidy       # org-mode html export
 		tk-dev     # pyenv
 		wget       # pyenv
 		xz-utils   # pyenv
@@ -220,13 +223,21 @@ mkdir -p ~/github/
 echo "Installing Rust ..."
 if [[ $(command -v rustc) == "" ]]; then
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	export PATH="$PATH:$HOME/.cargo/bin"
 	mkdir -p ~/github/rust-analyzer/
-	git clone \
-		https://github.com/rust-analyzer/rust-analyzer.git \
-		~/github/rust-analyzer/rust-analyzer
+	if [[ ! -d ~/github/rust-analyzer/rust-analyzer ]]; then
+		git clone \
+			https://github.com/rust-analyzer/rust-analyzer.git \
+			~/github/rust-analyzer/rust-analyzer
+	fi
 	pushd ~/github/rust-analyzer/rust-analyzer
-	cargo xtask install
-	popd ~/github/rust-analyzer/rust-analyzer
+	if [[ $(command -v code) == "" ]]; then
+		# Do not perform VSCode-specific install steps
+		cargo xtask install --server
+	else
+		cargo xtask install
+	fi
+	popd
 fi
 echo "Installing Rust components ..."
 ~/.cargo/bin/rustup component add clippy rustfmt rust-src
@@ -234,6 +245,9 @@ echo "Installing Rust components ..."
 echo "Installing Rust utilities ..."
 if [[ $(command -v watchexec) == "" ]]; then
 	cargo install watchexec
+fi
+if [[ $(command -v exa) == "" ]]; then
+	cargo install exa
 fi
 
 # Doom Emacs (mac or linux)
@@ -248,7 +262,7 @@ echo "Configuring vim ..."
 mkdir -p ~/.vim/backup/
 mkdir -p ~/.vim/swap/
 if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
-	mkdir -p "$HOME/.vim/autoload/plug.vim"
+	mkdir -p "$HOME/.vim/autoload"
 	curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
 		"https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
 fi
@@ -270,7 +284,7 @@ echo "Installing python versions ..."
 ~/.pyenv/bin/pyenv install --skip-existing 3.8.6
 ~/.pyenv/bin/pyenv install --skip-existing 3.7.9
 ~/.pyenv/bin/pyenv install --skip-existing 3.6.12
-~/.pyenv/bin/pyenv install --skip-existing 3.9.0
+~/.pyenv/bin/pyenv install --skip-existing 3.9.1
 
 # Tmux (mac or linux)
 echo "Adding tmux themes ..."
