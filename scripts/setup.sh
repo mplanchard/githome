@@ -322,4 +322,8 @@ if [[ ! -e "$HOME/org" ]]; then
 	echo "Symlink org notes to ~/org!"
 fi
 
+# Configure Git
+echo "Configuring git"
+git config --global commit.gpgsign true
+
 echo "Done!"
