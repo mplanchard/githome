@@ -2,92 +2,91 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
-export VISUAL=vim
+export VISUAL=emacsclient
 export EDITOR="$VISUAL"
 
 if $(uname -a | grep -q "Darwin"); then
-    # Any mac-specific config here
-    true
+	# Any mac-specific config here
+	true
 else
-    # Any linux-specific config here
-    export PATH="/snap/bin:$PATH"
+	# Any linux-specific config here
+	export PATH="/snap/bin:$PATH"
 fi
 
 # Ensure we have a nice homedir for executables
 if [[ ! -d "$HOME/bin" ]]; then
-    mkdir -p "$HOME/bin"
+	mkdir -p "$HOME/bin"
 fi
 export PATH="$PATH:$HOME/bin"
 
 # Source binaries installed for emacs
 if [ -d "$HOME/.emacs.d/bin" ]; then
-    export PATH="$PATH:$HOME/.emacs.d/bin"
+	export PATH="$PATH:$HOME/.emacs.d/bin"
 fi
 
 # For Rust
 if [ -d "$HOME/.cargo" ]; then
-    source "$HOME/.cargo/env"
+	source "$HOME/.cargo/env"
 fi
 
 # For Go (mac)
 if [ -d "$HOME/go/bin" ]; then
-    export PATH="$PATH:$HOME/go/bin"
+	export PATH="$PATH:$HOME/go/bin"
 fi
 
 # For Go (linux)
 if [ -d "/usr/local/go/bin" ]; then
-    export PATH="$PATH:/usr/local/go/bin"
+	export PATH="$PATH:/usr/local/go/bin"
 fi
 
 # Direnv
 if [[ $(command -v direnv) != "" ]]; then
-    eval "$(direnv hook bash)"
+	eval "$(direnv hook bash)"
 fi
 
 # Haskell puts things in ~/.local/bin
 if [ -d "$HOME/.local/bin" ]; then
-    export PATH="$HOME/.local/bin:$PATH"
+	export PATH="$HOME/.local/bin:$PATH"
 fi
-
 
 # For homebrew on macos
 if [ -d "/usr/local/bin" ]; then
-    export PATH="/usr/local/bin:$PATH"
+	export PATH="/usr/local/bin:$PATH"
 fi
 
 # Export pyenv path
 if [ -d "$HOME/.pyenv/bin" ]; then
-    export PATH="$PATH:$HOME/.pyenv/bin"
+	export PATH="$PATH:$HOME/.pyenv/bin"
 fi
 
 # Source pyenv stuff
 if [[ $(command -v pyenv) != "" ]]; then
-    eval "$(pyenv init -)"
+	eval "$(pyenv init -)"
 
-    # This appears to only be a thing on the linux version
-    if uname -a | grep -vq "Darwin"; then
-        eval "$(pyenv virtualenv-init -)"
-    fi
+	# This appears to only be a thing on the linux version
+	if uname -a | grep -vq "Darwin"; then
+		eval "$(pyenv virtualenv-init -)"
+	fi
 
-    pyenv global 3.8.6 3.7.9 3.6.12 3.9.0
+	pyenv global 3.8.6 3.7.9 3.6.12 3.9.0
 fi
 
 # Source nvm stuff
 if [ -d "$HOME/.nvm" ]; then
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-    export NODE_PATH="$NODE_PATH:$(dirname $(nvm which current))/../lib/node_modules"
+	export NVM_DIR="$HOME/.nvm"
+	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+	export NODE_PATH="$NODE_PATH:$(dirname $(nvm which current))/../lib/node_modules"
 fi
 
 # Source google stuff
 if [ -d "$HOME/.ghcup" ]; then
-    source /Users/mplanchard/.ghcup/env
+	source /Users/mplanchard/.ghcup/env
 fi
 
 # If not running interactively, don't do anything
 case $- in
-    *i*) ;;
-      *) return;;
+*i*) ;;
+*) return ;;
 esac
 
 # Use vim mode for readline
@@ -117,12 +116,12 @@ shopt -s checkwinsize
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
+	debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes;;
+xterm-color | *-256color) color_prompt=yes ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -131,42 +130,42 @@ esac
 #force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
-    else
-	color_prompt=
-    fi
+	if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+		# We have color support; assume it's compliant with Ecma-48
+		# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+		# a case would tend to support setf rather than setaf.)
+		color_prompt=yes
+	else
+		color_prompt=
+	fi
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+	PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
+xterm* | rxvt*)
+	PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+	;;
+*) ;;
+
 esac
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
+	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+	alias ls='ls --color=auto'
+	#alias dir='dir --color=auto'
+	#alias vdir='vdir --color=auto'
 
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
+	alias grep='grep --color=auto'
+	alias fgrep='fgrep --color=auto'
+	alias egrep='egrep --color=auto'
 fi
 
 # colored GCC warnings and errors
@@ -187,35 +186,34 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
 if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
+	. ~/.bash_aliases
 fi
 
 if [ -f ~/.aliases ]; then
-    . ~/.aliases
+	. ~/.aliases
 fi
 
 if [ -f ~/.localenv ]; then
-    . ~/.localenv
+	. ~/.localenv
 fi
 
 if [ -f ~/.localrc ]; then
-    . ~/.localrc
+	. ~/.localrc
 fi
 
 if [ -f ~/.local_alises ]; then
-    . ~/.local_aliases
+	. ~/.local_aliases
 fi
-
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
+	if [ -f /usr/share/bash-completion/bash_completion ]; then
+		. /usr/share/bash-completion/bash_completion
+	elif [ -f /etc/bash_completion ]; then
+		. /etc/bash_completion
+	fi
 fi
 
 # Set up the starship cmdline prompt
@@ -223,10 +221,10 @@ eval "$(starship init bash)"
 
 # NVM
 if [ -d "$HOME/.nvm" ]; then
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+	[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 fi
 
 # Source alacritty completions on systems where we're using it
 if [ -f "$HOME/github/jwilm/alacritty/extra/completions/alacritty.bash" ]; then
-    source /Users/mplanchard/github/jwilm/alacritty/extra/completions/alacritty.bash
+	source /Users/mplanchard/github/jwilm/alacritty/extra/completions/alacritty.bash
 fi
