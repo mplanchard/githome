@@ -10,6 +10,7 @@
 ;(package! some-package)
 
 (package! ace-window) ;; allow easy jumping between many windows
+(package! browse-at-remote) ;; hopefully a bit of a better git-link
 (package! csv-mode)  ;; some support for CSVs
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
@@ -18,9 +19,10 @@
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
 (package! kaolin-themes) ;; some themes
-;; disabling because it's quite slow for big projects
-;; (package! lsp-pyright) ;; add support for the pyright lsp
+(package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
+;; (package! mu4e-thread-folding  ;; support for mu4e thread folding
+;;   :recipe (:host github :repo "rougier/mu4e-thread-folding"))
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
@@ -28,6 +30,8 @@
 (package! pyvenv) ;; oh python
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
+(package! tree-sitter)  ;; better syntax highlighting and language analysis
+(package! tree-sitter-langs)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:

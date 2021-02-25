@@ -3,7 +3,6 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
-
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
 (setq user-full-name "Matthew Planchard"
@@ -25,7 +24,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-dark+)  ;; note: overriden below by kaolin-themes pkg
+(setq doom-theme 'doom-dark+)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -62,24 +61,40 @@
 (setq ispell-dictionary "en_US")
 
 ;; Autosave when losing focus
-(add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
-(add-to-list 'doom-switch-window-hook (lambda () (when buffer-file-name (save-buffer))))
-(add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
+;; (add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
+;; (add-to-list 'doom-switch-window-hook (lambda () (when buffer-file-name (save-buffer))))
+;; (add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
 
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path '("~/github/"))
 
-;; For LSP performance
+;; Make the ivy serach buffer larger
+(setq ivy-height 25)
+
+(after! evil
+  (setq evil-esc-delay 0)
+  (setq evil-escape-delay 0)
+  (setq evil-escape-mode nil))
+
+;; LSP Settings and Performance Tuning
+(setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 (after! lsp
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-headerline-breadcrumb-enable t)
   (setq lsp-idle-delay 1)
   (setq lsp-signature-auto-activate nil)
-  (setq lsp-headerline-breadcrumb-enable t)
   (setq lsp-modeline-code-actions-enable nil))
 
 (after! lsp-ui
   (setq lsp-ui-sideline-delay 0.75)
   (setq lsp-ui-doc-delay 0.75)
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-doc-position 'at-point)
+  (setq lsp-ui-doc-max-width 150)
+  (setq lsp-ui-doc-max-height 16)
+  (setq lsp-ui-doc-include-signature t)
   (setq lsp-ui-sideline-diagnostic-max-lines 20)
   (setq lsp-ui-sideline-show-code-actions nil))
 
@@ -141,8 +156,6 @@
 ;; org-roam
 (after! org-roam
   (setq org-roam-directory (file-truename org-directory)))
-
-;; deft notes
 (setq
  deft-directory org-directory
  deft-extensions '("org" "md")
@@ -187,10 +200,10 @@
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
 ;; load and use one of the kaolin themes
-(use-package! kaolin-themes
-  :config
-  (load-theme 'kaolin-temple t)
-  (kaolin-treemacs-theme))
+;; (use-package! kaolin-themes
+;;   :config
+;;   (load-theme 'kaolin-temple t)
+;;   (kaolin-treemacs-theme))
 
 
 ;; Use bar and block cursor in terminal emacs rather than just block
@@ -206,6 +219,14 @@
 (use-package! edit-server
   :config
   (edit-server-start))
+
+(use-package! tree-sitter-langs)
+
+;; Better local syntax highlighting and language analysis
+(use-package! tree-sitter
+  :config
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; **********************************************************************
 ;; Keybindings
@@ -231,6 +252,9 @@
       :nv "T"
       #'mu4e-headers-mark-thread)
 
+(map! :map ivy-minibuffer-map
+      :desc "Search History" "C-r" #'counsel-minibuffer-history)
+
 (map! (:after org
        :map org-mode-map
        :localleader
@@ -247,6 +271,17 @@
        :nv "o"
        #'org-open-at-point))
 
+(map! (:after lsp-ui
+       :leader
+       :prefix "c"
+       :desc "Show code outline"
+       :nv "O"
+       #'lsp-ui-imenu))
+
+;; Somehow recently this started overriding TAB in the magit status buffer.
+;; Revisit later to see if it's fixed.
+(after! evil
+  (define-key evil-motion-state-map (kbd "<tab>") nil))
 
 ;; **********************************************************************
 ;; Email
@@ -256,49 +291,63 @@
     ;; Add homebrew-installed mu's mu4e path to the load path
     (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
   ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
-  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e"))
+  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e")
+  ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
+  (setq magit-git-executable "/usr/local/bin/git"))
 
-(setq
- ;; Don't pull in the entire thread from the archive when it gets a new message
- mu4e-headers-include-related nil
- ;; Set the maildir to ~/mail -- the default is /mail, which was fine, except that
- ;; the ubuntu snap for mu doesn't have access to private directories
- mu4e-maildir "~/mail"  ;; deprecated, but keeping around for now
- mu4e-root-maildir "~/mail")
+(use-package! mu4e
+  :init
+  (setq
+   ;; Don't pull in the entire thread from the archive when it gets a new message
+   mu4e-headers-include-related nil
+   ;; More space for the headers
+   mu4e-headers-visible-lines 20
+   ;; Set the maildir to ~/mail -- the default is /mail, which was fine, except that
+   ;; the ubuntu snap for mu doesn't have access to private directories
+   mu4e-maildir "~/mail"  ;; deprecated, but keeping around for now
+   mu4e-root-maildir "~/mail"
+   ;; Simpler threading indicators
+   mu4e-headers-thread-child-prefix '("| " . "| ")
+   mu4e-headers-thread-last-child-prefix '("| " . "| ")
+   mu4e-headers-thread-orphan-prefix '("" . ""))
+  :config
+  (set-email-account! "gmail"
+                      '((user-email-address . "msplanchard@gmail.com")
+                        (smtpmail-smtp-user . "msplanchard")
+                        (smtpmail-local-domain . "gmail.com")
+                        (smtpmail-smtp-server . "smtp.gmail.com")
+                        (smtpmail-default-smtp-server . "smtp.gmail.com")
+                        (smtpmail-smtp-service . 587)
+                        (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
+                        (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
+                        (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
+  (set-email-account! "work"
+                      '((user-email-address . "matthew@bestow.com")
+                        (smtpmail-smtp-user . "matthew@bestow.com")
+                        (smtpmail-local-domain . "gmail.com")
+                        (smtpmail-smtp-server . "smtp.gmail.com")
+                        (smtpmail-default-smtp-server . "smtp.gmail.com")
+                        (smtpmail-smtp-service . 587)
+                        (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
+                        (mu4e-refile-folder . "/work/[Gmail]/All Mail")
+                        (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
+  (add-to-list 'mu4e-bookmarks
+               '(:name "Global Inbox"
+                 :key ?i
+                 :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed"))
+  (setq mu4e-headers-fields '((:account . 8)
+                              (:flags . 4)
+                              (:mailing-list . 12)
+                              (:from . 22)
+                              (:subject . nil)
+                              (:human-date . 12))))
 
-;; Ensure we can load it
-(require 'mu4e)
 
-(set-email-account! "gmail"
-                    '((user-email-address . "msplanchard@gmail.com")
-                      (smtpmail-smtp-user . "msplanchard")
-                      (smtpmail-local-domain . "gmail.com")
-                      (smtpmail-smtp-server . "smtp.gmail.com")
-                      (smtpmail-default-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-service . 587)
-                      (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
-                      (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
-                      (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-(set-email-account! "work"
-                    '((user-email-address . "matthew@bestow.com")
-                      (smtpmail-smtp-user . "matthew@bestow.com")
-                      (smtpmail-local-domain . "gmail.com")
-                      (smtpmail-smtp-server . "smtp.gmail.com")
-                      (smtpmail-default-smtp-server . "smtp.gmail.com")
-                      (smtpmail-smtp-service . 587)
-                      (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
-                      (mu4e-refile-folder . "/work/[Gmail]/All Mail")
-                      (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
 
 ;; Send HTML messages by default.
 (after! org-msg
-  (setq org-msg-default-alternatives '(html)))
+  (setq org-msg-default-alternatives '(text html)))
 
-(after! mu4e
-  (add-to-list 'mu4e-bookmarks
-               '(:name "Global Inbox"
-                :key ?i
-                :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed")))
 
 (defun mp-email-empty-trash ()
   "Empty the mu4e trash directory of anything older than 10 days old"
@@ -307,6 +356,11 @@
    (format
     "%s find maildir:/trash AND date:10d..1000d --fields=l | xargs rm -f"
     mu4e-mu-binary)))
+
+
+(after! markdown-mode
+  (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
+
 
 ;; Check mail every ten minutes:
 ;; first, cancel any running timers to avoid creating a multitude due to e.g.
@@ -348,6 +402,20 @@
 (use-package! python-black
   :after python)
 
+;; Set python language server caching to max
+
+
+(use-package! lsp-pyright
+  :init
+  ;; leave it to mypy
+  (setq lsp-pyright-typechecking-mode "off")
+  :hook
+  (python-mode
+   . (lambda ()
+       (require 'lsp-pyright)
+       (lsp-deferred))))
+
+
 ;; Try to find combinations of things that aren't slow
 (add-hook
  'python-mode-hook
@@ -357,6 +425,11 @@
    ;; they're so slooooow, do them manually
    ;; (add-to-list 'flycheck-disabled-checkers 'python-mypy)
    ))
+
+(add-hook
+ 'lsp-pyls-after-open-hook
+ (lambda ()
+   (setq lsp-python-ms-cache "Library")))
 
 ;; (add-hook! 'python-mode-hook #'python-black-on-save-mode)
 ;; Feel free to throw your own personal keybindings here
@@ -459,7 +532,6 @@ cursor.
      ((not root-dir) nil)
      (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
 
-
 (defun mp-copy-relative-path ()
   "Copy the path to the current file, relative to the project root.
 
@@ -472,7 +544,10 @@ If not currently in a Projectile project, does not copy anything.
 (defun mp-bestow-db (dbenv dbuser)
   (interactive "sEnvironment: \nsUser: ")
   ;; Open a tunnel to the DB
-  (shell-command (format "source ~/.pyenv/take-two/bin/activate && ~/github/bestowinc/take-two/go db tunnel %s &" dbenv))
+  (shell-command
+   (format
+    "source ~/.pyenv/take-two/bin/activate && cd ~/github/bestowinc/take-two/ && ~/github/bestowinc/take-two/go db tunnel %s &"
+    dbenv))
   ;; ensure we have had time to establish the tunnel
   (message "Establishing a tunnel...")
   (sleep-for 10)
@@ -563,81 +638,81 @@ If not currently in a Projectile project, does not copy anything.
 
 ;; mu thread folding from https://gist.github.com/felipeochoa/614308ac9d2c671a5830eb7847985202
 
-(defun mu4e~headers-msg-unread-p (msg)
-  "Check if MSG is unread."
-  (let ((flags (mu4e-message-field msg :flags)))
-    (and (member 'unread flags) (not (member 'trashed flags)))))
+;; (defun mu4e~headers-msg-unread-p (msg)
+;;   "Check if MSG is unread."
+;;   (let ((flags (mu4e-message-field msg :flags)))
+;;     (and (member 'unread flags) (not (member 'trashed flags)))))
 
-(defvar mu4e-headers-folding-slug-function
-  (lambda (headers) (format " (%d)" (length headers)))
-  "Function to call to generate the slug that will be appended to folded threads.
-This function receives a single argument HEADERS, which is a list
-of headers about to be folded.")
+;; (defvar mu4e-headers-folding-slug-function
+;;   (lambda (headers) (format " (%d)" (length headers)))
+;;   "Function to call to generate the slug that will be appended to folded threads.
+;; This function receives a single argument HEADERS, which is a list
+;; of headers about to be folded.")
 
-(defun mu4e~headers-folded-slug (headers)
-  "Generate a string to append to the message line indicating the fold status.
-HEADERS is a list with the messages being folded (including the root header)."
-  (funcall mu4e-headers-folding-slug-function headers))
+;; (defun mu4e~headers-folded-slug (headers)
+;;   "Generate a string to append to the message line indicating the fold status.
+;; HEADERS is a list with the messages being folded (including the root header)."
+;;   (funcall mu4e-headers-folding-slug-function headers))
 
-(defun mu4e~headers-fold-make-overlay (beg end headers)
-  "Hides text between BEG and END using an overlay.
-HEADERS is a list with the messages being folded (including the root header)."
-  (let ((o (make-overlay beg end)))
-    (overlay-put o 'mu4e-folded-thread t)
-    (overlay-put o 'display (mu4e~headers-folded-slug headers))
-    (overlay-put o 'evaporate t)
-    (overlay-put o 'invisible t)))
+;; (defun mu4e~headers-fold-make-overlay (beg end headers)
+;;   "Hides text between BEG and END using an overlay.
+;; HEADERS is a list with the messages being folded (including the root header)."
+;;   (let ((o (make-overlay beg end)))
+;;     (overlay-put o 'mu4e-folded-thread t)
+;;     (overlay-put o 'display (mu4e~headers-folded-slug headers))
+;;     (overlay-put o 'evaporate t)
+;;     (overlay-put o 'invisible t)))
 
-(defun mu4e~headers-fold-find-overlay (loc)
-  "Find and return the 'mu4e-folded-thread overlay at LOC, or return nil."
-  (cl-dolist (o (overlays-in (1- loc) (1+ loc)))
-    (when (overlay-get o 'mu4e-folded-thread)
-      (cl-return o))))
+;; (defun mu4e~headers-fold-find-overlay (loc)
+;;   "Find and return the 'mu4e-folded-thread overlay at LOC, or return nil."
+;;   (cl-dolist (o (overlays-in (1- loc) (1+ loc)))
+;;     (when (overlay-get o 'mu4e-folded-thread)
+;;       (cl-return o))))
 
-(defun mu4e-headers-fold-all ()
-  "Fold all the threads in the current view."
-  (interactive)
-  (let ((thread-id "") msgs fold-start fold-end)
-    (mu4e-headers-for-each
-     (lambda (msg)
-       (end-of-line)
-       (push msg msgs)
-       (let ((this-thread-id (mu4e~headers-get-thread-info msg 'thread-id)))
-         (if (string= thread-id this-thread-id)
-             (setq fold-end (point))
-           (when (< 1 (length msgs))
-             (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))
-           (setq fold-start (point)
-                 fold-end (point)
-                 msgs nil
-                 thread-id this-thread-id)))))
-    (when (< 1 (length msgs))
-      (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))))
+;; (defun mu4e-headers-fold-all ()
+;;   "Fold all the threads in the current view."
+;;   (interactive)
+;;   (let ((thread-id "") msgs fold-start fold-end)
+;;     (mu4e-headers-for-each
+;;      (lambda (msg)
+;;        (end-of-line)
+;;        (push msg msgs)
+;;        (let ((this-thread-id (mu4e~headers-get-thread-info msg 'thread-id)))
+;;          (if (string= thread-id this-thread-id)
+;;              (setq fold-end (point))
+;;            (when (< 1 (length msgs))
+;;              (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))
+;;            (setq fold-start (point)
+;;                  fold-end (point)
+;;                  msgs nil
+;;                  thread-id this-thread-id)))))
+;;     (when (< 1 (length msgs))
+;;       (mu4e~headers-fold-make-overlay fold-start fold-end (nreverse msgs)))))
 
-(defun mu4e-headers-toggle-thread-folding (&optional subthread)
-  "Toggle the folding state for the thread at point.
-If SUBTHREAD is non-nil, only fold the current subthread."
-  ;; Folding is accomplished using an overlay that starts at the end
-  ;; of the parent line and ends at the end of the last descendant
-  ;; line. If there's no overlay, it means it isn't folded
-  (interactive "P")
-  (if-let ((o (mu4e~headers-fold-find-overlay (point-at-eol))))
-      (delete-overlay o)
-    (let* ((msg (mu4e-message-at-point))
-           (thread-id (mu4e~headers-get-thread-info msg 'thread-id))
-           (path-re (concat "^" (mu4e~headers-get-thread-info msg 'path)))
-           msgs first-marked-point last-marked-point)
-      (mu4e-headers-for-each
-       (lambda (submsg)
-         (when (and (string= thread-id (mu4e~headers-get-thread-info submsg 'thread-id))
-                    (or (not subthread)
-                        (string-match-p path-re (mu4e~headers-get-thread-info submsg 'path))))
-           (push msg msgs)
-           (setq last-marked-point (point-at-eol))
-           (unless first-marked-point
-             (setq first-marked-point last-marked-point)))))
-      (when (< 1 (length msgs))
-        (mu4e~headers-fold-make-overlay first-marked-point last-marked-point (nreverse msgs))))))
+;; (defun mu4e-headers-toggle-thread-folding (&optional subthread)
+;;   "Toggle the folding state for the thread at point.
+;; If SUBTHREAD is non-nil, only fold the current subthread."
+;;   ;; Folding is accomplished using an overlay that starts at the end
+;;   ;; of the parent line and ends at the end of the last descendant
+;;   ;; line. If there's no overlay, it means it isn't folded
+;;   (interactive "P")
+;;   (if-let ((o (mu4e~headers-fold-find-overlay (point-at-eol))))
+;;       (delete-overlay o)
+;;     (let* ((msg (mu4e-message-at-point))
+;;            (thread-id (mu4e~headers-get-thread-info msg 'thread-id))
+;;            (path-re (concat "^" (mu4e~headers-get-thread-info msg 'path)))
+;;            msgs first-marked-point last-marked-point)
+;;       (mu4e-headers-for-each
+;;        (lambda (submsg)
+;;          (when (and (string= thread-id (mu4e~headers-get-thread-info submsg 'thread-id))
+;;                     (or (not subthread)
+;;                         (string-match-p path-re (mu4e~headers-get-thread-info submsg 'path))))
+;;            (push msg msgs)
+;;            (setq last-marked-point (point-at-eol))
+;;            (unless first-marked-point
+;;              (setq first-marked-point last-marked-point)))))
+;;       (when (< 1 (length msgs))
+;;         (mu4e~headers-fold-make-overlay first-marked-point last-marked-point (nreverse msgs))))))
 
 
 ;; **********************************************************************

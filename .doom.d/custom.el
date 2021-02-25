@@ -4,7 +4,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
-   ["#21242b" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
+   ["#1e1e1e" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(custom-safe-themes
    '("76bfa9318742342233d8b0b42e824130b3a50dcc732866ff8e47366aed69de11" default))
  '(fci-rule-color "#5B6268")
@@ -13,18 +13,17 @@
  '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
  '(objed-cursor-color "#ff6c6b")
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
+ '(pos-tip-background-color "#303035")
+ '(pos-tip-foreground-color "#d4d4d6")
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(safe-local-variable-values
-   '((lsp-enable-on-type-formatting . t)
+   '((lsp-enable-on-type-formatting . f)
      (lsp-python-ms-python-executable . "~/.pyenv/take-two/bin/python")
-     (js-indent-level . 2)
-     (lsp-enable-on-type-formatting . f)
      (eval if
            (fboundp 'editorconfig-mode)
-           (editorconfig-mode 1))))
- '(smtpmail-smtp-server "smtp.gmail.com")
- '(smtpmail-smtp-service 587)
+           (editorconfig-mode 1))
+     (js-indent-level . 2)))
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
@@ -52,5 +51,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Ubuntu Mono" :foundry "DAMA" :slant normal :weight normal :height 158 :width normal)))))
+ '(default ((t (:family "Ubuntu Mono" :foundry "DAMA" :slant normal :weight normal :height 158 :width normal))))
+ '(mu4e-thread-folding-child-face ((t (:extend t :background "gray18" :underline nil))) t)
+ '(mu4e-thread-folding-root-unfolded-face ((t (:extend t :background "gray12" :overline nil :underline nil))) t)
+ '(mu4e-unread-face ((t (:inherit font-lock-keyword-face :weight normal)))))
 (put 'list-timers 'disabled nil)
+(put 'erase-buffer 'disabled nil)
