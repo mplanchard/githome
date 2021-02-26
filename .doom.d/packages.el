@@ -16,13 +16,13 @@
 (package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
+(package! gh-notify ;; nicer github notifications
+  :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
 (package! kaolin-themes) ;; some themes
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
-;; (package! mu4e-thread-folding  ;; support for mu4e thread folding
-;;   :recipe (:host github :repo "rougier/mu4e-thread-folding"))
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
