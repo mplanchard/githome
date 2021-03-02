@@ -16,6 +16,8 @@
 (package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
+(package! gh-notify ;; nicer github notifications
+  :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
 (package! kaolin-themes) ;; some themes
