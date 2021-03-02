@@ -110,6 +110,14 @@
 (after! ispell
   (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
 
+(after! jit-lock
+  ;; defer fontification while input is pending
+  (setq jit-lock-defer-time 0)
+  ;; When a buffer is idle for some time, go ahead and fontify areas outside
+  ;; the view, to avoid work when scrolling
+  (setq jit-lock-stealth-time 32))
+
+(setq mac-mouse-wheel-smooth-scroll nil)
 
 ;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
@@ -359,8 +367,9 @@
 
 
 (after! markdown-mode
+  (setq markdown-marginalize-headers t)
+  (setq markdown-header-scaling t)
   (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
-
 
 ;; Check mail every ten minutes:
 ;; first, cancel any running timers to avoid creating a multitude due to e.g.
@@ -532,6 +541,7 @@ cursor.
      ((not root-dir) nil)
      (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
 
+
 (defun mp-copy-relative-path ()
   "Copy the path to the current file, relative to the project root.
 
@@ -609,7 +619,7 @@ If not currently in a Projectile project, does not copy anything.
 
 (defun mp-take-two-deploy-list (&optional target)
   "Get a list of commits to deploy from up to TARGET, or master/HEAD if not provided"
-  (interactive "sTarget [default origin/master]: ")
+  (interactive "sTarget [default current staging SHA]: ")
   (let ((current
          ;; grab the current deployed
          (cdr (assoc 'commit_sha
@@ -617,7 +627,12 @@ If not currently in a Projectile project, does not copy anything.
                        (goto-char url-http-end-of-headers)
                        (json-read)))))
         (target
-         (if (string-empty-p target) "origin/master" target)))
+         (if (string-empty-p target)
+             (cdr (assoc 'commit_sha
+                         (with-current-buffer (url-retrieve-synchronously "https://api.stage.bestow.io/version")
+                           (goto-char url-http-end-of-headers)
+                           (json-read))))
+           target)))
     ;; ensure we're up to date with origin
     (magit-git-fetch "origin" "master")
     ;; output git log to buffer (note we could use ~magit-log-other~ here, but

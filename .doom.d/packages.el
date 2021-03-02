@@ -21,8 +21,7 @@
 (package! kaolin-themes) ;; some themes
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
-;; (package! mu4e-thread-folding  ;; support for mu4e thread folding
-;;   :recipe (:host github :repo "rougier/mu4e-thread-folding"))
+(package! mixed-pitch) ;; allow mixed monospace and proportional fonts
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
