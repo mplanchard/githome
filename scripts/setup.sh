@@ -14,7 +14,8 @@ fi
 if [[ "$ENV" == "$LINUX" ]]; then
 	# Repositories
 	echo "Checking for emacs PPA ..."
-	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ]; then
+	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] \
+		&& [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-groovy.list ]; then
 		sudo add-apt-repository ppa:kelleyk/emacs
 	fi
 
@@ -50,7 +51,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		pandoc
 		postgresql
 		postgresql-contrib
-		python-openssl # pyenv
+		python3-openssl # pyenv
 		shellcheck
 		sqlite3
 		tidy       # org-mode html export
@@ -79,6 +80,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$DL_PATH"
 		sudo tar -C /usr/local -xzf "$DL_PATH"
 		rm -f "$DL_PATH"
+		export PATH="$PATH:/usr/local/go/bin"
 	fi
 
 	# Link certs into a common location for mac/linux

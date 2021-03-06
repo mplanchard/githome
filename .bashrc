@@ -68,7 +68,7 @@ if [[ $(command -v pyenv) != "" ]]; then
 		eval "$(pyenv virtualenv-init -)"
 	fi
 
-	pyenv global 3.8.6 3.7.9 3.6.12 3.9.0
+	pyenv global 3.8.6 3.7.9 3.6.12 3.9.1
 fi
 
 # Source nvm stuff
@@ -227,4 +227,11 @@ fi
 # Source alacritty completions on systems where we're using it
 if [ -f "$HOME/github/jwilm/alacritty/extra/completions/alacritty.bash" ]; then
 	source /Users/mplanchard/github/jwilm/alacritty/extra/completions/alacritty.bash
+fi
+
+# Enable fancy vterm integration with emacs
+if [[ "$INSIDE_EMACS" = 'vterm' ]] &&
+	[[ -n ${EMACS_VTERM_PATH} ]] &&
+	[[ -f ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh ]]; then
+	source ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh
 fi
