@@ -225,9 +225,20 @@
   :config
   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
 
+
 (use-package! edit-server
-  :config
-  (edit-server-start))
+  :commands edit-server-start
+  :init
+  (if after-init-time
+      (edit-server-start)
+    (add-hook 'after-init-hook
+              #'(lambda() (edit-server-start))))
+  :config (setq edit-server-new-frame-alist
+                '((name . "Edit with Emacs FRAME")
+                  (width . 80)
+                  (height . 25)
+                  (minibuffer . t)
+                  (menu-bar-lines . t))))
 
 (use-package! tree-sitter-langs)
 
@@ -245,9 +256,14 @@
       :localleader
       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
 
-(map! :leader
-      :prefix "w"
-      :desc "ace-window" :nv "/" #'ace-window)
+(map! (:leader
+       :prefix "w"
+       :desc "ace-window" :nv "/" #'ace-window)
+      ;; Sometimes these get mapped to evil-next-visual-line and evil-next-previous-line
+      ;; in operator mode, which makes the behavior of ~dj~ and ~dk~ and friends
+      ;; very odd. Manually set them to their original mappings.
+      (:desc "down" :o "j" #'evil-next-line)
+      (:desc "up" :o "k" #'evil-previous-line))
 
 (map! :leader
       :desc "paste from kill ring" :nv "P" #'counsel-yank-pop)
@@ -287,6 +303,12 @@
        :nv "O"
        #'lsp-ui-imenu))
 
+(map! (:map vterm-mode-map
+       :desc "send up in insert mode" :i "C-k" #'vterm-send-up)
+      (:map vterm-mode-map
+       :desc "send down in insert mode" :i "C-j" #'vterm-send-down))
+
+
 ;; Somehow recently this started overriding TAB in the magit status buffer.
 ;; Revisit later to see if it's fixed.
 (after! evil
@@ -319,7 +341,9 @@
    ;; Simpler threading indicators
    mu4e-headers-thread-child-prefix '("| " . "| ")
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
-   mu4e-headers-thread-orphan-prefix '("" . ""))
+   mu4e-headers-thread-orphan-prefix '("" . "")
+   ;; update mail every 5 minutes
+   mu4e-update-interval 300)
   :config
   (set-email-account! "gmail"
                       '((user-email-address . "msplanchard@gmail.com")
@@ -352,6 +376,10 @@
                               (:subject . nil)
                               (:human-date . 12))))
 
+(use-package! mu4e-views
+  :config
+  (setq mu4e-views-completion-method 'ivy)
+  (setq mu4e-views-next-previous-message-behavior 'stick-to-current-window))
 
 
 ;; Send HTML messages by default.
@@ -373,13 +401,6 @@
   (setq markdown-header-scaling t)
   (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
 
-;; Check mail every ten minutes:
-;; first, cancel any running timers to avoid creating a multitude due to e.g.
-;; refreshing doom emacs
-(cancel-function-timers #'mu4e-update-mail-and-index)
-;; then set up the email checker to run every 10 minutes
-(run-with-timer 0 (* 60 10) #'mu4e-update-mail-and-index t)
-
 ;; **********************************************************************
 ;; Javascript/Typescript
 ;; **********************************************************************
@@ -394,6 +415,10 @@
 (add-hook 'js2-mode-hook #'prettier-js-mode)
 (add-hook 'typescript-mode-hook #'prettier-js-mode)
 
+;; fancy testing
+(use-package! jest
+  :after (js2-mode typescript-mode)
+  :hook (js2-mode . jest-minor-mode) (typescript-mode . jest-minor-mode))
 
 (defun mp-flycheck-update-js-lsp-checkers ()
   "Update JS checkers for LSP mode"
