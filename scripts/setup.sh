@@ -14,8 +14,8 @@ fi
 if [[ "$ENV" == "$LINUX" ]]; then
 	# Repositories
 	echo "Checking for emacs PPA ..."
-	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] \
-		&& [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-groovy.list ]; then
+	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] &&
+		[ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-groovy.list ]; then
 		sudo add-apt-repository ppa:kelleyk/emacs
 	fi
 
@@ -54,6 +54,11 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		python3-openssl # pyenv
 		shellcheck
 		sqlite3
+		texlive-latex-base
+		texlive-latex-extra
+		texlive-fonts-recommended
+		texlive-latex-recommended
+		texlive-latex-recommended-doc
 		tidy       # org-mode html export
 		tk-dev     # pyenv
 		wget       # pyenv
