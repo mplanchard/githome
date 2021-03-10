@@ -235,3 +235,9 @@ if [[ "$INSIDE_EMACS" = 'vterm' ]] &&
 	[[ -f ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh ]]; then
 	source ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh
 fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/matthew/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/home/matthew/Downloads/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc'; fi
