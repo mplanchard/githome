@@ -20,10 +20,12 @@
   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
+(package! jest) ;; javascript testing
 (package! kaolin-themes) ;; some themes
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
+(package! mu4e-views) ;; html emails in xwidgets view
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
