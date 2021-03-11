@@ -71,6 +71,10 @@
 ;; Make the ivy serach buffer larger
 (setq ivy-height 25)
 
+(after! company
+  ;; start showing completion results asap
+  (setq company-idle-delay 0))
+
 (after! evil
   (setq evil-esc-delay 0)
   (setq evil-escape-delay 0)
@@ -279,6 +283,11 @@
 
 (map! :map ivy-minibuffer-map
       :desc "Search History" "C-r" #'counsel-minibuffer-history)
+
+(map! :map ivy-occur-mode-map
+      ;; normally this is f, but also the evil commands tend to override it.
+      ;; make it RET instead and ensure it doesn't get overridden
+      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press)
 
 (map! (:after org
        :map org-mode-map
