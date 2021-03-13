@@ -12,6 +12,7 @@
 (package! ace-window) ;; allow easy jumping between many windows
 (package! browse-at-remote) ;; hopefully a bit of a better git-link
 (package! csv-mode)  ;; some support for CSVs
+(package! dap-mode)  ;; debugger
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time

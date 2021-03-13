@@ -57,6 +57,8 @@
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
+(setq rustic-indent-offset 4)
+(setq tab-width 4)
 
 (setq ispell-dictionary "en_US")
 
@@ -217,6 +219,20 @@
 ;;   (kaolin-treemacs-theme))
 
 (use-package! gh-notify)
+
+(use-package! dap-mode
+  :config
+  (dap-ui-mode)
+  (dap-ui-controls-mode t)
+  (require 'dap-lldb)
+  (require 'dap-gdb-lldb)
+  (dap-register-debug-template "Rust::GDB Run Configuration"
+                               (list :type "gdb"
+                                     :request "launch"
+                                     :name "GDB::Run"
+                                     :gdbpath "rust-gdb"
+                                     :target nil
+                                     :cwd nil)))
 
 ;; Use bar and block cursor in terminal emacs rather than just block
 (unless (display-graphic-p)
