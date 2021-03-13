@@ -73,7 +73,7 @@
 
 (after! company
   ;; start showing completion results asap
-  (setq company-idle-delay 0))
+  (setq company-idle-delay 0.25))
 
 (after! evil
   (setq evil-esc-delay 0)
@@ -83,24 +83,23 @@
 ;; LSP Settings and Performance Tuning
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
-(after! lsp
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-headerline-breadcrumb-enable t)
-  (setq lsp-idle-delay 1)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-modeline-code-actions-enable nil))
 
-(after! lsp-ui
-  (setq lsp-ui-sideline-delay 0.75)
-  (setq lsp-ui-doc-delay 0.75)
-  (setq lsp-ui-doc-enable nil)
-  (setq lsp-ui-doc-position 'at-point)
-  (setq lsp-ui-doc-max-width 150)
-  (setq lsp-ui-doc-max-height 16)
-  (setq lsp-ui-doc-include-signature t)
-  (setq lsp-ui-sideline-diagnostic-max-lines 20)
-  (setq lsp-ui-sideline-show-code-actions nil))
+(setq lsp-enable-file-watchers nil)
+(setq lsp-enable-on-type-formatting nil)
+(setq lsp-headerline-breadcrumb-enable t)
+(setq lsp-idle-delay 1)
+(setq lsp-signature-auto-activate nil)
+(setq lsp-modeline-code-actions-enable nil)
+
+(setq lsp-ui-sideline-delay 0.75)
+(setq lsp-ui-doc-delay 0.75)
+(setq lsp-ui-doc-enable nil)
+(setq lsp-ui-doc-position 'at-point)
+(setq lsp-ui-doc-max-width 150)
+(setq lsp-ui-doc-max-height 16)
+(setq lsp-ui-doc-include-signature t)
+(setq lsp-ui-sideline-diagnostic-max-lines 20)
+(setq lsp-ui-sideline-show-code-actions nil)
 
 (setq flycheck-idle-change-delay 1.5)
 
@@ -224,6 +223,13 @@
   (require 'evil-terminal-cursor-changer)
   (evil-terminal-cursor-changer-activate))
 
+(use-package! kubernetes
+  :commands (kubernetes-overview))
+
+(use-package! kubernetes-evil
+  :config (evil-make-overriding-map kubernetes-mode-map 'normal)
+  :after kubernetes)
+
 ;; Use mermaid-mode for mermaid files
 (use-package! mermaid-mode
   :config
@@ -316,6 +322,31 @@
        :desc "send up in insert mode" :i "C-k" #'vterm-send-up)
       (:map vterm-mode-map
        :desc "send down in insert mode" :i "C-j" #'vterm-send-down))
+
+;; Add a "rerun tests" command to the local test command options
+(map!
+ (:map rustic-mode-map
+  :nv "?" #'rustic-popup
+  (:localleader :prefix "t" :desc "rerun tests" :nv "r" #'rustic-cargo-test-rerun)))
+
+;; Very weird to me that these aren't defined by default for the rustic popup
+(map!
+ (:map rustic-popup-mode-map
+  :nv "b" #'rustic-cargo-build
+  :nv "f" #'rustic-cargo-fmt
+  :nv "r" #'rustic-cargo-run
+  :nv "c" #'rustic-cargo-clippy
+  :nv "o" #'rustic-cargo-outdated
+  :nv "e" #'rustic-cargo-clean
+  :nv "k" #'rustic-cargo-check
+  :nv "t" #'rustic-cargo-test
+  :nv "d" #'rustic-cargo-doc))
+
+
+;; This resolves a weird error when creating a new frame via (make-frame) that
+;; I haven't been able to find any info on. Error message is
+;; "The default fontset can't be used for a frame font".
+(setq default-frame-alist (assq-delete-all 'font default-frame-alist))
 
 
 ;; Somehow recently this started overriding TAB in the magit status buffer.

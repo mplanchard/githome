@@ -18,7 +18,10 @@
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(safe-local-variable-values
-   '((lsp-enable-on-type-formatting . f)
+   '((rustic-test-arguments . "--all")
+     (lsp-enable-on-type-formatting . t)
+     (python-pytest-executable . "docker-compose run --rm backend pytest")
+     (lsp-enable-on-type-formatting . f)
      (lsp-python-ms-python-executable . "~/.pyenv/take-two/bin/python")
      (eval if
            (fboundp 'editorconfig-mode)

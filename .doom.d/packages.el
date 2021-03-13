@@ -22,6 +22,8 @@
 (package! hackernews)  ;; elitest tech news and commentary
 (package! jest) ;; javascript testing
 (package! kaolin-themes) ;; some themes
+(package! kubernetes) ;; kubernetes overview
+(package! kubernetes-evil) ;; kubernetes evil support
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
