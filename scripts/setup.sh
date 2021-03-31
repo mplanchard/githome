@@ -44,14 +44,17 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libssl-dev       # pyenv
 		libtool
 		libtool-bin
+		lldb
 		llvm # pyenv
 		neovim
 		nodejs
 		npm
+		nscd # nameservice caching daemon, used by guix
 		pandoc
 		postgresql
 		postgresql-contrib
 		python3-openssl # pyenv
+		rust-lldb
 		shellcheck
 		sqlite3
 		texlive-latex-base
@@ -90,9 +93,31 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	# Link certs into a common location for mac/linux
 	if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
-		mkdir -p "$HOME/.cert"
 		ln -s /etc/ssl/certs/ca-certificates.crt "$HOME/.cert/cert.pem"
 	fi
+
+	# Install guix pacakge manager
+	if [[ "$(command -v guix)" == "" ]]; then
+		mkdir -p "$HOME/Downloads"
+		GUIX_INSTALL_PATH="$HOME/Downloads/guix-install.sh"
+
+		# Ensure we've got the GNU public key
+		wget 'https://sv.gnu.org/people/viewgpg.php?user_id=15145' -qO - | sudo -i gpg --import -
+
+		curl https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh -o "$GUIX_INSTALL_PATH"
+
+		GUIX_MD5="b0355947de8ef1ec38c0c9dfb4c2afbe"
+		if [[ "$GUIX_MD5" != $(md5sum "$GUIX_INSTALL_PATH" | awk '{print $1}') ]]; then
+			echo "guix md5sum has changed. please verify it looks okay, then update this script"
+			exit 1
+		else
+			sudo sh "$GUIX_INSTALL_PATH"
+		fi
+		guix pull
+
+		guix install glibc-utf8-locales gs-fonts font-dejavu font-gnu-freefont
+	fi
+
 else
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
