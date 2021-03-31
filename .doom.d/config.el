@@ -80,7 +80,8 @@
 (after! evil
   (setq evil-esc-delay 0)
   (setq evil-escape-delay 0)
-  (setq evil-escape-mode nil))
+  (setq evil-escape-mode nil)
+  (setq evil-ex-search-case 'smart))
 
 ;; LSP Settings and Performance Tuning
 (setq gc-cons-threshold 100000000)
@@ -180,6 +181,8 @@
 
 ;; Rust-related LSP settings
 (setq rustic-format-on-save t)
+(setq lsp-rust-analyzer-proc-macro-enable t)
+(setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
 (setq lsp-rust-all-features t)
 (setq lsp-rust-cfg-test t)
 
@@ -238,6 +241,10 @@
 (unless (display-graphic-p)
   (require 'evil-terminal-cursor-changer)
   (evil-terminal-cursor-changer-activate))
+
+(use-package! git-link
+  :config
+  (setq git-link-use-commit t))
 
 (use-package! kubernetes
   :commands (kubernetes-overview))
@@ -309,7 +316,17 @@
 (map! :map ivy-occur-mode-map
       ;; normally this is f, but also the evil commands tend to override it.
       ;; make it RET instead and ensure it doesn't get overridden
-      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press)
+      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
+      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
+
+(map! :map ivy-occur-grep-mode-map
+      ;; normally this is f, but also the evil commands tend to override it.
+      ;; make it RET instead and ensure it doesn't get overridden
+      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
+      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
+
+(evil-make-overriding-map ivy-occur-mode-map 'normal)
+(evil-make-overriding-map ivy-occur-grep-mode-map 'normal)
 
 (map! (:after org
        :map org-mode-map
@@ -349,12 +366,10 @@
 (map!
  (:map rustic-popup-mode-map
   :nv "b" #'rustic-cargo-build
-  :nv "f" #'rustic-cargo-fmt
   :nv "r" #'rustic-cargo-run
   :nv "c" #'rustic-cargo-clippy
   :nv "o" #'rustic-cargo-outdated
   :nv "e" #'rustic-cargo-clean
-  :nv "k" #'rustic-cargo-check
   :nv "t" #'rustic-cargo-test
   :nv "d" #'rustic-cargo-doc))
 
@@ -398,6 +413,9 @@
    mu4e-headers-thread-child-prefix '("| " . "| ")
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
    mu4e-headers-thread-orphan-prefix '("" . "")
+   ;; make indexing faster
+   mu4e-index-cleanup nil
+   mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    mu4e-update-interval 300)
   :config
@@ -425,12 +443,18 @@
                '(:name "Global Inbox"
                  :key ?i
                  :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed"))
-  (setq mu4e-headers-fields '((:account . 8)
-                              (:flags . 4)
+  (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
+  ;; (setq mu4e-headers-fields '((:account . 8)
+  ;;                             (:flags . 4)
+  ;;                             (:mailing-list . 12)
+  ;;                             (:from . 22)
+  ;;                             (:human-date . 12)
+  ;;                             (:subject . nil))))
+  (setq mu4e-headers-fields '((:flags . 4)
                               (:mailing-list . 12)
                               (:from . 22)
-                              (:subject . nil)
-                              (:human-date . 12))))
+                              (:human-date . 12)
+                              (:subject . nil))))
 
 (use-package! mu4e-views
   :config
@@ -441,6 +465,11 @@
 ;; Send HTML messages by default.
 (after! org-msg
   (setq org-msg-default-alternatives '(text html)))
+
+(use-package! magit
+  :config
+  ;; Show local branches in magit status buffer
+  (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))
 
 
 (defun mp-email-empty-trash ()
