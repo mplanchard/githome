@@ -33,6 +33,10 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		i3
 		isync            # email
 		jq               # doom-emacs
+		texlive-latex-base
+		texlive-latex-extra
+		texlive-latex-fonts-recommended
+		texlive-latex-fonts-extra
 		libbz2-dev       # pyenv
 		libffi-dev       # pyenv
 		liblzma-dev      # pyenv

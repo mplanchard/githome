@@ -289,12 +289,13 @@
 ;; **********************************************************************
 
 (if (string-equal system-type "darwin")
-    ;; Add homebrew-installed mu's mu4e path to the load path
-    (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+    (lambda ()
+      ;; Add homebrew-installed mu's mu4e path to the load path
+      (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+      ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
+      (setq magit-git-executable "/usr/local/bin/git"))
   ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
-  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e")
-  ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
-  (setq magit-git-executable "/usr/local/bin/git"))
+  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e"))
 
 (use-package! mu4e
   :init
