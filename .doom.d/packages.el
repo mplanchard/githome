@@ -38,6 +38,7 @@
 (package! skewer-mode) ;; interactively edit JS/HTML
 (package! tree-sitter)  ;; better syntax highlighting and language analysis
 (package! tree-sitter-langs)
+(package! vscode-dark-plus-theme) ;; vscode theme with less purple?
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
