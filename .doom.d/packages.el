@@ -12,6 +12,7 @@
 (package! ace-window) ;; allow easy jumping between many windows
 (package! browse-at-remote) ;; hopefully a bit of a better git-link
 (package! csv-mode)  ;; some support for CSVs
+(package! dap-mode)  ;; debugger
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
@@ -20,9 +21,14 @@
   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
+(package! jest) ;; javascript testing
 (package! kaolin-themes) ;; some themes
+(package! kubernetes) ;; kubernetes overview
+(package! kubernetes-evil) ;; kubernetes evil support
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! mermaid-mode)  ;; support for mermaid diagrams
+(package! mixed-pitch) ;; allow mixed monospace and proportional fonts
+(package! mu4e-views) ;; html emails in xwidgets view
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS

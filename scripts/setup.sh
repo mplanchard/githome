@@ -14,7 +14,8 @@ fi
 if [[ "$ENV" == "$LINUX" ]]; then
 	# Repositories
 	echo "Checking for emacs PPA ..."
-	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ]; then
+	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] &&
+		[ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-groovy.list ]; then
 		sudo add-apt-repository ppa:kelleyk/emacs
 	fi
 
@@ -47,16 +48,24 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libssl-dev       # pyenv
 		libtool
 		libtool-bin
+		lldb
 		llvm # pyenv
 		neovim
 		nodejs
 		npm
+		nscd # nameservice caching daemon, used by guix
 		pandoc
 		postgresql
 		postgresql-contrib
-		python-openssl # pyenv
+		python3-openssl # pyenv
+		rust-lldb
 		shellcheck
 		sqlite3
+		texlive-latex-base
+		texlive-latex-extra
+		texlive-fonts-recommended
+		texlive-latex-recommended
+		texlive-latex-recommended-doc
 		tidy       # org-mode html export
 		tk-dev     # pyenv
 		wget       # pyenv
@@ -83,13 +92,36 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$DL_PATH"
 		sudo tar -C /usr/local -xzf "$DL_PATH"
 		rm -f "$DL_PATH"
+		export PATH="$PATH:/usr/local/go/bin"
 	fi
 
 	# Link certs into a common location for mac/linux
 	if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
-		mkdir -p "$HOME/.cert"
 		ln -s /etc/ssl/certs/ca-certificates.crt "$HOME/.cert/cert.pem"
 	fi
+
+	# Install guix pacakge manager
+	if [[ "$(command -v guix)" == "" ]]; then
+		mkdir -p "$HOME/Downloads"
+		GUIX_INSTALL_PATH="$HOME/Downloads/guix-install.sh"
+
+		# Ensure we've got the GNU public key
+		wget 'https://sv.gnu.org/people/viewgpg.php?user_id=15145' -qO - | sudo -i gpg --import -
+
+		curl https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh -o "$GUIX_INSTALL_PATH"
+
+		GUIX_MD5="b0355947de8ef1ec38c0c9dfb4c2afbe"
+		if [[ "$GUIX_MD5" != $(md5sum "$GUIX_INSTALL_PATH" | awk '{print $1}') ]]; then
+			echo "guix md5sum has changed. please verify it looks okay, then update this script"
+			exit 1
+		else
+			sudo sh "$GUIX_INSTALL_PATH"
+		fi
+		guix pull
+
+		guix install glibc-utf8-locales gs-fonts font-dejavu font-gnu-freefont
+	fi
+
 else
 	export HOMEBREW_NO_AUTO_UPDATE=1
 

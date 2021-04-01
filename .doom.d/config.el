@@ -57,6 +57,8 @@
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
+(setq rustic-indent-offset 4)
+(setq tab-width 4)
 
 (setq ispell-dictionary "en_US")
 
@@ -71,32 +73,36 @@
 ;; Make the ivy serach buffer larger
 (setq ivy-height 25)
 
+(after! company
+  ;; start showing completion results asap
+  (setq company-idle-delay 0.25))
+
 (after! evil
   (setq evil-esc-delay 0)
   (setq evil-escape-delay 0)
-  (setq evil-escape-mode nil))
+  (setq evil-escape-mode nil)
+  (setq evil-ex-search-case 'smart))
 
 ;; LSP Settings and Performance Tuning
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
-(after! lsp
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-headerline-breadcrumb-enable t)
-  (setq lsp-idle-delay 1)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-modeline-code-actions-enable nil))
 
-(after! lsp-ui
-  (setq lsp-ui-sideline-delay 0.75)
-  (setq lsp-ui-doc-delay 0.75)
-  (setq lsp-ui-doc-enable nil)
-  (setq lsp-ui-doc-position 'at-point)
-  (setq lsp-ui-doc-max-width 150)
-  (setq lsp-ui-doc-max-height 16)
-  (setq lsp-ui-doc-include-signature t)
-  (setq lsp-ui-sideline-diagnostic-max-lines 20)
-  (setq lsp-ui-sideline-show-code-actions nil))
+(setq lsp-enable-file-watchers nil)
+(setq lsp-enable-on-type-formatting nil)
+(setq lsp-headerline-breadcrumb-enable t)
+(setq lsp-idle-delay 1)
+(setq lsp-signature-auto-activate nil)
+(setq lsp-modeline-code-actions-enable nil)
+
+(setq lsp-ui-sideline-delay 0.75)
+(setq lsp-ui-doc-delay 0.75)
+(setq lsp-ui-doc-enable nil)
+(setq lsp-ui-doc-position 'at-point)
+(setq lsp-ui-doc-max-width 150)
+(setq lsp-ui-doc-max-height 16)
+(setq lsp-ui-doc-include-signature t)
+(setq lsp-ui-sideline-diagnostic-max-lines 20)
+(setq lsp-ui-sideline-show-code-actions nil)
 
 (setq flycheck-idle-change-delay 1.5)
 
@@ -110,6 +116,14 @@
 (after! ispell
   (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
 
+(after! jit-lock
+  ;; defer fontification while input is pending
+  (setq jit-lock-defer-time 0)
+  ;; When a buffer is idle for some time, go ahead and fontify areas outside
+  ;; the view, to avoid work when scrolling
+  (setq jit-lock-stealth-time 32))
+
+(setq mac-mouse-wheel-smooth-scroll nil)
 
 ;; Fill the 80th column to let me know I've gone too far
 (setq global-hl-fill-column-mode t)
@@ -167,6 +181,8 @@
 
 ;; Rust-related LSP settings
 (setq rustic-format-on-save t)
+(setq lsp-rust-analyzer-proc-macro-enable t)
+(setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
 (setq lsp-rust-all-features t)
 (setq lsp-rust-cfg-test t)
 
@@ -207,19 +223,55 @@
 
 (use-package! gh-notify)
 
+(use-package! dap-mode
+  :config
+  (dap-ui-mode)
+  (dap-ui-controls-mode t)
+  (require 'dap-lldb)
+  (require 'dap-gdb-lldb)
+  (dap-register-debug-template "Rust::GDB Run Configuration"
+                               (list :type "gdb"
+                                     :request "launch"
+                                     :name "GDB::Run"
+                                     :gdbpath "rust-gdb"
+                                     :target nil
+                                     :cwd nil)))
+
 ;; Use bar and block cursor in terminal emacs rather than just block
 (unless (display-graphic-p)
   (require 'evil-terminal-cursor-changer)
   (evil-terminal-cursor-changer-activate))
+
+(use-package! git-link
+  :config
+  (setq git-link-use-commit t))
+
+(use-package! kubernetes
+  :commands (kubernetes-overview))
+
+(use-package! kubernetes-evil
+  :config (evil-make-overriding-map kubernetes-mode-map 'normal)
+  :after kubernetes)
 
 ;; Use mermaid-mode for mermaid files
 (use-package! mermaid-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
 
+
 (use-package! edit-server
-  :config
-  (edit-server-start))
+  :commands edit-server-start
+  :init
+  (if after-init-time
+      (edit-server-start)
+    (add-hook 'after-init-hook
+              #'(lambda() (edit-server-start))))
+  :config (setq edit-server-new-frame-alist
+                '((name . "Edit with Emacs FRAME")
+                  (width . 80)
+                  (height . 25)
+                  (minibuffer . t)
+                  (menu-bar-lines . t))))
 
 (use-package! tree-sitter-langs)
 
@@ -237,9 +289,14 @@
       :localleader
       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
 
-(map! :leader
-      :prefix "w"
-      :desc "ace-window" :nv "/" #'ace-window)
+(map! (:leader
+       :prefix "w"
+       :desc "ace-window" :nv "/" #'ace-window)
+      ;; Sometimes these get mapped to evil-next-visual-line and evil-next-previous-line
+      ;; in operator mode, which makes the behavior of ~dj~ and ~dk~ and friends
+      ;; very odd. Manually set them to their original mappings.
+      (:desc "down" :o "j" #'evil-next-line)
+      (:desc "up" :o "k" #'evil-previous-line))
 
 (map! :leader
       :desc "paste from kill ring" :nv "P" #'counsel-yank-pop)
@@ -255,6 +312,21 @@
 
 (map! :map ivy-minibuffer-map
       :desc "Search History" "C-r" #'counsel-minibuffer-history)
+
+(map! :map ivy-occur-mode-map
+      ;; normally this is f, but also the evil commands tend to override it.
+      ;; make it RET instead and ensure it doesn't get overridden
+      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
+      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
+
+(map! :map ivy-occur-grep-mode-map
+      ;; normally this is f, but also the evil commands tend to override it.
+      ;; make it RET instead and ensure it doesn't get overridden
+      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
+      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
+
+(evil-make-overriding-map ivy-occur-mode-map 'normal)
+(evil-make-overriding-map ivy-occur-grep-mode-map 'normal)
 
 (map! (:after org
        :map org-mode-map
@@ -278,6 +350,35 @@
        :desc "Show code outline"
        :nv "O"
        #'lsp-ui-imenu))
+
+(map! (:map vterm-mode-map
+       :desc "send up in insert mode" :i "C-k" #'vterm-send-up)
+      (:map vterm-mode-map
+       :desc "send down in insert mode" :i "C-j" #'vterm-send-down))
+
+;; Add a "rerun tests" command to the local test command options
+(map!
+ (:map rustic-mode-map
+  :nv "?" #'rustic-popup
+  (:localleader :prefix "t" :desc "rerun tests" :nv "r" #'rustic-cargo-test-rerun)))
+
+;; Very weird to me that these aren't defined by default for the rustic popup
+(map!
+ (:map rustic-popup-mode-map
+  :nv "b" #'rustic-cargo-build
+  :nv "r" #'rustic-cargo-run
+  :nv "c" #'rustic-cargo-clippy
+  :nv "o" #'rustic-cargo-outdated
+  :nv "e" #'rustic-cargo-clean
+  :nv "t" #'rustic-cargo-test
+  :nv "d" #'rustic-cargo-doc))
+
+
+;; This resolves a weird error when creating a new frame via (make-frame) that
+;; I haven't been able to find any info on. Error message is
+;; "The default fontset can't be used for a frame font".
+(setq default-frame-alist (assq-delete-all 'font default-frame-alist))
+
 
 ;; Somehow recently this started overriding TAB in the magit status buffer.
 ;; Revisit later to see if it's fixed.
@@ -311,7 +412,12 @@
    ;; Simpler threading indicators
    mu4e-headers-thread-child-prefix '("| " . "| ")
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
-   mu4e-headers-thread-orphan-prefix '("" . ""))
+   mu4e-headers-thread-orphan-prefix '("" . "")
+   ;; make indexing faster
+   mu4e-index-cleanup nil
+   mu4e-index-lazy-check t
+   ;; update mail every 5 minutes
+   mu4e-update-interval 300)
   :config
   (set-email-account! "gmail"
                       '((user-email-address . "msplanchard@gmail.com")
@@ -337,18 +443,33 @@
                '(:name "Global Inbox"
                  :key ?i
                  :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed"))
-  (setq mu4e-headers-fields '((:account . 8)
-                              (:flags . 4)
+  (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
+  ;; (setq mu4e-headers-fields '((:account . 8)
+  ;;                             (:flags . 4)
+  ;;                             (:mailing-list . 12)
+  ;;                             (:from . 22)
+  ;;                             (:human-date . 12)
+  ;;                             (:subject . nil))))
+  (setq mu4e-headers-fields '((:flags . 4)
                               (:mailing-list . 12)
                               (:from . 22)
-                              (:subject . nil)
-                              (:human-date . 12))))
+                              (:human-date . 12)
+                              (:subject . nil))))
 
+(use-package! mu4e-views
+  :config
+  (setq mu4e-views-completion-method 'ivy)
+  (setq mu4e-views-next-previous-message-behavior 'stick-to-current-window))
 
 
 ;; Send HTML messages by default.
 (after! org-msg
   (setq org-msg-default-alternatives '(text html)))
+
+(use-package! magit
+  :config
+  ;; Show local branches in magit status buffer
+  (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))
 
 
 (defun mp-email-empty-trash ()
@@ -361,15 +482,9 @@
 
 
 (after! markdown-mode
+  (setq markdown-marginalize-headers t)
+  (setq markdown-header-scaling t)
   (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
-
-
-;; Check mail every ten minutes:
-;; first, cancel any running timers to avoid creating a multitude due to e.g.
-;; refreshing doom emacs
-(cancel-function-timers #'mu4e-update-mail-and-index)
-;; then set up the email checker to run every 10 minutes
-(run-with-timer 0 (* 60 10) #'mu4e-update-mail-and-index t)
 
 ;; **********************************************************************
 ;; Javascript/Typescript
@@ -385,6 +500,10 @@
 (add-hook 'js2-mode-hook #'prettier-js-mode)
 (add-hook 'typescript-mode-hook #'prettier-js-mode)
 
+;; fancy testing
+(use-package! jest
+  :after (js2-mode typescript-mode)
+  :hook (js2-mode . jest-minor-mode) (typescript-mode . jest-minor-mode))
 
 (defun mp-flycheck-update-js-lsp-checkers ()
   "Update JS checkers for LSP mode"
@@ -534,6 +653,7 @@ cursor.
      ((not root-dir) nil)
      (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
 
+
 (defun mp-copy-relative-path ()
   "Copy the path to the current file, relative to the project root.
 
@@ -611,7 +731,7 @@ If not currently in a Projectile project, does not copy anything.
 
 (defun mp-take-two-deploy-list (&optional target)
   "Get a list of commits to deploy from up to TARGET, or master/HEAD if not provided"
-  (interactive "sTarget [default origin/master]: ")
+  (interactive "sTarget [default current staging SHA]: ")
   (let ((current
          ;; grab the current deployed
          (cdr (assoc 'commit_sha
@@ -619,7 +739,12 @@ If not currently in a Projectile project, does not copy anything.
                        (goto-char url-http-end-of-headers)
                        (json-read)))))
         (target
-         (if (string-empty-p target) "origin/master" target)))
+         (if (string-empty-p target)
+             (cdr (assoc 'commit_sha
+                         (with-current-buffer (url-retrieve-synchronously "https://api.stage.bestow.io/version")
+                           (goto-char url-http-end-of-headers)
+                           (json-read))))
+           target)))
     ;; ensure we're up to date with origin
     (magit-git-fetch "origin" "master")
     ;; output git log to buffer (note we could use ~magit-log-other~ here, but

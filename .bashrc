@@ -68,7 +68,7 @@ if [[ $(command -v pyenv) != "" ]]; then
 		eval "$(pyenv virtualenv-init -)"
 	fi
 
-	pyenv global 3.8.6 3.7.9 3.6.12 3.9.0
+	pyenv global 3.8.6 3.7.9 3.6.12 3.9.1
 fi
 
 # Source nvm stuff
@@ -81,6 +81,30 @@ fi
 # Source google stuff
 if [ -d "$HOME/.ghcup" ]; then
 	source /Users/mplanchard/.ghcup/env
+fi
+
+# Source guix profile if present
+if [ -d "$HOME/.guix-profile/" ]; then
+	export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+	export GUIX_PROFILE="$HOME/.guix-profile"
+	source "$GUIX_PROFILE/etc/profile"
+
+	export SSL_CERT_DIR="$GUIX_PROFILE/etc/ssl/certs"
+	export SSL_CERT_FILE="$GUIX_PROFILE/etc/ssl/certs/ca-certificates.crt"
+fi
+
+# Source guix profile
+if [ -d "$HOME/.config/guix/current" ]; then
+	export PATH="$HOME/.config/guix/current/bin/:$PATH"
+	export INFOPATH="$HOME/.config/guix/current/share/info:$PATH"
+fi
+
+if [ -f ~/.localenv ]; then
+	. ~/.localenv
+fi
+
+if [ -f ~/.localrc ]; then
+	. ~/.localrc
 fi
 
 # If not running interactively, don't do anything
@@ -193,14 +217,6 @@ if [ -f ~/.aliases ]; then
 	. ~/.aliases
 fi
 
-if [ -f ~/.localenv ]; then
-	. ~/.localenv
-fi
-
-if [ -f ~/.localrc ]; then
-	. ~/.localrc
-fi
-
 if [ -f ~/.local_alises ]; then
 	. ~/.local_aliases
 fi
@@ -228,3 +244,16 @@ fi
 if [ -f "$HOME/github/jwilm/alacritty/extra/completions/alacritty.bash" ]; then
 	source /Users/mplanchard/github/jwilm/alacritty/extra/completions/alacritty.bash
 fi
+
+# Enable fancy vterm integration with emacs
+if [[ "$INSIDE_EMACS" = 'vterm' ]] &&
+	[[ -n ${EMACS_VTERM_PATH} ]] &&
+	[[ -f ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh ]]; then
+	source ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh
+fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/matthew/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/home/matthew/Downloads/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc'; fi

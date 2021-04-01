@@ -8,7 +8,7 @@ PassCmd "gpg --decrypt -q ~/.gmailpass.gpg"
 #
 # Use SSL
 SSLType IMAPS
-AuthMechs PLAIN
+AuthMechs LOGIN
 # Certs put into a common for mac and linux
 CertificateFile ~/.cert/cert.pem
 # CertificateFile /etc/ssl/certs/ca-certificates.crt
@@ -28,7 +28,7 @@ Channel gmail
 Master :gmail-remote:
 Slave :gmail-local:
 # Exclude All Mail for first sync b/c it's massive
-# Patterns * ![Gmail]* "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred"
+# Patterns * ![Gmail]* "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred"
 Patterns * ![Gmail]* "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
@@ -48,7 +48,7 @@ PassCmd "gpg --decrypt -q ~/.workemailpass.gpg"
 #
 # Use SSL
 SSLType IMAPS
-AuthMechs PLAIN
+AuthMechs LOGIN
 # Certs put into a common for mac and linux
 CertificateFile ~/.cert/cert.pem
 # CertificateFile /etc/ssl/certs/ca-certificates.crt
@@ -68,8 +68,8 @@ Channel work
 Master :work-remote:
 Slave :work-local:
 # Exclude All Mail for first sync b/c it's massive
-# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts [Gmail]/Sent Mail" "[Gmail]/Starred"
-Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred"
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything
 #Patterns *
 # Automatically create missing mailboxes, both locally and on the server
