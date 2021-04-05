@@ -34,10 +34,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		i3
 		isync            # email
 		jq               # doom-emacs
-		texlive-latex-base
-		texlive-latex-extra
-		texlive-latex-fonts-recommended
-		texlive-latex-fonts-extra
 		libbz2-dev       # pyenv
 		libffi-dev       # pyenv
 		liblzma-dev      # pyenv
@@ -120,6 +116,10 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		guix pull
 
 		guix install glibc-utf8-locales gs-fonts font-dejavu font-gnu-freefont
+	fi
+
+	if [[ "$(command -v nix-env)" == "" ]]; then
+		sh <(curl -L https://nixos.org/nix/install) --daemon
 	fi
 
 else
