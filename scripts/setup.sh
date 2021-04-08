@@ -19,6 +19,12 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		sudo add-apt-repository ppa:kelleyk/emacs
 	fi
 
+	echo "Checking for hashicorp PPA..."
+	if [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-groovy.list ]; then
+		curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+		sudo apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+	fi
+
 	PKGS=(
 		build-essential # pyenv
 		ca-certificates # email
@@ -57,6 +63,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		rust-lldb
 		shellcheck
 		sqlite3
+		terraform # from the hashicorp repository
 		texlive-latex-base
 		texlive-latex-extra
 		texlive-fonts-recommended

@@ -32,6 +32,7 @@
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! python-black) ;; add commands for formatting python with black
 (package! prettier-js)  ;; use prettier for formatting JS/TS
+(package! pandoc-mode) ;; convert ALL the things
 (package! protobuf-mode) ;; support for editing protos
 (package! pyvenv) ;; oh python
 (package! shfmt) ;; format shell scripts
