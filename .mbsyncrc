@@ -21,8 +21,8 @@ Account gmail
 MaildirStore gmail-local
 SubFolders Verbatim
 # The trailing "/" is important
-Path ~/mail/gmail/
-Inbox ~/mail/gmail/Inbox
+Path ~/.mail/gmail/
+Inbox ~/.mail/gmail/Inbox
 
 Channel gmail
 Master :gmail-remote:
@@ -38,41 +38,41 @@ Create Both
 SyncState *
 
 
-IMAPAccount work
-# Address to connect to
-Host imap.gmail.com
-User matthew@bestow.com
-PassCmd "gpg --decrypt -q ~/.workemailpass.gpg"
-# To store the password in an encrypted file use PassCmd instead of Pass
-# PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.mailpass.gpg"
-#
-# Use SSL
-SSLType IMAPS
-AuthMechs LOGIN
-# Certs put into a common for mac and linux
-CertificateFile ~/.cert/cert.pem
-# CertificateFile /etc/ssl/certs/ca-certificates.crt
-#CertificateFile ~/.cert/imap.gmail.com.pem
-#CertificateFile ~/.cert/Equifax_Secure_CA.pem
+# IMAPAccount work
+# # Address to connect to
+# Host imap.gmail.com
+# User matthew@bestow.com
+# PassCmd "gpg --decrypt -q ~/.workemailpass.gpg"
+# # To store the password in an encrypted file use PassCmd instead of Pass
+# # PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.mailpass.gpg"
+# #
+# # Use SSL
+# SSLType IMAPS
+# AuthMechs LOGIN
+# # Certs put into a common for mac and linux
+# CertificateFile ~/.cert/cert.pem
+# # CertificateFile /etc/ssl/certs/ca-certificates.crt
+# #CertificateFile ~/.cert/imap.gmail.com.pem
+# #CertificateFile ~/.cert/Equifax_Secure_CA.pem
 
-IMAPStore work-remote
-Account work
+# IMAPStore work-remote
+# Account work
 
-MaildirStore work-local
-SubFolders Verbatim
-# The trailing "/" is important
-Path ~/mail/work/
-Inbox ~/mail/work/Inbox
+# MaildirStore work-local
+# SubFolders Verbatim
+# # The trailing "/" is important
+# Path ~/mail/work/
+# Inbox ~/mail/work/Inbox
 
-Channel work
-Master :work-remote:
-Slave :work-local:
-# Exclude All Mail for first sync b/c it's massive
-Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred"
-# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
-# Or include everything
-#Patterns *
-# Automatically create missing mailboxes, both locally and on the server
-Create Both
-# Save the synchronization state files in the relevant directory
-SyncState *
+# Channel work
+# Master :work-remote:
+# Slave :work-local:
+# # Exclude All Mail for first sync b/c it's massive
+# Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred"
+# # Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+# # Or include everything
+# #Patterns *
+# # Automatically create missing mailboxes, both locally and on the server
+# Create Both
+# # Save the synchronization state files in the relevant directory
+# SyncState *

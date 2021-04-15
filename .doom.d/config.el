@@ -21,7 +21,7 @@
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
-(setq doom-font (font-spec :family "Ubuntu Mono")
+(setq doom-font (font-spec :family "Ubuntu Mono" :size 16)
       doom-variable-pitch-font (font-spec :family "sans"))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -403,7 +403,7 @@
       ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
       (setq magit-git-executable "/usr/local/bin/git"))
   ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
-  (add-to-list 'load-path "/snap/maildir-utils/current/share/emacs/site-lisp/mu4e"))
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e"))
 
 (use-package! mu4e
   :init
@@ -412,10 +412,8 @@
    mu4e-headers-include-related nil
    ;; More space for the headers
    mu4e-headers-visible-lines 20
-   ;; Set the maildir to ~/mail -- the default is /mail, which was fine, except that
-   ;; the ubuntu snap for mu doesn't have access to private directories
-   mu4e-maildir "~/mail"  ;; deprecated, but keeping around for now
-   mu4e-root-maildir "~/mail"
+   mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
+   mu4e-root-maildir "~/.mail"
    ;; Simpler threading indicators
    mu4e-headers-thread-child-prefix '("| " . "| ")
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
@@ -436,20 +434,23 @@
                         (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-  (set-email-account! "work"
-                      '((user-email-address . "matthew@bestow.com")
-                        (smtpmail-smtp-user . "matthew@bestow.com")
-                        (smtpmail-local-domain . "gmail.com")
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-default-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
-                        (mu4e-refile-folder . "/work/[Gmail]/All Mail")
-                        (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
+  ;; (set-email-account! "work"
+  ;;                     '((user-email-address . "matthew@bestow.com")
+  ;;                       (smtpmail-smtp-user . "matthew@bestow.com")
+  ;;                       (smtpmail-local-domain . "gmail.com")
+  ;;                       (smtpmail-smtp-server . "smtp.gmail.com")
+  ;;                       (smtpmail-default-smtp-server . "smtp.gmail.com")
+  ;;                       (smtpmail-smtp-service . 587)
+  ;;                       (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
+  ;;                       (mu4e-refile-folder . "/work/[Gmail]/All Mail")
+  ;;                       (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
   (add-to-list 'mu4e-bookmarks
                '(:name "Global Inbox"
                  :key ?i
-                 :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed"))
+                 :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed")
+               '(:name "Gmail and Sent"
+                 :key ?g
+                 :query "maildir:/gmail/Inbox OR \"maildir:/gmail/[Gmail]/Sent Mail\" AND NOT flag:trashed"))
   (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
   ;; (setq mu4e-headers-fields '((:account . 8)
   ;;                             (:flags . 4)
