@@ -83,22 +83,6 @@ if [ -d "$HOME/.ghcup" ]; then
 	source /Users/mplanchard/.ghcup/env
 fi
 
-# Source guix profile if present
-if [ -d "$HOME/.guix-profile/" ]; then
-	export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-	export GUIX_PROFILE="$HOME/.guix-profile"
-	source "$GUIX_PROFILE/etc/profile"
-
-	export SSL_CERT_DIR="$GUIX_PROFILE/etc/ssl/certs"
-	export SSL_CERT_FILE="$GUIX_PROFILE/etc/ssl/certs/ca-certificates.crt"
-fi
-
-# Source guix profile
-if [ -d "$HOME/.config/guix/current" ]; then
-	export PATH="$HOME/.config/guix/current/bin/:$PATH"
-	export INFOPATH="$HOME/.config/guix/current/share/info:$PATH"
-fi
-
 if [ -f ~/.localenv ]; then
 	. ~/.localenv
 fi
