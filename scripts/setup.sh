@@ -32,8 +32,9 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		curl # pyenv
 		direnv
 		editorconfig
-		emacs27 # emacs
-		fd-find # doom-emacs
+		emacs27               # emacs
+		emacs-common-non-dfsg # emacs docs
+		fd-find               # doom-emacs
 		gconf2
 		git # emacs, pyenv
 		htop
@@ -51,7 +52,9 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libtool
 		libtool-bin
 		lldb
-		llvm # pyenv
+		llvm          # pyenv
+		maildir-utils # mu
+		mu4e
 		neovim
 		nodejs
 		npm
@@ -74,10 +77,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		wget       # pyenv
 		xz-utils   # pyenv
 		zlib1g-dev # pyenv
-	)
-
-	SNAPS=(
-		maildir-utils # mu & mu4e
 	)
 
 	sudo apt-get update
