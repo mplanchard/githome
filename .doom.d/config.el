@@ -218,11 +218,11 @@
   ;; only use when in a nix-ish non-terminal app
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
-;; load and use one of the kaolin themes
-;; (use-package! kaolin-themes
-;;   :config
-;;   (load-theme 'kaolin-temple t)
-;;   (kaolin-treemacs-theme))
+
+(use-package! kaolin-themes
+  :config
+  (load-theme 'kaolin-dark t)
+  (kaolin-treemacs-theme))
 
 (use-package! gh-notify)
 
@@ -283,10 +283,6 @@
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
-(use-package! vscode-dark-plus-theme
-  :config
-  (load-theme 'vscode-dark-plus t))
 
 ;; **********************************************************************
 ;; Keybindings
