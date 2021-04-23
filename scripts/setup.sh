@@ -30,6 +30,15 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		sudo apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 	fi
 
+	echo "Checking for signal PPA"
+	if [ ! -f /etc/apt/sources.list.d/signal-xenial.list ]; then
+		wget -O- https://updates.signal.org/desktop/apt/keys.asc |
+			gpg --dearmor >signal-desktop-keyring.gpg
+		sudo mv signal-desktop-keyring.gpg /usr/share/keyrings/
+		echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' |
+			sudo tee -a /etc/apt/sources.list.d/signal-xenial.list
+	fi
+
 	echo "Checking for 1Password PPA..."
 	if [ ! -f "/etc/apt/sources.list.d/1password-beta.list" ]; then
 		curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo apt-key add -
@@ -85,6 +94,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		python3-openssl # pyenv
 		rust-lldb
 		shellcheck
+		signal-desktop # from the signal repository
 		sqlite3
 		terraform # from the hashicorp repository
 		texlive-latex-base
