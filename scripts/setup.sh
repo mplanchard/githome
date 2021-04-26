@@ -157,6 +157,24 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		sudo apt-get install ~/Downloads/install-dropbox.deb
 	fi
 
+	if [[ "$(command -v zoom)" == "" ]]; then
+		# Add public key to keyring
+		wget https://zoom.us/linux/download/pubkey -O - | gpg --import
+
+		# downoad zoom installer
+		ZOOM_DL="$HOME/Downloads/zoom-install.deb"
+		wget https://zoom.us/client/latest/zoom_amd64.deb -O "$ZOOM_DL"
+
+		# Check signature
+		ZOOM_FINGERPRINT="3960 60CA DD8A 7522 0BFC  B369 B903 BF18 61A7 C71D"
+		if gpg --verify "$ZOOM_DL" 2>&1 | grep -q "$ZOOM_FINGERPRINT"; then
+			sudo apt-get install -y "$ZOOM_DL"
+		else
+			echo "Failed to verify zoom signature!"
+			exit 1
+		fi
+	fi
+
 else
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
