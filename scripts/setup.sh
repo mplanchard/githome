@@ -64,7 +64,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		emacs-common-non-dfsg # emacs docs
 		fd-find               # doom-emacs
 		gconf2
-		git # emacs, pyenv
+		git         # emacs, pyenv
+		gnome-sushi # file preview
 		htop
 		i3
 		isync            # email
