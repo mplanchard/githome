@@ -218,6 +218,7 @@
   ;; only use when in a nix-ish non-terminal app
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
+
 ;; load and use one of the kaolin themes
 (use-package! kaolin-themes
   :config

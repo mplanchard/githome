@@ -12,6 +12,10 @@ fi
 
 # Install packages (linux)
 if [[ "$ENV" == "$LINUX" ]]; then
+
+	# Prereqs
+	sudo apt-get install build-essential curl git wget
+
 	# Repositories
 	echo "Checking for emacs PPA ..."
 	if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] &&
@@ -20,12 +24,36 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	fi
 
 	echo "Checking for hashicorp PPA..."
-	if [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-groovy.list ]; then
+	if [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-focal.list ] &&
+		[ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-groovy.list ]; then
 		curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 		sudo apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 	fi
 
+	echo "Checking for signal PPA"
+	if [ ! -f /etc/apt/sources.list.d/signal-xenial.list ]; then
+		wget -O- https://updates.signal.org/desktop/apt/keys.asc |
+			gpg --dearmor >signal-desktop-keyring.gpg
+		sudo mv signal-desktop-keyring.gpg /usr/share/keyrings/
+		echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' |
+			sudo tee -a /etc/apt/sources.list.d/signal-xenial.list
+	fi
+
+	echo "Checking for 1Password PPA..."
+	if [ ! -f "/etc/apt/sources.list.d/1password-beta.list" ]; then
+		curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo apt-key add -
+		echo 'deb [arch=amd64] https://downloads.1password.com/linux/debian/amd64 beta main' |
+			sudo tee /etc/apt/sources.list.d/1password-beta.list
+		sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+		curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol |
+			sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol
+		sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22
+		curl -sS https://downloads.1password.com/linux/keys/1password.asc |
+			sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+	fi
+
 	PKGS=(
+		1password
 		build-essential # pyenv
 		ca-certificates # email
 		cmake
@@ -36,7 +64,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		emacs-common-non-dfsg # emacs docs
 		fd-find               # doom-emacs
 		gconf2
-		git # emacs, pyenv
+		git         # emacs, pyenv
+		gnome-sushi # file preview
 		htop
 		i3
 		isync            # email
@@ -51,7 +80,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libssl-dev       # pyenv
 		libtool
 		libtool-bin
-		lldb
+		lldb-11
 		llvm          # pyenv
 		maildir-utils # mu
 		mu4e
@@ -62,9 +91,11 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		pandoc
 		postgresql
 		postgresql-contrib
+		python3-lldb-11
 		python3-openssl # pyenv
 		rust-lldb
 		shellcheck
+		signal-desktop # from the signal repository
 		sqlite3
 		terraform # from the hashicorp repository
 		texlive-latex-base
@@ -79,13 +110,23 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		zlib1g-dev # pyenv
 	)
 
+	CLASSIC_SNAPS=(
+		slack
+	)
+
+	SNAPS=(
+		discord
+		zulip
+	)
+
 	sudo apt-get update
 
 	sudo apt-get install -y "${PKGS[@]}"
 	# See https://github.com/sharkdp/bat/issues/938
 	sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
 
-	sudo snap install "${SNAPS[@]}"
+	# sudo snap install "${SNAPS[@]}"
+	# sudo snap install --classic "${CLASSIC_SNAPS[@]}"
 
 	# we just use brew for golang on mac. Install manually here.
 	if [[ "$(command -v go)" == "" ]]; then
@@ -99,33 +140,40 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	# Link certs into a common location for mac/linux
 	if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
+		mkdir -p "$HOME/.cert"
 		ln -s /etc/ssl/certs/ca-certificates.crt "$HOME/.cert/cert.pem"
 	fi
 
-	# Install guix pacakge manager
-	if [[ "$(command -v guix)" == "" ]]; then
-		mkdir -p "$HOME/Downloads"
-		GUIX_INSTALL_PATH="$HOME/Downloads/guix-install.sh"
-
-		# Ensure we've got the GNU public key
-		wget 'https://sv.gnu.org/people/viewgpg.php?user_id=15145' -qO - | sudo -i gpg --import -
-
-		curl https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh -o "$GUIX_INSTALL_PATH"
-
-		GUIX_MD5="b0355947de8ef1ec38c0c9dfb4c2afbe"
-		if [[ "$GUIX_MD5" != $(md5sum "$GUIX_INSTALL_PATH" | awk '{print $1}') ]]; then
-			echo "guix md5sum has changed. please verify it looks okay, then update this script"
-			exit 1
-		else
-			sudo sh "$GUIX_INSTALL_PATH"
-		fi
-		guix pull
-
-		guix install glibc-utf8-locales gs-fonts font-dejavu font-gnu-freefont
+	if [[ "$(command -v nix-env)" == "" ]]; then
+		sh <(curl -L https://nixos.org/nix/install) --daemon --no-modify-profile
 	fi
 
-	if [[ "$(command -v nix-env)" == "" ]]; then
-		sh <(curl -L https://nixos.org/nix/install) --daemon
+	source "/etc/profile.d/nix.sh"
+
+	nix-env -i niv lorri
+
+	if [[ "$(command -v dropbox)" == "" ]]; then
+		wget https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb \
+			-O ~/Downloads/install-dropbox.deb
+		sudo apt-get install ~/Downloads/install-dropbox.deb
+	fi
+
+	if [[ "$(command -v zoom)" == "" ]]; then
+		# Add public key to keyring
+		wget https://zoom.us/linux/download/pubkey -O - | gpg --import
+
+		# downoad zoom installer
+		ZOOM_DL="$HOME/Downloads/zoom-install.deb"
+		wget https://zoom.us/client/latest/zoom_amd64.deb -O "$ZOOM_DL"
+
+		# Check signature
+		ZOOM_FINGERPRINT="3960 60CA DD8A 7522 0BFC  B369 B903 BF18 61A7 C71D"
+		if gpg --verify "$ZOOM_DL" 2>&1 | grep -q "$ZOOM_FINGERPRINT"; then
+			sudo apt-get install -y "$ZOOM_DL"
+		else
+			echo "Failed to verify zoom signature!"
+			exit 1
+		fi
 	fi
 
 else
