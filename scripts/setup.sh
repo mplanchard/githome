@@ -303,7 +303,7 @@ else
 	brew update
 
 	# Just in case a mac update breaks this
-	sudo chown -R $(whoami) /usr/local/*
+	sudo chown -R "$(whoami)" /usr/local/*
 
 	brew tap d12frosted/emacs-plus
 
@@ -345,7 +345,7 @@ else
         wget"
 
 	for PKG in $BREW_PKGS; do
-		brew install $PKG || brew upgrade $PKG
+		brew install "$PKG" || brew upgrade "$PKG"
 	done
 
 	if [[ ! $(xcode-select --version) ]]; then
@@ -553,7 +553,7 @@ if [[ ! -d "$HOME/.nvm" || "$UPGRADE" ]]; then
 		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
 	fi
 	export NVM_DIR="$HOME/.nvm"
-	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+	[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
 	nvm install stable
 	nvm alias default stable
 	echo "nvm successfully installed"
