@@ -84,12 +84,16 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		curl # pyenv
 		direnv
 		editorconfig
-		emacs27               # emacs
 		emacs-common-non-dfsg # emacs docs
+		emacs27               # emacs
 		fd-find               # doom-emacs
 		gconf2
+		gir1.2-clutter-1.0
+		gir1.2-gtop-2.0
+		gir1.2-nm-1.0
 		git         # emacs, pyenv
 		gnome-sushi # file preview
+		gnome-system-monitor
 		htop
 		i3
 		isync            # email
@@ -106,13 +110,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libtool
 		libtool-bin
 		lldb-11
-		llvm # pyenv
-		make
+		llvm          # pyenv
 		maildir-utils # mu
+		make
 		mu4e
 		neovim
-		nodejs
 		node-typescript
+		nodejs
 		npm
 		nscd # nameservice caching daemon, used by guix
 		pandoc
@@ -125,14 +129,15 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		signal-desktop # from the signal repository
 		sqlite3
 		terraform # from the hashicorp repository
+		texlive-fonts-recommended
 		texlive-latex-base
 		texlive-latex-extra
-		texlive-fonts-recommended
 		texlive-latex-recommended
 		texlive-latex-recommended-doc
-		tidy       # org-mode html export
-		tk-dev     # pyenv
-		wget       # pyenv
+		tidy   # org-mode html export
+		tk-dev # pyenv
+		wget   # pyenv
+		x11-utils
 		xz-utils   # pyenv
 		zlib1g-dev # pyenv
 	)
