@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+UPGRADE=
+for i in "$@"; do
+	case $i in
+	-u | --upgrade)
+		UPGRADE=1
+		shift # past argument=value
+		;;
+	*)
+		# unknown option
+		;;
+	esac
+done
+
 LINUX="linux"
 MAC="mac"
 
@@ -9,6 +22,17 @@ if uname -a | grep -q "Darwin"; then
 else
 	ENV="$LINUX"
 fi
+
+SOURCE="$HOME/s"
+GH="$SOURCE/gh"
+DOWNLOADS="$HOME/Downloads"
+BINS="$HOME/bin"
+
+# Make some common directories
+mkdir -p "$SOURCE"
+mkdir -p "$GH"
+mkdir -p "$DOWNLOADS"
+mkdir -p "$BINS"
 
 # Install packages (linux)
 if [[ "$ENV" == "$LINUX" ]]; then
@@ -72,6 +96,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		jq               # doom-emacs
 		libbz2-dev       # pyenv
 		libffi-dev       # pyenv
+		libgtk-3-dev     # PopOS tiling shortcuts
 		liblzma-dev      # pyenv
 		libncurses5-dev  # pyenv
 		libncursesw5-dev # pyenv
@@ -81,11 +106,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		libtool
 		libtool-bin
 		lldb-11
-		llvm          # pyenv
+		llvm # pyenv
+		make
 		maildir-utils # mu
 		mu4e
 		neovim
 		nodejs
+		node-typescript
 		npm
 		nscd # nameservice caching daemon, used by guix
 		pandoc
@@ -125,42 +152,77 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	# See https://github.com/sharkdp/bat/issues/938
 	sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
 
-	# sudo snap install "${SNAPS[@]}"
-	# sudo snap install --classic "${CLASSIC_SNAPS[@]}"
-
-	# we just use brew for golang on mac. Install manually here.
-	if [[ "$(command -v go)" == "" ]]; then
-		DL_PATH=/tmp/golang-cur.tar.gz
-		rm -f "$DL_PATH"
-		wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$DL_PATH"
-		sudo tar -C /usr/local -xzf "$DL_PATH"
-		rm -f "$DL_PATH"
-		export PATH="$PATH:/usr/local/go/bin"
+	if [[ "$UPGRADE" ]]; then
+		sudo apt-get upgrade -y
 	fi
 
+	# snap is so dummmb
+	for PKG in "${SNAPS[@]}"; do
+		if ! snap list | awk '{print $1}' | grep -q "$PKG"; then
+			sudo snap install "$PKG"
+		fi
+	done
+	for PKG in "${CLASSIC_SNAPS[@]}"; do
+		if ! snap list | awk '{print $1}' | grep -q "$PKG"; then
+			sudo snap install --classic "$PKG"
+		fi
+	done
+
+	if [[ "$UPGRADE" ]]; then
+		sudo snap refresh
+	fi
+
+	echo "Checking golang install..."
+	if [[ "$(command -v go)" == "" || "$UPGRADE" ]]; then
+		echo "Installing golang..."
+		GO_DL="$DOWNLOADS/golang-cur.tar.gz"
+		rm -f "$GO_DL"
+		wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz -O "$GO_DL"
+		sudo tar -C /usr/local -xzf "$GO_DL"
+		rm -f "$GO_DL"
+		export PATH="$PATH:/usr/local/go/bin"
+		echo "golang successfully installed"
+	fi
+
+	echo "Checking ca-certificates symlink..."
 	# Link certs into a common location for mac/linux
 	if [[ ! -e "$HOME/.cert/cert.pem" ]]; then
+		echo "Symlinking ca-certificates"
 		mkdir -p "$HOME/.cert"
 		ln -s /etc/ssl/certs/ca-certificates.crt "$HOME/.cert/cert.pem"
+		echo "ca-certificates symlinked successfully"
 	fi
 
+	echo "Checking nix install..."
 	if [[ "$(command -v nix-env)" == "" ]]; then
+		echo "Installilng nix"
 		sh <(curl -L https://nixos.org/nix/install) --daemon --no-modify-profile
+		echo "Nix successfully installed"
 	fi
 
 	source "/etc/profile.d/nix.sh"
 
 	nix-env -i niv lorri
 
-	if [[ "$(command -v dropbox)" == "" ]]; then
+	echo "Checking Dropbox install..."
+	if [[ "$(command -v dropbox)" == "" || "$UPGRADE" ]]; then
+		echo "Installing Dropbox..."
+		DROPBOX_DL="$DOWNLOADS/install-dropbox.deb"
 		wget https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb \
-			-O ~/Downloads/install-dropbox.deb
-		sudo apt-get install ~/Downloads/install-dropbox.deb
+			-O "$DROPBOX_DL"
+		sudo apt-get install "$DROPBOX_DL"
+		rm -f "$DROPBOX_DL"
+		echo "Dropbox successfully installed"
 	fi
 
-	if [[ "$(command -v zoom)" == "" ]]; then
+	echo "Checking Zoom install..."
+	if [[ "$(command -v zoom)" == "" || "$UPGRADE" ]]; then
+		echo "Installing Zoom..."
+
 		# Add public key to keyring
-		wget https://zoom.us/linux/download/pubkey -O - | gpg --import
+		if ! gpg --list-keys | grep -q "Zoom Video"; then
+			wget https://zoom.us/linux/download/pubkey -O - | gpg --import
+		fi
 
 		# downoad zoom installer
 		ZOOM_DL="$HOME/Downloads/zoom-install.deb"
@@ -170,13 +232,67 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		ZOOM_FINGERPRINT="3960 60CA DD8A 7522 0BFC  B369 B903 BF18 61A7 C71D"
 		if gpg --verify "$ZOOM_DL" 2>&1 | grep -q "$ZOOM_FINGERPRINT"; then
 			sudo apt-get install -y "$ZOOM_DL"
+			rm -f "$ZOOM_DL"
 		else
 			echo "Failed to verify zoom signature!"
 			exit 1
 		fi
+		echo "Zoom successfully installed"
+	fi
+
+	echo "Checking Pop-OS gnome-shell extension..."
+	if [[ ! -d "$HOME/.local/share/gnome-shell/extensions/pop-shell@system76.com" || "$UPGRADE" ]]; then
+		echo "Installing Pop-OS gnome-shell extension..."
+		# Install PopOS tiling extension for gnome
+		PS_REPO="$HOME/s/gh/pop-os/shell"
+
+		if [[ ! -d "$PS_REPO" ]]; then
+			mkdir -p "$PS_REPO"
+			git clone https://github.com/pop-os/shell.git "$GH/pop-os/shell"
+			make local-install
+		fi
+
+		pushd "$PS_REPO"
+
+		if "$UPGRADE"; then
+			START_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
+			git pull
+			END_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
+			if [[ "$START_HASH" != "$END_HASH" ]]; then
+				make local-install
+			fi
+		fi
+
+		popd
+
+		echo "Pop-OS gnome-shell extension successfully installed"
+	fi
+
+	echo "Checking Pop-OS shell shortcuts..."
+	if [[ "$(command -v pop-shell-shortcuts)" == "" || $UPGRADE ]]; then
+		echo "Installing Pop-OS shell shortcuts..."
+		PSS_REPO="$HOME/s/gh/pop-os/shell-shortcuts"
+
+		if [[ ! -d "$PSS_REPO" ]]; then
+			mkdir -p "$PSS_REPO"
+			git clone https://github.com/pop-os/shell.git "$GH/pop-os/shell"
+		fi
+
+		pushd "$PSS_REPO"
+
+		if "$UPGRADE"; then
+			git pull
+		fi
+
+		make
+		sudo make install
+
+		popd
+		echo "Pop-OS shell shortcuts successfully installed"
 	fi
 
 else
+
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
 	brew update
@@ -265,13 +381,13 @@ else
 
 	# Alacritty additions
 	mkdir -p /usr/local/share/man/man1
-	if [[ ! -d "$HOME/github/jwilm/alacritty" ]]; then
-		git clone https://github.com/jwilm/alacritty.git $HOME/github/jwilm/alacritty
+	if [[ ! -d "$GH/jwilm/alacritty" ]]; then
+		git clone https://github.com/jwilm/alacritty.git "$GH/jwilm/alacritty"
 		# man page
-		gzip -c $HOME/github/jwilm/alacritty/extra/alacritty.man |
+		gzip -c "$GH/jwilm/alacritty/extra/alacritty.man" |
 			tee /usr/local/share/man/man1/alacritty.1.gz >/dev/null
 		# terminfo
-		tic -xe alacritty,alacritty-direct $HOME/github/jwilm/extra/alacritty.info
+		tic -xe alacritty,alacritty-direct "$GH/jwilm/extra/alacritty.info"
 	fi
 
 	# Install Magnet from the app store
@@ -306,45 +422,72 @@ fi
 mkdir -p ~/.mail/gmail
 mkdir -p ~/.mail/work
 
-# Ensure we've got our standard GH directory
-mkdir -p ~/github/
-
 # Rust (mac or linux)
-echo "Installing Rust ..."
+echo "Checking Rust Install..."
 if [[ $(command -v rustc) == "" ]]; then
+	echo "Installing Rust..."
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	export PATH="$PATH:$HOME/.cargo/bin"
-	mkdir -p ~/github/rust-analyzer/
-	if [[ ! -d ~/github/rust-analyzer/rust-analyzer ]]; then
-		git clone \
-			https://github.com/rust-analyzer/rust-analyzer.git \
-			~/github/rust-analyzer/rust-analyzer
+	echo "Successfully installed Rust"
+fi
+
+echo "Checking Rust components ..."
+~/.cargo/bin/rustup component add clippy rustfmt rust-src
+
+if [[ "$UPGRADE" ]]; then
+	echo "Upgrading Rust and its components..."
+	rustup update
+	echo "Rust successfully updated"
+fi
+
+echo "Checking rust-analyzer install..."
+RA_REPO="$GH/rust-analyzer/rust-analyzer"
+if [[ ! -d "$RA_REPO" || "$UPGRADE" ]]; then
+	echo "Installing rust-analyzer..."
+	if [[ ! -d "$RA_REPO" ]]; then
+		git clone https://github.com/rust-analyzer/rust-analyzer.git "$RA_REPO"
 	fi
-	pushd ~/github/rust-analyzer/rust-analyzer
+	pushd "$RA_REPO"
+
+	if [[ "$UPGRADE" ]]; then
+		git fetch && git checkout master && git reset --hard origin/master
+	fi
+
 	if [[ $(command -v code) == "" ]]; then
 		# Do not perform VSCode-specific install steps
 		cargo xtask install --server
 	else
 		cargo xtask install
 	fi
+
 	popd
+	echo "rust-analyzer successfully installed"
 fi
-echo "Installing Rust components ..."
-~/.cargo/bin/rustup component add clippy rustfmt rust-src
 
 echo "Installing Rust utilities ..."
-if [[ $(command -v watchexec) == "" ]]; then
-	cargo install watchexec
+if [[ $(command -v watchexec) == "" || "$UPGRADE" ]]; then
+	cargo install watchexec-cli
 fi
-if [[ $(command -v exa) == "" ]]; then
+if [[ $(command -v exa) == "" || "$UPGRADE" ]]; then
 	cargo install exa
 fi
 
 # Doom Emacs (mac or linux)
-echo "Installing Doom emacs ..."
-if [ ! -f "$HOME/.emacs.d/README.md" ]; then
+echo "Checking Doom emacs ..."
+if [[ ! -f "$HOME/.emacs.d/README.md" ]]; then
+	echo "Installing Doom emacs..."
 	git clone https://github.com/hlissner/doom-emacs ~/.emacs.d
 	~/.emacs.d/bin/doom install
+	echo "Doom emacs successfully installed"
+fi
+
+if [[ "$UPGRADE" ]]; then
+	echo "Upgrading doom emacs..."
+	doom upgrade
+	doom build
+	doom sync
+	doom env
+	echo "Doom emacs successfully upgraded"
 fi
 
 # Vim (mac or linux)
@@ -358,16 +501,19 @@ if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
 fi
 
 # Python (mac or linux)
-echo "Installing python versions ..."
+echo "Installing pyenv..."
 if [[ $(command -v pyenv) == "" ]]; then
 	curl https://pyenv.run | bash
 fi
 
 # Ensure pyenv is on the latest version
-echo "Ensure pyenv is up to date ..."
-pushd "$HOME/.pyenv"
-git pull
-popd
+if [[ "$UPGRADE" ]]; then
+	echo "Updating pyenv..."
+	pushd "$HOME/.pyenv"
+	git pull
+	popd
+	echo "Pyenv is up to date"
+fi
 
 # Note: these should be updated along with the `pyenv global` call in .bashrc
 echo "Installing python versions ..."
@@ -377,35 +523,51 @@ echo "Installing python versions ..."
 ~/.pyenv/bin/pyenv install --skip-existing 3.9.1
 
 # Tmux (mac or linux)
-echo "Adding tmux themes ..."
-if [ ! -d "$HOME/github/jimeh/tmux-themepack" ]; then
-	mkdir -p ~/github/jimeh/
-	git clone https://github.com/jimeh/tmux-themepack.git ~/github/jimeh/tmux-themepack
+echo "Checking tmux themes ..."
+TMUX_THEME_REPO="$GH/jimeh/tmux-themepack"
+if [[ ! -d "$TMUX_THEME_REPO" || "$UPGRADE" ]]; then
+	echo "Installing tmux themes ..."
+	mkdir -p "$TMUX_THEME_REPO"
+	git clone https://github.com/jimeh/tmux-themepack.git "$TMUX_THEME_REPO"
+	echo "Tmux themes successfully installed"
 fi
 
 # Starship command prompt (mac or linux)
-echo "Installing starship ..."
-if [[ $(command -v starship) == "" ]]; then
+echo "Chekcing starship ..."
+if [[ $(command -v starship) == "" || "$UPGRADE" ]]; then
+	echo "Installing starship..."
 	curl -fsSL https://starship.rs/install.sh | bash
+	echo "Starship successfully installed"
 fi
 
 # NVM (mac or linux)
-if [[ ! -d "$HOME/.nvm" ]]; then
-	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+echo "Checking nvm...."
+if [[ ! -d "$HOME/.nvm" || "$UPGRADE" ]]; then
+	echo "Installing nvm..."
+	if [[ ! -d "$HOME/.nvm" ]]; then
+		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+	fi
 	export NVM_DIR="$HOME/.nvm"
 	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 	nvm install stable
 	nvm alias default stable
+	echo "nvm successfully installed"
 fi
 
 # Go language server
+echo "Checking go language server..."
 if [[ $(command -v gopls) == "" ]]; then
+	echo "Installing go language server..."
 	GO111MODULE=on go get golang.org/x/tools/gopls@latest
+	echo "go language server successfully installed"
 fi
 
 # shfmt
+echo "Checking shfmt..."
 if [[ $(command -v shfmt) == "" ]]; then
+	echo "Installing shfmt..."
 	GO111MODULE=on go get mvdan.cc/sh/v3/cmd/shfmt
+	echo "shfmt successfully installed"
 fi
 
 if [[ ! -e "$HOME/org" ]]; then
@@ -415,5 +577,8 @@ fi
 # Configure Git
 echo "Configuring git"
 git config --global commit.gpgsign true
+git config --global user.email "msplanchard@gmail.com"
+git config --global user.name "Matthew Planchard"
+git config --global github.user "mplanchard"
 
 echo "Done!"
