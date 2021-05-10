@@ -94,7 +94,7 @@
 (setq lsp-enable-on-type-formatting nil)
 (setq lsp-headerline-breadcrumb-enable t)
 (setq lsp-idle-delay 1)
-(setq lsp-signature-auto-activate nil)
+(setq lsp-signature-auto-activate t)
 (setq lsp-modeline-code-actions-enable nil)
 
 (setq lsp-ui-sideline-delay 0.75)
@@ -232,11 +232,19 @@
   (dap-ui-controls-mode t)
   (require 'dap-lldb)
   (require 'dap-gdb-lldb)
+  (dap-gdb-lldb-setup)
   (dap-register-debug-template "Rust::GDB Run Configuration"
                                (list :type "gdb"
                                      :request "launch"
                                      :name "GDB::Run"
                                      :gdbpath "rust-gdb"
+                                     :target nil
+                                     :cwd nil))
+  (dap-register-debug-template "Rust::LLDB Run Configuration"
+                               (list :type "lldb"
+                                     :request "launch"
+                                     :name "LLDB::Run"
+                                     :gdbpath "rust-lldb"
                                      :target nil
                                      :cwd nil)))
 
@@ -402,7 +410,7 @@
   (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e"))
 
 (use-package! mu4e
-  :init
+  :config
   (setq
    ;; Don't pull in the entire thread from the archive when it gets a new message
    mu4e-headers-include-related nil
@@ -419,7 +427,6 @@
    mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    mu4e-update-interval 300)
-  :config
   (set-email-account! "gmail"
                       '((user-email-address . "msplanchard@gmail.com")
                         (smtpmail-smtp-user . "msplanchard")
@@ -430,23 +437,16 @@
                         (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-  ;; (set-email-account! "work"
-  ;;                     '((user-email-address . "matthew@bestow.com")
-  ;;                       (smtpmail-smtp-user . "matthew@bestow.com")
-  ;;                       (smtpmail-local-domain . "gmail.com")
-  ;;                       (smtpmail-smtp-server . "smtp.gmail.com")
-  ;;                       (smtpmail-default-smtp-server . "smtp.gmail.com")
-  ;;                       (smtpmail-smtp-service . 587)
-  ;;                       (mu4e-drafts-folder . "/work/[Gmail]/Drafts")
-  ;;                       (mu4e-refile-folder . "/work/[Gmail]/All Mail")
-  ;;                       (mu4e-sent-folder . "/work/[Gmail]/Sent Mail")))
-  (add-to-list 'mu4e-bookmarks
-               '(:name "Global Inbox"
-                 :key ?i
-                 :query "maildir:/work/Inbox OR maildir:/gmail/Inbox AND NOT flag:trashed")
-               '(:name "Gmail and Sent"
-                 :key ?g
-                 :query "maildir:/gmail/Inbox OR \"maildir:/gmail/[Gmail]/Sent Mail\" AND NOT flag:trashed"))
+  (set-email-account! "spectrust"
+                      '((user-email-address . "mplanchard@spec-trust.com")
+                        (smtpmail-smtp-user . "mplanchard@spec-trust.com")
+                        (smtpmail-local-domain . "gmail.com")
+                        (smtpmail-smtp-server . "smtp.gmail.com")
+                        (smtpmail-default-smtp-server . "smtp.gmail.com")
+                        (smtpmail-smtp-service . 587)
+                        (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
+                        (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
+                        (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
   (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
   ;; (setq mu4e-headers-fields '((:account . 8)
   ;;                             (:flags . 4)
