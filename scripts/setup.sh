@@ -211,11 +211,11 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	source "/etc/profile.d/nix.sh"
 
-	if [[ "$(command -v niv)" == "" ]]; then
+	if [[ "$(command -v niv)" == "" || "$UPGRADE" ]]; then
 		nix-env -i niv
 	fi
 
-	if [[ "$(command -v lorri)" == "" ]]; then
+	if [[ "$(command -v lorri)" == "" || "$UPGRADE" ]]; then
 		nix-env -i lorri
 	fi
 
@@ -306,19 +306,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		echo "Pop-OS shell shortcuts successfully installed"
 	fi
 
-	if [[ "$(command -v steam)" == "" ]]; then
-		wget https://cdn.akamai.steamstatic.com/client/installer/steam.deb -O ~/Downloads/steam-install.deb
+	echo "Checking Steam install..."
+	if [[ "$(command -v steam)" == "" || "$UPGRADe" ]]; then
+		STEAM_DL="$HOME/Downloads/steam-install.deb"
+		wget https://cdn.akamai.steamstatic.com/client/installer/steam.deb -O "$STEAM_DL"
 		sudo apt-get install -y ~/Downloads/steam-install.deb
-	fi
-
-	if [[ "$(command -v vieb)" == "" ]]; then
-		CURRENT_VER=$(curl -s https://github.com/Jelmerro/vieb/releases/latest |
-			grep "tag" |
-			awk -F "/" '{print $8}' |
-			awk -F '"' '{print $1}')
-		wget "https://github.com/Jelmerro/Vieb/releases/download/${CURRENT_VER}/vieb_${CURRENT_VER}_amd64.deb" \
-			-O "$HOME/Downloads/vieb_${CURRENT_VER}_amd64.deb"
-		sudo apt-get install -y "$HOME/Downloads/vieb_${CURRENT_VER}_amd64.deb"
+		rm -f "$STEAM_DL"
+		echo "Steam successfully installed"
 	fi
 
 else
