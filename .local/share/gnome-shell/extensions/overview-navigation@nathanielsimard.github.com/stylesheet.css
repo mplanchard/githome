@@ -1,0 +1,9 @@
+.extension-overview-navigation-window-tooltip,
+.extension-overview-navigation-window-tooltip-closing {
+  border-radius: 10px;
+  font-size: 140%;
+  font-weight: bold;
+  padding: 2px 8px;
+  -shell-caption-spacing: 4px;
+}
+
