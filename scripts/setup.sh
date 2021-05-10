@@ -54,6 +54,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	PKGS=(
 		1password
+		apt-file
 		build-essential # pyenv
 		ca-certificates # email
 		cmake
@@ -68,16 +69,19 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		gnome-sushi # file preview
 		htop
 		i3
-		isync            # email
-		jq               # doom-emacs
-		libbz2-dev       # pyenv
-		libffi-dev       # pyenv
-		liblzma-dev      # pyenv
-		libncurses5-dev  # pyenv
-		libncursesw5-dev # pyenv
-		libreadline-dev  # pyenv
-		libsqlite3-dev   # pyenv
-		libssl-dev       # pyenv
+		isync                # email
+		jq                   # doom-emacs
+		libbz2-dev           # pyenv
+		libc6-i386           # steam
+		libffi-dev           # pyenv
+		libgl1:i386          # steam
+		libgl1-mesa-dri:i386 # steam
+		liblzma-dev          # pyenv
+		libncurses5-dev      # pyenv
+		libncursesw5-dev     # pyenv
+		libreadline-dev      # pyenv
+		libsqlite3-dev       # pyenv
+		libssl-dev           # pyenv
 		libtool
 		libtool-bin
 		lldb-11
@@ -150,7 +154,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	source "/etc/profile.d/nix.sh"
 
-	nix-env -i niv lorri
+	if [[ "$(command -v niv)" == "" ]]; then
+		nix-env -i niv
+	fi
+
+	if [[ "$(command -v lorri)" == "" ]]; then
+		nix-env -i lorri
+	fi
 
 	if [[ "$(command -v dropbox)" == "" ]]; then
 		wget https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb \
@@ -176,7 +186,23 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		fi
 	fi
 
+	if [[ "$(command -v steam)" == "" ]]; then
+		wget https://cdn.akamai.steamstatic.com/client/installer/steam.deb -O ~/Downloads/steam-install.deb
+		sudo apt-get install -y ~/Downloads/steam-install.deb
+	fi
+
+	if [[ "$(command -v vieb)" == "" ]]; then
+		CURRENT_VER=$(curl -s https://github.com/Jelmerro/vieb/releases/latest |
+			grep "tag" |
+			awk -F "/" '{print $8}' |
+			awk -F '"' '{print $1}')
+		wget "https://github.com/Jelmerro/Vieb/releases/download/${CURRENT_VER}/vieb_${CURRENT_VER}_amd64.deb" \
+			-O "$HOME/Downloads/vieb_${CURRENT_VER}_amd64.deb"
+		sudo apt-get install -y "$HOME/Downloads/vieb_${CURRENT_VER}_amd64.deb"
+	fi
+
 else
+
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
 	brew update
