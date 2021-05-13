@@ -140,7 +140,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		texlive-latex-recommended-doc
 		tidy   # org-mode html export
 		tk-dev # pyenv
-		wget   # pyenv
+		ubuntu-gnome-desktop
+		wget # pyenv
 		x11-utils
 		xz-utils   # pyenv
 		zlib1g-dev # pyenv
@@ -263,22 +264,22 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 		if [[ ! -d "$PS_REPO" ]]; then
 			mkdir -p "$PS_REPO"
-			git clone https://github.com/pop-os/shell.git "$GH/pop-os/shell"
+			pushd "$PS_REPO"
+			git clone https://github.com/pop-os/shell.git "$PS_REPO"
 			make local-install
+			popd "$PS_REPO"
 		fi
 
-		pushd "$PS_REPO"
-
 		if "$UPGRADE"; then
+			pushd "$PS_REPO"
 			START_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
 			git pull
 			END_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
 			if [[ "$START_HASH" != "$END_HASH" ]]; then
 				make local-install
 			fi
+			popd
 		fi
-
-		popd
 
 		echo "Pop-OS gnome-shell extension successfully installed"
 	fi
@@ -290,7 +291,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 		if [[ ! -d "$PSS_REPO" ]]; then
 			mkdir -p "$PSS_REPO"
-			git clone https://github.com/pop-os/shell.git "$GH/pop-os/shell"
+			git clone https://github.com/pop-os/shell-shortcuts.git "$PSS_REPO"
 		fi
 
 		pushd "$PSS_REPO"
@@ -307,7 +308,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	fi
 
 	echo "Checking Steam install..."
-	if [[ "$(command -v steam)" == "" || "$UPGRADe" ]]; then
+	if [[ "$(command -v steam)" == "" || "$UPGRADE" ]]; then
 		STEAM_DL="$HOME/Downloads/steam-install.deb"
 		wget https://cdn.akamai.steamstatic.com/client/installer/steam.deb -O "$STEAM_DL"
 		sudo apt-get install -y ~/Downloads/steam-install.deb
@@ -560,7 +561,7 @@ fi
 echo "Chekcing starship ..."
 if [[ $(command -v starship) == "" || "$UPGRADE" ]]; then
 	echo "Installing starship..."
-	curl -fsSL https://starship.rs/install.sh | bash
+	sh -c "$(curl -fsSL https://starship.rs/install.sh)"
 	echo "Starship successfully installed"
 fi
 
