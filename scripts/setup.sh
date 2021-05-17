@@ -256,57 +256,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		echo "Zoom successfully installed"
 	fi
 
-	echo "Checking Pop-OS gnome-shell extension..."
-	if [[ ! -d "$HOME/.local/share/gnome-shell/extensions/pop-shell@system76.com" || "$UPGRADE" ]]; then
-		echo "Installing Pop-OS gnome-shell extension..."
-		# Install PopOS tiling extension for gnome
-		PS_REPO="$HOME/s/gh/pop-os/shell"
-
-		if [[ ! -d "$PS_REPO" ]]; then
-			mkdir -p "$PS_REPO"
-			pushd "$PS_REPO"
-			git clone https://github.com/pop-os/shell.git "$PS_REPO"
-			make local-install
-			popd "$PS_REPO"
-		fi
-
-		if "$UPGRADE"; then
-			pushd "$PS_REPO"
-			START_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
-			git pull
-			END_HASH=$(git log --oneline | head -n 1 | awk '{print $1}')
-			if [[ "$START_HASH" != "$END_HASH" ]]; then
-				make local-install
-			fi
-			popd
-		fi
-
-		echo "Pop-OS gnome-shell extension successfully installed"
-	fi
-
-	echo "Checking Pop-OS shell shortcuts..."
-	if [[ "$(command -v pop-shell-shortcuts)" == "" || $UPGRADE ]]; then
-		echo "Installing Pop-OS shell shortcuts..."
-		PSS_REPO="$HOME/s/gh/pop-os/shell-shortcuts"
-
-		if [[ ! -d "$PSS_REPO" ]]; then
-			mkdir -p "$PSS_REPO"
-			git clone https://github.com/pop-os/shell-shortcuts.git "$PSS_REPO"
-		fi
-
-		pushd "$PSS_REPO"
-
-		if "$UPGRADE"; then
-			git pull
-		fi
-
-		make
-		sudo make install
-
-		popd
-		echo "Pop-OS shell shortcuts successfully installed"
-	fi
-
 	echo "Checking Steam install..."
 	if [[ "$(command -v steam)" == "" || "$UPGRADE" ]]; then
 		STEAM_DL="$HOME/Downloads/steam-install.deb"
@@ -495,6 +444,9 @@ if [[ $(command -v watchexec) == "" || "$UPGRADE" ]]; then
 fi
 if [[ $(command -v exa) == "" || "$UPGRADE" ]]; then
 	cargo install exa
+fi
+if [[ $(command -v btm) == "" || "$UPGRADE" ]]; then
+	cargo install bottom
 fi
 
 # Doom Emacs (mac or linux)
