@@ -392,10 +392,6 @@ else
 
 fi
 
-# Make directories for mail
-mkdir -p ~/.mail/gmail
-mkdir -p ~/.mail/work
-
 # Rust (mac or linux)
 echo "Checking Rust Install..."
 if [[ $(command -v rustc) == "" ]]; then
