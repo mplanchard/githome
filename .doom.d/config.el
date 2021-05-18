@@ -21,8 +21,7 @@
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
-(setq doom-font (font-spec :family "Ubuntu Mono" :size 16)
-      doom-variable-pitch-font (font-spec :family "sans"))
+(setq doom-font (font-spec :family "Fira Code" :size 14))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -57,6 +56,8 @@
 ;; **********************************************************************
 ;; Settings
 ;; **********************************************************************
+
+(setq enable-local-variables t)
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
