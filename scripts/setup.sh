@@ -88,6 +88,10 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		emacs-common-non-dfsg # emacs docs
 		emacs27               # emacs
 		fd-find               # doom-emacs
+		fonts-firacode
+		fonts-font-awesome
+		fonts-hack
+		fonts-mononoki
 		gconf2
 		gir1.2-clutter-1.0
 		gir1.2-gtop-2.0
@@ -124,6 +128,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		npm
 		nscd # nameservice caching daemon, used by guix
 		pandoc
+		pavucontrol
 		postgresql
 		postgresql-contrib
 		python3-lldb-11
@@ -218,6 +223,10 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	if [[ "$(command -v lorri)" == "" || "$UPGRADE" ]]; then
 		nix-env -i lorri
+	fi
+
+	if [[ "$(command -v i3-status-rs)" == "" || "$UPGRADE" ]]; then
+		nix-env -i i3status-rust
 	fi
 
 	echo "Checking Dropbox install..."
