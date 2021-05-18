@@ -1,0 +1,8 @@
+
+!
+! Use capslock as a ctrl
+!
+
+clear Lock
+keycode 0x7e = Control_R
+add Control = Control_R
