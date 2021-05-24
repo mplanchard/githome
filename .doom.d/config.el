@@ -1,5 +1,111 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; EXWM: run only if we're not in a window manager and we're in an x session
+(when (get-buffer "*window-manager*")
+  (kill-buffer "*window-manager*"))
+(when (get-buffer "*window-manager-error*")
+  (kill-buffer "*window-manager-error*"))
+(when (executable-find "wmctrl")
+  (shell-command "wmctrl -m ; echo $?" "*window-manager*" "*window-manager-error*"))
+
+;; if there was an error detecting the window manager, initialize EXWM
+(when (and (get-buffer "*window-manager-error*")
+           (eq window-system 'x))
+  ;; exwm startup goes here
+  (use-package! exwm
+    :config
+    (require 'exwm)
+    (require 'exwm-config)
+    (require 'exwm-randr)
+    (require 'exwm-systemtray)
+    (exwm-systemtray-enable)
+
+    (setq exwm-workspace-number 4)
+    (add-hook 'exwm-update-class-hook
+              (lambda ()
+                (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                            (string= "gimp" exwm-instance-name))
+                  (exwm-workspace-rename-buffer exwm-class-name))))
+    (add-hook 'exwm-update-title-hook
+              (lambda ()
+                (when (or (not exwm-instance-name)
+                          (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                          (string= "gimp" exwm-instance-name))
+                  (exwm-workspace-rename-buffer exwm-title))))
+
+    (setq exwm-input-prefix-keys
+          (add-to-list 'exwm-input-prefix-keys (kbd "<space>")))
+
+    (setq exwm-input-global-keys
+          `(
+            ;; Bind "s-r" to exit char-mode and fullscreen mode.
+            ([?\s-r] . exwm-reset)
+            ;; Bind "s-w" to switch workspace interactively.
+            ([?\s-w] . exwm-workspace-switch)
+            ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
+            ,@(mapcar (lambda (i)
+                        `(,(kbd (format "s-%d" i)) .
+                          (lambda ()
+                            (interactive)
+                            (exwm-workspace-switch-create ,i))))
+                      (number-sequence 0 9))
+            ;; Bind "s-&" to launch applications ('M-&' also works if the output
+            ;; buffer does not bother you).
+            ([?\s-&] . (lambda (command)
+                         (interactive (list (read-shell-command "$ ")))
+                         (start-process-shell-command command nil command)))
+            ;; Bind "s-<f2>" to "slock", a simple X display locker.
+            ([s-f2] . (lambda ()
+                        (interactive)
+                        (start-process "" nil "/usr/bin/slock")))))
+
+    ;; To add a key binding only available in line-mode, simply define it in
+    ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
+    (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
+
+    ;; The following example demonstrates how to use simulation keys to mimic
+    ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys` is a
+    ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
+    ;; and DEST is what EXWM actually sends to application.  Note that both SRC
+    ;; and DEST should be key sequences (vector or string).
+    ;; (setq exwm-input-simulation-keys
+    ;;       '(
+    ;;         ;; movement
+    ;;         ([?\C-b] . [left])
+    ;;         ([?\M-b] . [C-left])
+    ;;         ([?\C-f] . [right])
+    ;;         ([?\M-f] . [C-right])
+    ;;         ([?\C-p] . [up])
+    ;;         ([?\C-n] . [down])
+    ;;         ([?\C-a] . [home])
+    ;;         ([?\C-e] . [end])
+    ;;         ([?\M-v] . [prior])
+    ;;         ([?\C-v] . [next])
+    ;;         ([?\C-d] . [delete])
+    ;;         ([?\C-k] . [S-end delete])
+    ;;         ;; cut/paste.
+    ;;         ([?\C-w] . [?\C-x])
+    ;;         ([?\M-w] . [?\C-c])
+    ;;         ([?\C-y] . [?\C-v])
+    ;;         ;; search
+    ;;         ([?\C-s] . [?\C-f])))
+
+    ;; You can hide the minibuffer and echo area when they're not used, by
+    ;; uncommenting the following line.
+                                        ;(setq exwm-workspace-minibuffer-position 'bottom)
+
+    ;; Do not forget to enable EXWM. It will start by itself when things are
+    ;; ready.  Yo
+
+
+    (add-hook 'exwm-randr-screen-change-hook
+              (lambda ()
+                (start-process-shell-command
+                 "autorandr" nil "autorandr --change")))
+    (exwm-enable)
+    )
+  )
+
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
@@ -66,6 +172,9 @@
 
 (setq ispell-dictionary "en_US")
 
+(setq display-time-load-average nil)
+(display-time-mode t)
+
 ;; Autosave when losing focus
 ;; (add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
 ;; (add-to-list 'doom-switch-window-hook (lambda () (when buffer-file-name (save-buffer))))
@@ -107,6 +216,8 @@
 (setq lsp-ui-doc-include-signature t)
 (setq lsp-ui-sideline-diagnostic-max-lines 20)
 (setq lsp-ui-sideline-show-code-actions nil)
+(setq lsp-headerline-breadcrumb-icons-enable nil)
+(setq lsp-headerline-breadcrumb-enable-diagnostics nil)
 
 (setq flycheck-idle-change-delay 1.5)
 
@@ -119,6 +230,13 @@
 
 (after! ispell
   (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
+
+;; (after! lsp
+;;   (add-hook
+;;    'lsp-mode-hook
+;;    #'(lambda ()
+;;        (add-hook 'lsp-headerline-breadcrumb-mode-hook #'flyspell-mode-off)
+;;        (add-hook 'lsp-headerline-breadcrumb-mode-hook #'spell-fu-mode-disable))))
 
 (after! jit-lock
   ;; defer fontification while input is pending
@@ -317,12 +435,6 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-(map! :after mu4e
-      :map mu4e-headers-mode-map
-      :desc "mark thread"
-      :nv "T"
-      #'mu4e-headers-mark-thread)
-
 (map! :map ivy-minibuffer-map
       :desc "Search History" "C-r" #'counsel-minibuffer-history)
 
@@ -410,8 +522,9 @@
       (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
       ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
       (setq magit-git-executable "/usr/local/bin/git"))
-  ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e"))
+  (lambda ()
+    ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
+    (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")))
 
 (use-package! mu4e
   :config
@@ -431,6 +544,10 @@
    mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    mu4e-update-interval 300)
+  (map! :map mu4e-headers-mode-map
+        :desc "mark thread"
+        :nv "T"
+        #'mu4e-headers-mark-thread)
   (set-email-account! "gmail"
                       '((user-email-address . "msplanchard@gmail.com")
                         (smtpmail-smtp-user . "msplanchard")
@@ -549,7 +666,8 @@
 (add-hook
  'python-mode-hook
  (lambda ()
-   (flycheck-add-next-checker 'lsp 'python-flake8)
+   (after! lsp
+     (flycheck-add-next-checker 'lsp 'python-flake8))
    ;; (flycheck-add-next-checker 'python-flake8 'python-pylint)
    ;; they're so slooooow, do them manually
    ;; (add-to-list 'flycheck-disabled-checkers 'python-mypy)
@@ -770,3 +888,38 @@ If not currently in a Projectile project, does not copy anything.
 ;; Externally Sourced Functions
 ;; **********************************************************************
 
+;; Source: https://www.reddit.com/r/emacs/comments/ft84xy/run_shell_command_in_new_vterm/
+(defun my/run-in-vterm-kill (process event)
+  "A process sentinel. Kills PROCESS's buffer if it is live."
+  (let ((b (process-buffer process)))
+    (and (buffer-live-p b)
+         (kill-buffer b))))
+
+(defun my/run-in-vterm (command)
+  "Execute string COMMAND in a new vterm.
+
+Interactively, prompt for COMMAND with the current buffer's file
+name supplied. When called from Dired, supply the name of the
+file at point.
+
+Like `async-shell-command`, but run in a vterm for full terminal features.
+
+The new vterm buffer is named in the form `*foo bar.baz*`, the
+command and its arguments in earmuffs.
+
+When the command terminates, the shell remains open, but when the
+shell exits, the buffer is killed."
+  (interactive
+   (list
+    (let* ((f (cond (buffer-file-name)
+                    ((eq major-mode 'dired-mode)
+                     (dired-get-filename nil t))))
+           (filename (concat " " (shell-quote-argument (and f (file-relative-name f))))))
+      (read-shell-command "Terminal command: "
+                          (cons filename 0)
+                          (cons 'shell-command-history 1)
+                          (list filename)))))
+  (with-current-buffer (vterm (concat "*" command "*"))
+    (set-process-sentinel vterm--process #'my/run-in-vterm-kill)
+    (vterm-send-string command)
+    (vterm-send-return)))
