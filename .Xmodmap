@@ -3,6 +3,11 @@
 ! Use capslock as a ctrl
 !
 
+keycode 66 = Control_L
 clear Lock
-keycode 0x7e = Control_R
-add Control = Control_R
+add Control = Control_L
+
+remove mod1 = Alt_L
+remove mod4 = Super_L
+add mod1 = Super_L
+add mod4 = Alt_L

@@ -2,16 +2,17 @@ theme = "space-villain"
 icons = "awesome"
 
 [[block]]
-block = "music"
-buttons = ["prev", "play", "next"]
-
-[[block]]
 block = "maildir"
 interval = 60
-inboxes = ["~/.mail"]
+inboxes = ["/home/matthew/.mail/spectrust/Inbox"]
 threshold_warning = 1
 threshold_critical = 10
 display_type = "new"
+on_click = "emacsclient --create-frame --eval '(mu4e)'"
+
+[[block]]
+block = "music"
+buttons = ["prev", "play", "next"]
 
 [[block]]
 block = "disk_space"
@@ -42,19 +43,26 @@ alert = 10.0
 # block = "net"
 # interval = 5
 
-# [[block]]
-# block = "networkmanager"
-# primary_only = true
+[[block]]
+block = "networkmanager"
+primary_only = true
 # on_click = "x-terminal-emulator -e nmtui"
-# ap_format = "{ssid^10}"
-# device_format = "{icon}"
+on_click = "emacsclient --create-frame --eval '(my/run-in-vterm \"nmtui\")'"
+ap_format = "{ssid^5}"
+device_format = "{icon}"
 
 [[block]]
 block = "sound"
-format = "{output_description^5} {volume}"
+format = "{output_description^3} {volume}"
 on_click = "pavucontrol"
+
+[[block]]
+block = "battery"
+interval = 60
+format = "{percentage} {time}"
 
 [[block]]
 block = "time"
 interval = 60
-format = "%a %d/%m %R"
+format = "%a %m/%d %R"
+on_click = "emacsclient --eval '(calendar)'"
