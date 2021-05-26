@@ -14,7 +14,7 @@ set $mod Mod4
 exec_always --no-startup-id /usr/bin/setxbmap -option "ctrl:nocaps"
 exec_always --no-startup-id /usr/bin/xmodmap ~/.Xmodmap
 exec --no-startup-id dropbox start
-exec --no-startup-id gnome-settings-daemon-local
+# exec --no-startup-id gnome-settings-daemon-local
 
 # Custom commands
 
