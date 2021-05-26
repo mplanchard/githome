@@ -99,6 +99,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		git         # emacs, pyenv
 		gnome-sushi # file preview
 		gnome-system-monitor
+		gstreamer1.0-plugins-bad
+		gstreamer1.0-plugins-ugly
 		htop
 		i3
 		isync                # email
@@ -129,6 +131,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		nscd # nameservice caching daemon, used by guix
 		pandoc
 		pavucontrol
+		playerctl
+		pm-utils
 		postgresql
 		postgresql-contrib
 		python3-lldb-11
@@ -147,6 +151,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		tk-dev # pyenv
 		ubuntu-gnome-desktop
 		wget # pyenv
+		wmctrl
 		x11-utils
 		xz-utils   # pyenv
 		zlib1g-dev # pyenv
@@ -158,6 +163,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	SNAPS=(
 		discord
+		spotify
 		zulip
 	)
 
@@ -227,6 +233,17 @@ if [[ "$ENV" == "$LINUX" ]]; then
 
 	if [[ "$(command -v i3-status-rs)" == "" || "$UPGRADE" ]]; then
 		nix-env -i i3status-rust
+	fi
+
+	echo "Checking kmonad install"
+	if [[ "$(command -v kmonad)" == "" || "$UPGRADE" ]]; then
+		CHECKOUT="$GH/kmonad/kmonad"
+		mkdir -p "$CHECKOUT"
+		git clone -f https://github.com/kmonad/kmonad "$CHECKOUT"
+		pushd "$CHECKOUT"
+		nix-build nix
+		ln -s "$(readlink result)/bin/kmonad" "$HOME/bin/kmonad"
+		popd
 	fi
 
 	echo "Checking Dropbox install..."
@@ -534,6 +551,13 @@ if [[ ! -d "$HOME/.nvm" || "$UPGRADE" ]]; then
 	nvm install stable
 	nvm alias default stable
 	echo "nvm successfully installed"
+fi
+
+echo "Checking for prettier..."
+if [[ $(command -v prettier) == "" || "$UPGRADE" ]]; then
+	echo "Installing prettier"
+	npm install -g --force prettier
+	echo "Prettier successfully installed"
 fi
 
 # Go language server
