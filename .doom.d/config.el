@@ -205,6 +205,7 @@
 (setq lsp-headerline-breadcrumb-enable t)
 (setq lsp-idle-delay 1)
 (setq lsp-signature-auto-activate t)
+(setq lsp-signature-doc-lines 0)
 (setq lsp-modeline-code-actions-enable nil)
 
 (setq lsp-ui-sideline-delay 0.75)
