@@ -164,6 +164,7 @@
 ;; **********************************************************************
 
 (setq enable-local-variables t)
+(setq browse-url-browser-function 'browse-url-firefox)
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
