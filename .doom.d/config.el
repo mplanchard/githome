@@ -223,6 +223,11 @@
 
 (setq flycheck-idle-change-delay 1.5)
 
+;; headerline mode fails in ediff, so make sure it doesn't start.
+(add-hook!
+ ediff-prepare-buffer
+ #'(lambda () (lsp-headerline-breadcrumb-mode -1)))
+
 ;; Allow lots of flycheck errors
 (after! flycheck
   (setq flycheck-checker-error-threshold 1000))
