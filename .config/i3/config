@@ -11,12 +11,14 @@
 
 set $mod Mod4
 
-exec_always --no-startup-id /usr/bin/setxbmap -option "ctrl:nocaps"
-exec_always --no-startup-id /usr/bin/xmodmap ~/.Xmodmap
-exec --no-startup-id dropbox start
-# exec --no-startup-id gnome-settings-daemon-local
+set $lock_cmd i3lock -i /usr/share/backgrounds/warty-final-ubuntu.png
 
-# Custom commands
+# exec_always --no-startup-id /usr/bin/setxbmap -option "ctrl:nocaps"
+exec_always --no-startup-id /usr/bin/xmodmap ~/.Xmodmap
+exec_always --no-startup-id /usr/bin/xautolock -time 10 -locker "sh -c '$lock_cmd && systemctl suspend'"
+exec_always --no-startup-id autorandr --change
+exec --no-startup-id dropbox start
+exec --no-startup-id ufw enable
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
@@ -214,7 +216,6 @@ mode "resize" {
 }
 
 set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
-set $lock_cmd i3lock -i /usr/share/backgrounds/warty-final-ubuntu.png
 mode "$mode_system" {
      bindsym l exec --no-startup-id $lock_cmd, mode "default"
      bindsym e exec --no-startup-id "i3-msg exit", mode "default"

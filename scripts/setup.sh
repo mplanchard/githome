@@ -152,6 +152,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		ubuntu-gnome-desktop
 		wget # pyenv
 		wmctrl
+		xautolock
 		x11-utils
 		xz-utils   # pyenv
 		zlib1g-dev # pyenv
@@ -469,6 +470,9 @@ if [[ $(command -v exa) == "" || "$UPGRADE" ]]; then
 fi
 if [[ $(command -v btm) == "" || "$UPGRADE" ]]; then
 	cargo install bottom
+fi
+if [[ $(command -v delta) == "" || "$UPGRADE" ]]; then
+	cargo install git-delta
 fi
 
 # Doom Emacs (mac or linux)

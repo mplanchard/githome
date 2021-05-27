@@ -1,3 +1,6 @@
+# this is symlinked in from elsewhere
+.gitignore
+
 # Ensure we don't check in local stuff, where we put our
 # keys and whatnot.
 .localrc
