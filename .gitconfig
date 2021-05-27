@@ -1,0 +1,15 @@
+[commit]
+	gpgsign = true
+[user]
+	email = msplanchard@gmail.com
+	name = Matthew Planchard
+	signingKey = 5EC9194272609F82
+[github]
+	user = mplanchard
+[pager]
+	diff = delta
+	log = delta
+	reflog = delta
+	show = delta
+[ineractive]
+	diffFilter = delta --color-only
