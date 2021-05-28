@@ -27,6 +27,7 @@
 (package! kubernetes) ;; kubernetes overview
 (package! kubernetes-evil) ;; kubernetes evil support
 (package! lsp-pyright) ;; add support for the pyright lsp
+(package! magit-delta) ;; nice diff highlighting
 (package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
 (package! mu4e-views) ;; html emails in xwidgets view

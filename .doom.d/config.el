@@ -189,7 +189,7 @@
 
 (after! company
   ;; start showing completion results asap
-  (setq company-idle-delay 0.25))
+  (setq company-idle-delay 0.5))
 
 (after! evil
   (setq evil-esc-delay 0)
@@ -225,8 +225,8 @@
 
 ;; headerline mode fails in ediff, so make sure it doesn't start.
 (add-hook!
- ediff-prepare-buffer
- #'(lambda () (lsp-headerline-breadcrumb-mode -1)))
+ 'ediff-prepare-buffer-hook
+ (lambda () (lsp-headerline-breadcrumb-mode -1)))
 
 ;; Allow lots of flycheck errors
 (after! flycheck
@@ -332,6 +332,8 @@
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
+
+(add-hook 'magit-mode-hook (lambda () (magit-delta-mode +1)))
 
 ;; Automatically load .envrc files whenever possible
 (use-package! direnv :config (direnv-mode))
@@ -601,7 +603,9 @@
 (use-package! magit
   :config
   ;; Show local branches in magit status buffer
-  (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))
+  (unless
+      (member 'magit-insert-local-branches magit-status-sections-hook)
+    (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches)))))
 
 
 (defun mp-email-empty-trash ()
@@ -890,6 +894,8 @@ If not currently in a Projectile project, does not copy anything.
       "git log --graph --pretty=format:'%%h - %%d %%s (%%cr) (%%an)' %s..%s --abbrev-commit"
       current
       target))))
+
+(defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
 
 ;; **********************************************************************
 ;; Externally Sourced Functions
