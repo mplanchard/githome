@@ -11,6 +11,8 @@
 
 (package! ace-window) ;; allow easy jumping between many windows
 (package! browse-at-remote) ;; hopefully a bit of a better git-link
+(package! cargo-mode
+  :recipe (:host github :repo "ayrat555/cargo-mode"))
 (package! csv-mode)  ;; some support for CSVs
 (package! dap-mode)  ;; debugger
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
