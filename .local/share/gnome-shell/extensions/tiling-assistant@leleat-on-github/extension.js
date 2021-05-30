@@ -19,7 +19,8 @@
 "use strict";
 
 const {main, panel, windowManager, windowMenu} = imports.ui;
-const {Clutter, Meta, Shell, St} = imports.gi;
+const {Clutter, Gio, GLib, Meta, Shell, St} = imports.gi;
+const ByteArray = imports.byteArray;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -28,7 +29,11 @@ const WindowGrabHandler = Me.imports.tilingGrabHandler;
 const TilingLayoutManager = Me.imports.tilingLayoutManager;
 const PieMenu = Me.imports.tilingPieMenu;
 const TileEditing = Me.imports.tilingEditingMode;
-const TiledWindowOpener = Me.imports.tilingWindowOpener;
+const SemiAutoTilingMode = Me.imports.tilingSemiAutoMode;
+
+const Gettext = imports.gettext;
+const Domain = Gettext.domain(Me.metadata.uuid);
+const _ = Domain.gettext;
 
 var TILING = { // keybindings
 	DEBUGGING: "debugging-show-tiled-rects",
@@ -37,6 +42,8 @@ var TILING = { // keybindings
 	AUTO: "auto-tile",
 	MAXIMIZE: "tile-maximize",
 	EDIT_MODE: "tile-edit-mode",
+	TILING_MODE_PRIMARY: "tiling-mode-primary",
+	TILING_MODE_SECONDARY: "tiling-mode-secondary",
 	LAYOUTS_OVERVIEW: "layouts-overview",
 	RIGHT: "tile-right-half",
 	LEFT: "tile-left-half",
@@ -45,8 +52,7 @@ var TILING = { // keybindings
 	TOP_LEFT: "tile-topleft-quarter",
 	TOP_RIGHT: "tile-topright-quarter",
 	BOTTOM_LEFT: "tile-bottomleft-quarter",
-	BOTTOM_RIGHT: "tile-bottomright-quarter",
-	TOGGLE_APP_SPLIT: "toggle-open-app-vertically"
+	BOTTOM_RIGHT: "tile-bottomright-quarter"
 };
 
 var settings = null;
@@ -56,6 +62,7 @@ var settings = null;
 // 2. tiled via Grab => onGrabStarted()
 
 function init() {
+	ExtensionUtils.initTranslations(Me.metadata.uuid);
 };
 
 function enable() {
@@ -77,7 +84,7 @@ function enable() {
 	// keybindings
 	this.keyBindings = Object.values(TILING);
 	[...Array(30)].forEach((undef, idx) => this.keyBindings.push(`activate-layout${idx}`));
-	const bindingInOverview = [TILING.TOGGLE_POPUP, TILING.TOGGLE_APP_SPLIT];
+	const bindingInOverview = [TILING.TOGGLE_POPUP, TILING.TILING_MODE_PRIMARY, TILING.TILING_MODE_SECONDARY];
 	this.keyBindings.forEach(key => {
 		main.wm.addKeybinding(key, settings, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT, Shell.ActionMode.NORMAL
 				| (bindingInOverview.includes(key) ? Shell.ActionMode.OVERVIEW : 0), onCustomKeybindingPressed.bind(this, key));
@@ -109,11 +116,17 @@ function enable() {
 				? new PieMenu.PieMenu() : windowMenu.WindowMenuManager.prototype.showWindowMenuForWindow.apply(this, params);
 	};
 
-	// open apps tiled by holding Shift/Alt
-	this.tilingWindowOpener = new TiledWindowOpener.Handler();
+	// open apps tiled by holding Shift when activating an AppIcon
+	this.semiAutoTiler = new SemiAutoTilingMode.Manager();
+
+	// restore window properties after session was unlocked
+	_loadAfterSessionLock();
 };
 
 function disable() {
+	// save window properties, if session was locked to restore after unlock
+	_saveBeforeSessionLock();
+
 	this.tilePreview.destroy();
 	this.tilePreview = null;
 	this.windowGrabHandler.destroy();
@@ -122,8 +135,8 @@ function disable() {
 	this.tilingLayoutManager = null;
 	this.debuggingIndicators && this.debuggingIndicators.forEach(i => i.destroy());
 	this.debuggingIndicators = null;
-	this.tilingWindowOpener.destroy();
-	this.tilingWindowOpener = null;
+	this.semiAutoTiler.destroy();
+	this.semiAutoTiler = null;
 
 	// disconnect signals
 	global.display.disconnect(this.windowGrabBegin);
@@ -178,7 +191,8 @@ function onCustomKeybindingPressed(shortcutName) {
 	} else if (shortcutName === TILING.TOGGLE_POPUP) {
 		const toggleTo = !settings.get_boolean("enable-tiling-popup");
 		settings.set_boolean("enable-tiling-popup", toggleTo);
-		main.notify("Tiling Assistant", "Tiling-assistant's popup " + (toggleTo ? "enabled" : "was disabled"));
+		const message = toggleTo ? _("Tiling-assistant's popup enabled") : _("Tiling-assistant's popup was disabled");
+		main.notify("Tiling Assistant", message);
 		return;
 
 	// layout overview
@@ -191,9 +205,9 @@ function onCustomKeybindingPressed(shortcutName) {
 		this.tilingLayoutManager.startTilingToLayout(Number.parseInt(shortcutName.substring(15)));
 		return;
 
-	// toggle app split
-	} else if (shortcutName === TILING.TOGGLE_APP_SPLIT) {
-		this.tilingWindowOpener.toggleSplitMode();
+	// toggle the direction in which an app opens in a tiled state
+	} else if (shortcutName.startsWith("tiling-mode-")) {
+		this.semiAutoTiler.cycleTilingModes(shortcutName);
 		return;
 	}
 
@@ -209,7 +223,7 @@ function onCustomKeybindingPressed(shortcutName) {
 	// tile editing mode
 	} else if (shortcutName === TILING.EDIT_MODE) {
 		if (!Util.getTopTileGroup(!window.isTiled).length) {
-			main.notify("Tiling Assistant", "Can't enter 'Tile Editing Mode', if the focused window isn't tiled.");
+			main.notify("Tiling Assistant", _("Can't enter 'Tile Editing Mode', if the focused window isn't tiled."));
 			return;
 		}
 
@@ -324,4 +338,84 @@ function _grabIsResizing(grabOp) {
 		default:
 			return false;
 	}
+};
+
+function _saveBeforeSessionLock() {
+	if (!main.sessionMode.isLocked)
+		return;
+
+	this.wasLocked = true;
+
+	const metaToStringRect = metaRect => metaRect && {x: metaRect.x, y: metaRect.y, width: metaRect.width, height: metaRect.height};
+	const savedWindows = [];
+	const openWindows = Util.getOpenWindows(false);
+	openWindows.forEach(window => {
+		// can't just check for isTiled because maximized windows may
+		// have an untiledRect as well in case window gaps are used
+		if (!window.untiledRect)
+			return;
+
+		savedWindows.push({
+			windowStableId: window.get_stable_sequence(),
+			isTiled: window.isTiled,
+			tiledRect: metaToStringRect(window.tiledRect),
+			untiledRect: metaToStringRect(window.untiledRect),
+			tileGroup: window.tileGroup && window.tileGroup.map(w => w.get_stable_sequence())
+		});
+	});
+
+	const parentDir = GLib.build_filenamev([GLib.get_user_config_dir(), "/tiling-assistant"]);
+	try {parentDir.make_directory_with_parents(null)} catch (e) {}
+	const path = GLib.build_filenamev([GLib.get_user_config_dir(), "/tiling-assistant/tiledSessionRestore.json"]);
+	const file = Gio.File.new_for_path(path);
+	try {file.create(Gio.FileCreateFlags.NONE, null)} catch (e) {}
+	file.replace_contents(JSON.stringify(savedWindows), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+};
+
+function _loadAfterSessionLock() {
+	if (!this.wasLocked)
+		return;
+
+	this.wasLocked = false;
+
+	const path = GLib.build_filenamev([GLib.get_user_config_dir(), "/tiling-assistant/tiledSessionRestore.json"]);
+	const file = Gio.File.new_for_path(path);
+	if (!file.query_exists(null))
+		return;
+
+	try {file.create(Gio.FileCreateFlags.NONE, null)} catch (e) {}
+	const [success, contents] = file.load_contents(null);
+	if (!success || !contents.length)
+		return;
+
+	const openWindows = Util.getOpenWindows(false);
+	// array of 'property saving objects': [{windowStableId: Int, tiledRect: {x: , y: , width: , height: }, isTiled: bool
+	// , untiledRect: {x: , y: , width: , height: }, tileGroup: [windowId1, windowId2, ...]}, ...]
+	// maximized windows may just have an untiledRect and everything else being null
+	const windowObjects = JSON.parse(ByteArray.toString(contents));
+	windowObjects.forEach(wObj => {
+		const {windowStableId, isTiled, tiledRect, untiledRect, tileGroup} = wObj;
+		const windowIdx = openWindows.findIndex(w => w.get_stable_sequence() === windowStableId);
+		const window = openWindows[windowIdx];
+		if (!window)
+			return;
+
+		window.isTiled = isTiled;
+		window.tiledRect = tiledRect && new Meta.Rectangle({
+			x: tiledRect.x, y: tiledRect.y,
+			width: tiledRect.width, height: tiledRect.height
+		});
+		window.untiledRect = untiledRect && new Meta.Rectangle({
+			x: untiledRect.x, y: untiledRect.y,
+			width: untiledRect.width, height: untiledRect.height
+		});
+		if (tileGroup) {
+			const windowGroup = [];
+			tileGroup.forEach(wId => {
+				const win = openWindows.find(w => w.get_stable_sequence() === wId);
+				win && windowGroup.push(win);
+			});
+			Util.updateTileGroup(windowGroup);
+		}
+	});
 };

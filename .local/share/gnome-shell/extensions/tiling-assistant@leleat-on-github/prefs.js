@@ -2,8 +2,13 @@
 
 const {Gdk, Gio, GLib, Gtk, GObject} = imports.gi;
 const ByteArray = imports.byteArray;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 const shellVersion = parseFloat(imports.misc.config.PACKAGE_VERSION);
+
+const Gettext = imports.gettext;
+const Domain = Gettext.domain(Me.metadata.uuid);
+const _ = Domain.gettext;
 
 const TILING = { // keybindings
 	DEBUGGING: "debugging-show-tiled-rects",
@@ -12,6 +17,8 @@ const TILING = { // keybindings
 	AUTO: "auto-tile",
 	MAXIMIZE: "tile-maximize",
 	EDIT_MODE: "tile-edit-mode",
+	TILING_MODE_PRIMARY: "tiling-mode-primary",
+	TILING_MODE_SECONDARY: "tiling-mode-secondary",
 	LAYOUTS_OVERVIEW: "layouts-overview",
 	RIGHT: "tile-right-half",
 	LEFT: "tile-left-half",
@@ -20,11 +27,11 @@ const TILING = { // keybindings
 	TOP_LEFT: "tile-topleft-quarter",
 	TOP_RIGHT: "tile-topright-quarter",
 	BOTTOM_LEFT: "tile-bottomleft-quarter",
-	BOTTOM_RIGHT: "tile-bottomright-quarter",
-	TOGGLE_APP_SPLIT: "toggle-open-app-vertically"
+	BOTTOM_RIGHT: "tile-bottomright-quarter"
 };
 
 function init() {
+	ExtensionUtils.initTranslations(Me.metadata.uuid);
 };
 
 function buildPrefsWidget() {
@@ -74,7 +81,7 @@ const MyPrefsWidget = new GObject.Class({
 				, "pie-menu-deadzone-radius", "pie-menu-item-radius"];
 		const bools = ["enable-tiling-popup", "enable-dynamic-tiling", "enable-tile-animations", "enable-untile-animations"
 				, "enable-raise-tile-group", "enable-hold-maximize-inverse-landscape", "enable-hold-maximize-inverse-portrait"
-				, "enable-pie-menu", "maximize-with-gap", "tiling-popup-current-workspace-only", "show-icon-open-app-vertically"];
+				, "enable-pie-menu", "maximize-with-gap", "tiling-popup-current-workspace-only", "enable-tiling-mode"];
 		const enums = ["restore-window-size-on"];
 		const colors = ["tile-editing-mode-color"];
 
@@ -228,6 +235,7 @@ const MyPrefsWidget = new GObject.Class({
 		_forEachChild(this, layoutsListBox, row => {
 			const layoutRects = [];
 			const appIds = [];
+			const loopModes = [];
 			_forEachChild(this, row.entriesContainer, entryBox => {
 				const entry = shellVersion < 40 ? entryBox.get_children()[1]
 						: entryBox.get_first_child().get_next_sibling();
@@ -237,8 +245,10 @@ const MyPrefsWidget = new GObject.Class({
 
 				const text = _getEntryText(entry);
 				const splits = text.split("--");
-				if (splits.length !== 4)
+				if (splits.length !== 4 && splits.length !== 5)
 					return;
+
+				loopModes.push(splits.length === 5 ? splits.pop() : "");
 
 				const rect = {};
 				let rectIsValid = true;
@@ -257,7 +267,7 @@ const MyPrefsWidget = new GObject.Class({
 			});
 
 			const layoutName = row.getLayoutName();
-			const layout = {name: layoutName, rects: layoutRects, apps: appIds};
+			const layout = {name: layoutName, rects: layoutRects, apps: appIds, loopModes: loopModes};
 			layoutRects.length && allLayouts.push(layout);
 		});
 
@@ -303,10 +313,10 @@ const MyPrefsWidget = new GObject.Class({
 
 	_createPieMenuRow: function(activeId) {
 		const options = [ // make sure this has the same order as tilingPieMenu.js
-				"Toggle 'Maximize'", "Minimize window", "Close window", "Move to previous workspace", "Move to next workspace"
-				, "Move to top monitor", "Move to bottom monitor", "Move to left monitor", "Move to right monitor"
-				, "Toggle fullscreen", "Toggle 'Always on top'", "Tile left", "Tile right", "Tile top", "Tile bottom"
-				, "Tile top-left", "Tile top-right", "Tile bottom-left", "Tile bottom-right"
+				_("Toggle 'Maximize'"), _("Minimize window"), _("Close window"), _("Move to previous workspace"), _("Move to next workspace")
+				, _("Move to top monitor"), _("Move to bottom monitor"), _("Move to left monitor"), _("Move to right monitor")
+				, _("Toggle fullscreen"), _("Toggle 'Always on top'"), _("Tile left"), _("Tile right"), _("Tile top"), _("Tile bottom")
+				, _("Tile top-left"), _("Tile top-right"), _("Tile bottom-left"), _("Tile bottom-right")
 		];
 		const row = new PieMenuRow(options);
 		activeId && row.setActiveId(activeId);
@@ -322,6 +332,7 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 		});
 
 		this.appIds = (layout && layout.apps) || [];
+		this.loopModes = (layout && layout.loopModes) || [];
 
 		const mainFrame = new Gtk.Frame({
 			label: `    Layout ${idx + 1}    `,
@@ -331,7 +342,7 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 			margin_start: 8,
 			margin_end: 8
 		});
-		_addChildTo(this, mainFrame)
+		_addChildTo(this, mainFrame);
 
 		const mainBox = new Gtk.Box({
 			orientation: Gtk.Orientation.VERTICAL,
@@ -341,7 +352,7 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 			margin_start: 12,
 			margin_end: 12
 		});
-		_addChildTo(mainFrame, mainBox)
+		_addChildTo(mainFrame, mainBox);
 
 		/* --- keybinding & name row --- */
 
@@ -369,7 +380,7 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 		this._nameEntry = new Gtk.Entry();
 		const layoutName = layout && layout.name;
 		layoutName && _setEntryText(this._nameEntry, layoutName);
-		!layoutName && this._nameEntry.set_placeholder_text("Layout name...");
+		!layoutName && this._nameEntry.set_placeholder_text(_("Layout name..."));
 		_addChildTo(topBox, this._nameEntry);
 
 		/* --- rectangles entries and preview row --- */
@@ -402,7 +413,9 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 		layout && layout.rects.forEach((rect, idx) => {
 			const appId = this.appIds[idx];
 			const appInfo = appId && Gio.DesktopAppInfo.new(appId);
-			this._addRectangleEntry(`${rect.x}--${rect.y}--${rect.width}--${rect.height}`, appInfo);
+			const loopMode = this.loopModes[idx];
+			const loopString = loopMode ? `${'--' + (loopMode === 'h' ? 'h' : 'v')}` : "";
+			this._addRectangleEntry(`${rect.x}--${rect.y}--${rect.width}--${rect.height}${loopString}`, appInfo);
 		});
 		this._addRectangleEntry();
 
@@ -466,11 +479,11 @@ const LayoutsRow = GObject.registerClass(class LayoutsRow extends Gtk.ListBoxRow
 		const entryLabel = new Gtk.Label({label: `${entryCount}:`});
 		_addChildTo(entryBox, entryLabel);
 
-		const tooltip = "Set a keybinding by clicking the 'Disabled' text. Enter the dimensions of the rectangles for the layouts in the left column.\
+		const tooltip = _("Set a keybinding by clicking the 'Disabled' text. Enter the dimensions of the rectangles for the layouts in the left column.\
 The right column shows a preview of your layouts (after saving). The layouts file is saved in $XDG_CONFIG_HOME/tiling-assistant/layouts.json.\n\
-Format for the rectangles:\n\nxVal--yVal--widthVal--heightVal\n\n\
-The values can range from 0 to 1. (0,0) is the top-left corner of your screen. (1,1) is the bottom-right corner.\n\n\
-You can attach an app to the rectangle row. If you do that, a new instance of the app will be opened, when activating the layout. This is experimental and may not work reliably (especially on Wayland)."
+Format for the rectangles:\n\nxVal--yVal--widthVal--heightVal--dynamicSplit\n\n\
+The values can range from 0 to 1. (0,0) is the top-left corner of your screen. (1,1) is the bottom-right corner. '--dynamicSplit' is optional and can be '--h' or '--v'. 'dynamicSplit' means you can tile any number of windows in that rectangle and they will share that space evenly (for ex.: Master & Stack).\n\n\
+You can attach an app to the rectangle row. If you do that, a new instance of the app will be opened, when activating the layout. This is experimental and may not work reliably (especially on Wayland).");
 		const rectEntry = new Gtk.Entry({
 			tooltip_text: tooltip,
 			hexpand: true
@@ -524,7 +537,7 @@ You can attach an app to the rectangle row. If you do that, a new instance of th
 
 		cr.setLineWidth(1.0);
 
-		layout.rects.forEach(rect => {
+		layout.rects.forEach((rect, index) => {
 			// 1px outline for rect in transparent white
 			// 5 px gaps between rects
 			color.parse("rgba(255, 255, 255, .2)");
@@ -537,7 +550,7 @@ You can attach an app to the rectangle row. If you do that, a new instance of th
 			cr.strokePreserve();
 
 			// fill rect in transparent black
-			color.parse("rgba(0, 0, 0, .15)");
+			color.parse(`rgba(0, 0, 0, ${layout.loopModes[index] ? .1 : .3})`);
 			Gdk.cairo_set_source_rgba(cr, color);
 			cr.fill();
 		});
@@ -547,7 +560,7 @@ You can attach an app to the rectangle row. If you do that, a new instance of th
 
 	_layoutIsValid(layout) {
 		if (!layout)
-			return [false, "No preview..."];
+			return [false, _("No layout preview...")];
 
 		// calculate the surface area of an overlap
 		const rectsOverlap = function(r1, r2) {
@@ -559,11 +572,11 @@ You can attach an app to the rectangle row. If you do that, a new instance of th
 			const rect = layout.rects[i];
 			// rects is/reaches outside of screen (i. e. > 1)
 			if (rect.x < 0 || rect.y < 0 || rect.width <= 0 || rect.height <= 0 || rect.x + rect.width > 1 || rect.y + rect.height > 1)
-				return [false, `Rectangle ${i + 1} is (partly) outside of the screen.`];
+				return [false, _(`Rectangle ${i + 1} is (partly) outside of the screen.`)];
 
 			for (let j = i + 1; j < layout.rects.length; j++) {
 				if (rectsOverlap(rect, layout.rects[j]))
-					return [false, `Rectangles ${i + 1} and ${j + 1} overlap.`];
+					return [false, _(`Rectangles ${i + 1} and ${j + 1} overlap.`)];
 			}
 		}
 
