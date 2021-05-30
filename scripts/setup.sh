@@ -47,6 +47,11 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		sudo add-apt-repository ppa:kelleyk/emacs
 	fi
 
+	echo "Checking for git PPA..."
+	if [ ! -f /etc/apt/sources.list.d/git-core-ubuntu-ppa-focal.list ]; then
+		sudo add-apt-repository ppa:git-core/ppa
+	fi
+
 	echo "Checking for hashicorp PPA..."
 	if [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-focal.list ] &&
 		[ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-groovy.list ]; then
@@ -64,13 +69,17 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	fi
 
 	echo "Checking for 1Password PPA..."
-	if [ ! -f "/etc/apt/sources.list.d/1password-beta.list" ]; then
-		curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo apt-key add -
-		echo 'deb [arch=amd64] https://downloads.1password.com/linux/debian/amd64 beta main' |
-			sudo tee /etc/apt/sources.list.d/1password-beta.list
+	if [ ! -f "/etc/apt/sources.list.d/1password.list" ]; then
+		curl -sS https://downloads.1password.com/linux/keys/1password.asc |
+			sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+
+		echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' |
+			sudo tee /etc/apt/sources.list.d/1password.list
+
 		sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/
 		curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol |
 			sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol
+
 		sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22
 		curl -sS https://downloads.1password.com/linux/keys/1password.asc |
 			sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
@@ -99,6 +108,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		git         # emacs, pyenv
 		gnome-sushi # file preview
 		gnome-system-monitor
+		gnome-tweaks
 		gstreamer1.0-plugins-bad
 		gstreamer1.0-plugins-ugly
 		htop
@@ -239,9 +249,15 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	echo "Checking kmonad install"
 	if [[ "$(command -v kmonad)" == "" || "$UPGRADE" ]]; then
 		CHECKOUT="$GH/kmonad/kmonad"
-		mkdir -p "$CHECKOUT"
-		git clone -f https://github.com/kmonad/kmonad "$CHECKOUT"
-		pushd "$CHECKOUT"
+		if [[ -d "$CHECKOUT" ]]; then
+			pushd "$CHECKOUT"
+			git reset --hard HEAD
+			git pull
+		else
+			mkdir -p "$CHECKOUT"
+			git clone https://github.com/kmonad/kmonad "$CHECKOUT"
+			pushd "$CHECKOUT"
+		fi
 		nix-build nix
 		ln -s "$(readlink result)/bin/kmonad" "$HOME/bin/kmonad"
 		popd
