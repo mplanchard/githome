@@ -27,12 +27,37 @@ SOURCE="$HOME/s"
 GH="$SOURCE/gh"
 DOWNLOADS="$HOME/Downloads"
 BINS="$HOME/bin"
+DOTFILES="$GH/mplanchard/dotfiles"
 
 # Make some common directories
 mkdir -p "$SOURCE"
 mkdir -p "$GH"
 mkdir -p "$DOWNLOADS"
 mkdir -p "$BINS"
+mkdir -p "$DOTFILES"
+
+# Instlal stow packages, overwriting conflicts.
+install_stow_overwrite() {
+	STOW_DIR=$1
+	TARGET_DIR=$2
+	PACKAGE=$3
+	# First delete any conflicting files
+	pushd "$TARGET_DIR"
+	stow --dir "$STOW_DIR" --target "$TARGET_DIR" --simulate "$PACKAGE" 2>&1 |
+		grep "existing target" |
+		awk -F ': ' '{print $2}' |
+		xargs rm -rf
+	popd
+	# Then install the stowed package
+	stow --dir "$STOW_DIR" --target "$TARGET_DIR" "$PACKAGE"
+}
+
+checkout_dotfiles() {
+	if [[ ! -e "$DOTFILES/.git" ]]; then
+		# use https since we probably haven't set up an SSH key yet
+		git clone https://github.com/mplanchard/githome "$TARGET"
+	fi
+}
 
 # Install packages (linux)
 if [[ "$ENV" == "$LINUX" ]]; then
@@ -151,6 +176,7 @@ if [[ "$ENV" == "$LINUX" ]]; then
 		shellcheck
 		signal-desktop # from the signal repository
 		sqlite3
+		stow      # dotfile management
 		terraform # from the hashicorp repository
 		texlive-fonts-recommended
 		texlive-latex-base
@@ -187,6 +213,13 @@ if [[ "$ENV" == "$LINUX" ]]; then
 	if [[ "$UPGRADE" ]]; then
 		sudo apt-get upgrade -y
 	fi
+
+	echo "Installing dotfiles..."
+	checkout_dotfiles
+	install_stow_overwrite "$DOTFILES" "$HOME" all
+	install_stow_overwrite "$DOTFILES" "$HOME" linux
+	install_stow_overwrite "$DOTFILES" "$HOME" gnome
+	echo "Dotfiles successfully installed!"
 
 	# snap is so dummmb
 	for PKG in "${SNAPS[@]}"; do
@@ -396,6 +429,11 @@ else
 
 	unset HOMEBREW_NO_AUTO_UPDATE
 
+	echo "Installing dotfiles..."
+	checkout_dotfiles
+	install_stow_overwrite "$DOTFILES" "$HOME" all
+	echo "Dotfiles successfully installed!"
+
 	# Alacritty additions
 	mkdir -p /usr/local/share/man/man1
 	if [[ ! -d "$GH/jwilm/alacritty" ]]; then
@@ -596,15 +634,14 @@ if [[ $(command -v shfmt) == "" ]]; then
 	echo "shfmt successfully installed"
 fi
 
-if [[ ! -e "$HOME/org" ]]; then
-	echo "Symlink org notes to ~/org!"
+echo "Checking org files..."
+if [[ -e "$HOME/Dropbox/stow" ]]; then
+	if [[ -e "$HOME/org" ]] && [[ ! -L "$HOME/org" ]]; then
+		rm -rf "$HOME/org"
+	fi
+	stow --dir "$HOME/Dropbox/stow" --target "$HOME" org
+else
+	echo "Dropbox not yet synced. Rerun once ~/Dropbox/stow is available"
 fi
-
-# Configure Git
-echo "Configuring git"
-git config --global commit.gpgsign true
-git config --global user.email "msplanchard@gmail.com"
-git config --global user.name "Matthew Planchard"
-git config --global github.user "mplanchard"
 
 echo "Done!"
