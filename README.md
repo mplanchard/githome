@@ -1,21 +1,32 @@
-# Home Directory
+# Matthew's Dotfiles
 
-This repo is designed to be used as a bare git repo to track dotfiles, configs,
-and other items in one's home directory.
+This repo contains dotfiles and other config files for a variety of systems.
+It's intended to be deployed with [GNU Stow], which is a symlink manager. Each
+top-level directory is a stow "package," containing symlinks for a given system
+or environment. The `all` package are dotfiles I install on every system,
+`linux` on linux, `gnome` in gnome, etc.
 
-A description of this process can be found [here](https://www.atlassian.com/git/tutorials/dotfiles). The main
-exception is that the aliases and configs here assume `githome` as the
-alias rather than `config`.
+To use it to manage dotfiles, you'll run something like:
 
-You can bootstrap by running:
-
-``` sh
-curl https://raw.githubusercontent.com/mplanchard/githome/master/scripts/githome.sh | bash
+```sh
+$ sudo apt-get install stow
+$ mkdir -p ~/source/gh/mplanchard/
+$ git clone https://github.com/mplanchard/githome ~/source/gh/mplanchard/githome
+# Install dotfiles common to all platforms
+$ stow --dir ~/source/gh/mplanchard --target ~ all
+# Install linux dotfiles
+$ stow --dir ~/source/gh/mplanchard --target ~ linux
 ```
 
-Note that if you have any existing files at any of the locations tracked
-(almost always `~/.bashrc`), they will be moved to `~/.config-backup` and
-replaced with the files in this repo.
+There's also a [setup script] that aims to get everything fully operation from a
+reasonable base state. Currently it's focused on Ubuntu and Mac, although the
+latter hasn't been tested in quite some time and is probably out of date and/or
+broken.
 
-Once cloned, you can use one of the scripts now in `~/scripts` to set up
-your system.
+**Do not clone this and use it blindly.** The setup script will currently
+overwrite any existing files that are managed by this dotfiles repository,
+because that's what I want when I'm setting up a new machine. It might not be
+what you want if you're just exploring this repo, though!
+
+[gnu stow]: https://www.gnu.org/software/stow/
+[setup script]: ./scripts/setup.sh

@@ -1,22 +1,19 @@
-# this is symlinked in from elsewhere
-.gitignore
-
 # Ensure we don't check in local stuff, where we put our
 # keys and whatnot.
-.localrc
-.local_aliases
-.local_profile
+**/.localrc
+**/.local_aliases
+**/.local_profile
+**/.gitconfig.local
 
 # Obvious reasons for ignoring these
-.gnupg/
-.ssh/
-!.ssh/config
-*.gpg
+**/.gnupg/
+**/.ssh/
+!**/.ssh/config
 
 # Tool-related stuff that can have keys
-.aws/
-.kube/
+**/.aws/
+**/.kube/
 
-# Stuff there's just no reason to ever check int
-.nvm/
-.pyenv/
+# Stuff there's just no reason to ever check in
+**/.nvm/
+**/.pyenv/
