@@ -1,110 +1,112 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; EXWM stuff left commented for when I want to play around with it more
+;;
 ;; EXWM: run only if we're not in a window manager and we're in an x session
-(when (get-buffer "*window-manager*")
-  (kill-buffer "*window-manager*"))
-(when (get-buffer "*window-manager-error*")
-  (kill-buffer "*window-manager-error*"))
-(when (executable-find "wmctrl")
-  (shell-command "wmctrl -m ; echo $?" "*window-manager*" "*window-manager-error*"))
+;; (when (get-buffer "*window-manager*")
+;;   (kill-buffer "*window-manager*"))
+;; (when (get-buffer "*window-manager-error*")
+;;   (kill-buffer "*window-manager-error*"))
+;; (when (executable-find "wmctrl")
+;;   (shell-command "wmctrl -m ; echo $?" "*window-manager*" "*window-manager-error*"))
 
 ;; if there was an error detecting the window manager, initialize EXWM
-(when (and (get-buffer "*window-manager-error*")
-           (eq window-system 'x))
-  ;; exwm startup goes here
-  (use-package! exwm
-    :config
-    (require 'exwm)
-    (require 'exwm-config)
-    (require 'exwm-randr)
-    (require 'exwm-systemtray)
-    (exwm-systemtray-enable)
+;; (when (and (get-buffer "*window-manager-error*")
+;;            (eq window-system 'x))
+;;   ;; exwm startup goes here
+;;   (use-package! exwm
+;;     :config
+;;     (require 'exwm)
+;;     (require 'exwm-config)
+;;     (require 'exwm-randr)
+;;     (require 'exwm-systemtray)
+;;     (exwm-systemtray-enable)
 
-    (setq exwm-workspace-number 4)
-    (add-hook 'exwm-update-class-hook
-              (lambda ()
-                (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-                            (string= "gimp" exwm-instance-name))
-                  (exwm-workspace-rename-buffer exwm-class-name))))
-    (add-hook 'exwm-update-title-hook
-              (lambda ()
-                (when (or (not exwm-instance-name)
-                          (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-                          (string= "gimp" exwm-instance-name))
-                  (exwm-workspace-rename-buffer exwm-title))))
+;;     (setq exwm-workspace-number 4)
+;;     (add-hook 'exwm-update-class-hook
+;;               (lambda ()
+;;                 (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+;;                             (string= "gimp" exwm-instance-name))
+;;                   (exwm-workspace-rename-buffer exwm-class-name))))
+;;     (add-hook 'exwm-update-title-hook
+;;               (lambda ()
+;;                 (when (or (not exwm-instance-name)
+;;                           (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+;;                           (string= "gimp" exwm-instance-name))
+;;                   (exwm-workspace-rename-buffer exwm-title))))
 
-    (setq exwm-input-prefix-keys
-          (add-to-list 'exwm-input-prefix-keys (kbd "<space>")))
+;;     (setq exwm-input-prefix-keys
+;;           (add-to-list 'exwm-input-prefix-keys (kbd "<space>")))
 
-    (setq exwm-input-global-keys
-          `(
-            ;; Bind "s-r" to exit char-mode and fullscreen mode.
-            ([?\s-r] . exwm-reset)
-            ;; Bind "s-w" to switch workspace interactively.
-            ([?\s-w] . exwm-workspace-switch)
-            ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
-            ,@(mapcar (lambda (i)
-                        `(,(kbd (format "s-%d" i)) .
-                          (lambda ()
-                            (interactive)
-                            (exwm-workspace-switch-create ,i))))
-                      (number-sequence 0 9))
-            ;; Bind "s-&" to launch applications ('M-&' also works if the output
-            ;; buffer does not bother you).
-            ([?\s-&] . (lambda (command)
-                         (interactive (list (read-shell-command "$ ")))
-                         (start-process-shell-command command nil command)))
-            ;; Bind "s-<f2>" to "slock", a simple X display locker.
-            ([s-f2] . (lambda ()
-                        (interactive)
-                        (start-process "" nil "/usr/bin/slock")))))
+;;     (setq exwm-input-global-keys
+;;           `(
+;;             ;; Bind "s-r" to exit char-mode and fullscreen mode.
+;;             ([?\s-r] . exwm-reset)
+;;             ;; Bind "s-w" to switch workspace interactively.
+;;             ([?\s-w] . exwm-workspace-switch)
+;;             ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
+;;             ,@(mapcar (lambda (i)
+;;                         `(,(kbd (format "s-%d" i)) .
+;;                           (lambda ()
+;;                             (interactive)
+;;                             (exwm-workspace-switch-create ,i))))
+;;                       (number-sequence 0 9))
+;;             ;; Bind "s-&" to launch applications ('M-&' also works if the output
+;;             ;; buffer does not bother you).
+;;             ([?\s-&] . (lambda (command)
+;;                          (interactive (list (read-shell-command "$ ")))
+;;                          (start-process-shell-command command nil command)))
+;;             ;; Bind "s-<f2>" to "slock", a simple X display locker.
+;;             ([s-f2] . (lambda ()
+;;                         (interactive)
+;;                         (start-process "" nil "/usr/bin/slock")))))
 
-    ;; To add a key binding only available in line-mode, simply define it in
-    ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
-    (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
+;;     ;; To add a key binding only available in line-mode, simply define it in
+;;     ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
+;;     (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
 
-    ;; The following example demonstrates how to use simulation keys to mimic
-    ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys` is a
-    ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
-    ;; and DEST is what EXWM actually sends to application.  Note that both SRC
-    ;; and DEST should be key sequences (vector or string).
-    ;; (setq exwm-input-simulation-keys
-    ;;       '(
-    ;;         ;; movement
-    ;;         ([?\C-b] . [left])
-    ;;         ([?\M-b] . [C-left])
-    ;;         ([?\C-f] . [right])
-    ;;         ([?\M-f] . [C-right])
-    ;;         ([?\C-p] . [up])
-    ;;         ([?\C-n] . [down])
-    ;;         ([?\C-a] . [home])
-    ;;         ([?\C-e] . [end])
-    ;;         ([?\M-v] . [prior])
-    ;;         ([?\C-v] . [next])
-    ;;         ([?\C-d] . [delete])
-    ;;         ([?\C-k] . [S-end delete])
-    ;;         ;; cut/paste.
-    ;;         ([?\C-w] . [?\C-x])
-    ;;         ([?\M-w] . [?\C-c])
-    ;;         ([?\C-y] . [?\C-v])
-    ;;         ;; search
-    ;;         ([?\C-s] . [?\C-f])))
+;;     ;; The following example demonstrates how to use simulation keys to mimic
+;;     ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys` is a
+;;     ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
+;;     ;; and DEST is what EXWM actually sends to application.  Note that both SRC
+;;     ;; and DEST should be key sequences (vector or string).
+;;     ;; (setq exwm-input-simulation-keys
+;;     ;;       '(
+;;     ;;         ;; movement
+;;     ;;         ([?\C-b] . [left])
+;;     ;;         ([?\M-b] . [C-left])
+;;     ;;         ([?\C-f] . [right])
+;;     ;;         ([?\M-f] . [C-right])
+;;     ;;         ([?\C-p] . [up])
+;;     ;;         ([?\C-n] . [down])
+;;     ;;         ([?\C-a] . [home])
+;;     ;;         ([?\C-e] . [end])
+;;     ;;         ([?\M-v] . [prior])
+;;     ;;         ([?\C-v] . [next])
+;;     ;;         ([?\C-d] . [delete])
+;;     ;;         ([?\C-k] . [S-end delete])
+;;     ;;         ;; cut/paste.
+;;     ;;         ([?\C-w] . [?\C-x])
+;;     ;;         ([?\M-w] . [?\C-c])
+;;     ;;         ([?\C-y] . [?\C-v])
+;;     ;;         ;; search
+;;     ;;         ([?\C-s] . [?\C-f])))
 
-    ;; You can hide the minibuffer and echo area when they're not used, by
-    ;; uncommenting the following line.
-                                        ;(setq exwm-workspace-minibuffer-position 'bottom)
+;;     ;; You can hide the minibuffer and echo area when they're not used, by
+;;     ;; uncommenting the following line.
+;;                                         ;(setq exwm-workspace-minibuffer-position 'bottom)
 
-    ;; Do not forget to enable EXWM. It will start by itself when things are
-    ;; ready.  Yo
+;;     ;; Do not forget to enable EXWM. It will start by itself when things are
+;;     ;; ready.  Yo
 
 
-    (add-hook 'exwm-randr-screen-change-hook
-              (lambda ()
-                (start-process-shell-command
-                 "autorandr" nil "autorandr --change")))
-    (exwm-enable)
-    )
-  )
+;;     (add-hook 'exwm-randr-screen-change-hook
+;;               (lambda ()
+;;                 (start-process-shell-command
+;;                  "autorandr" nil "autorandr --change")))
+;;     (exwm-enable)
+;;     )
+;;   )
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
@@ -204,26 +206,77 @@
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 
-(setq lsp-enable-file-watchers nil)
-(setq lsp-enable-on-type-formatting nil)
-(setq lsp-headerline-breadcrumb-enable t)
-(setq lsp-idle-delay 1)
-(setq lsp-signature-auto-activate t)
-(setq lsp-signature-doc-lines 0)
-(setq lsp-modeline-code-actions-enable nil)
+(after! lsp
+  :config
+  ;; this was a performance problem with python, but not so much wit hrust
+  ;; (setq lsp-enable-file-watchers nil)
 
-(setq lsp-ui-sideline-delay 0.75)
-(setq lsp-ui-doc-delay 0.75)
-(setq lsp-ui-doc-enable nil)
-(setq lsp-ui-doc-position 'at-point)
-(setq lsp-ui-doc-max-width 150)
-(setq lsp-ui-doc-max-height 16)
-(setq lsp-ui-doc-include-signature t)
-(setq lsp-ui-sideline-diagnostic-max-lines 20)
-(setq lsp-ui-sideline-show-code-actions nil)
-(setq lsp-headerline-breadcrumb-icons-enable nil)
-(setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+  ;; no need for this IMO
+  (setq lsp-enable-on-type-formatting nil)
 
+  ;; the headerline is cool
+  (setq lsp-headerline-breadcrumb-enable t)
+  ;; the icons don't look good
+  (setq lsp-headerline-breadcrumb-icons-enable nil)
+  ;; enable annoying squiggles in the headerline
+  (setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+
+  ;; prevent running lsp stuff for a second, for performance
+  (setq lsp-idle-delay 1)
+
+  ;; Show function signatures while writing functions and types for the thing at point
+  (setq lsp-signature-auto-activate t)
+  ;; I like the function signatures while writing functions, but don't like
+  ;; the we way the docs make the little buffer at the bottom pop up distractingly.
+  (setq lsp-signature-render-documentation nil)
+
+  ;; I just use spc c a for this, don't need them on the modeline
+  (setq lsp-modeline-code-actions-enable nil)
+
+
+
+  ;; Enable proc-macro expansion
+  (setq lsp-rust-analyzer-proc-macro-enable t)
+  ;; Use build scripts in the analyzer context
+  (setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+  ;; Build with --all-features
+  (setq lsp-rust-all-features t)
+  ;; Build with --test
+  (setq lsp-rust-cfg-test t))
+
+(after! lsp-ui
+  :config
+  ;; Add a delay here for performance
+  (setq lsp-ui-sideline-delay 0.75)
+  ;; Show more context b/c rust errors are chonky
+  (setq lsp-ui-sideline-diagnostic-max-lines 20)
+  ;; This is distracting
+  (setq lsp-ui-sideline-show-code-actions nil)
+  ;; This shows function signatures and stuff, but I already get that below
+  ;; the modeline, so this is just distracting. It does look cool though.
+  (setq lsp-ui-sideline-show-hover nil)
+
+  ;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
+  ;; for the poppup buffer
+  (setq lsp-ui-doc-enable nil)
+  ;; More performance-related delays
+  (setq lsp-ui-doc-delay 0.75)
+  ;; hover where I'm at when I do trigger it
+  (setq lsp-ui-doc-position 'at-point)
+
+  ;; the default size is much too small. Make it both wider and taller.
+  (setq lsp-ui-doc-max-width 150)
+  (setq lsp-ui-doc-max-height 24)
+
+  ;; Because why not??
+  (setq lsp-ui-doc-include-signature t)
+
+  ;; I like "go to definition" (g d) to show me a peek of the definnition, b/c
+  ;; I very often want to just look at it, not travel to it. I can press Enter
+  ;; from the peek if I want to travel.
+  (setq lsp-ui-peek-always-show t))
+
+;; Delay for perf
 (setq flycheck-idle-change-delay 1.5)
 
 ;; headerline mode fails in ediff, so make sure it doesn't start.
@@ -235,19 +288,15 @@
 (after! flycheck
   (setq flycheck-checker-error-threshold 1000))
 
+;; honestly I don't use this anymore (dired is better), but I like this theme
 (after! neotree
   (setq neo-theme 'ascii))
 
+;; treat camelCase words as two words for spellcheck
 (after! ispell
   (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
 
-;; (after! lsp
-;;   (add-hook
-;;    'lsp-mode-hook
-;;    #'(lambda ()
-;;        (add-hook 'lsp-headerline-breadcrumb-mode-hook #'flyspell-mode-off)
-;;        (add-hook 'lsp-headerline-breadcrumb-mode-hook #'spell-fu-mode-disable))))
-
+;; Try to improve syntax hihglighting performance for really large files
 (after! jit-lock
   ;; defer fontification while input is pending
   (setq jit-lock-defer-time 0)
@@ -255,6 +304,7 @@
   ;; the view, to avoid work when scrolling
   (setq jit-lock-stealth-time 32))
 
+;; don't try to smooth scroll on mac
 (setq mac-mouse-wheel-smooth-scroll nil)
 
 ;; Fill the 80th column to let me know I've gone too far
@@ -311,12 +361,10 @@
       deft-extensions '("org" "md" "txt")
       deft-recursive t)
 
-;; Rust-related LSP settings
-(setq rustic-format-on-save t)
-(setq lsp-rust-analyzer-proc-macro-enable t)
-(setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
-(setq lsp-rust-all-features t)
-(setq lsp-rust-cfg-test t)
+(after! rustic
+  :config
+  ;; why would I ever not want this
+  (setq rustic-format-on-save t))
 
 ;; SQL
 (after!
@@ -336,6 +384,7 @@
 ;; Packages
 ;; **********************************************************************
 
+;; magit delta is soooo gooooood
 (add-hook 'magit-mode-hook (lambda () (magit-delta-mode +1)))
 
 ;; Automatically load .envrc files whenever possible

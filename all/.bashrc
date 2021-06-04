@@ -54,21 +54,11 @@ if [ -d "/usr/local/bin" ]; then
 	export PATH="/usr/local/bin:$PATH"
 fi
 
-# Export pyenv path
-if [ -d "$HOME/.pyenv/bin" ]; then
-	export PATH="$PATH:$HOME/.pyenv/bin"
-fi
-
 # Source pyenv stuff
 if [[ $(command -v pyenv) != "" ]]; then
 	eval "$(pyenv init -)"
 
-	# This appears to only be a thing on the linux version
-	if uname -a | grep -vq "Darwin"; then
-		eval "$(pyenv virtualenv-init -)"
-	fi
-
-	pyenv global 3.8.6 3.7.9 3.6.12 3.9.1
+	pyenv global 3.8.6
 fi
 
 # Source nvm stuff

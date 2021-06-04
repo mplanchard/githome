@@ -8,6 +8,13 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
+if [ -e "$PYENV_ROOT/bin/pyenv" ]; then
+	eval "$(pyenv init --path)"
+fi
+
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
 	# include .bashrc if it exists
@@ -19,10 +26,6 @@ fi
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ]; then
 	PATH="$HOME/bin:$PATH"
-fi
-
-if [[ $(command -v pyenv) != "" ]]; then
-	eval "$(pyenv init --path)"
 fi
 
 source "$HOME/.cargo/env"
