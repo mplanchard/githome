@@ -111,6 +111,13 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
+;; this package ensures that whatever PATH additions are a part of my standard
+;; bash config wind up in emacs
+(use-package! exec-path-from-shell
+  ;; only use when in a nix-ish non-terminal app
+  :init (when (memq window-system '(mac ns x))
+          (exec-path-from-shell-initialize)))
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
 (setq user-full-name "Matthew Planchard"
@@ -177,9 +184,6 @@
 (setq tab-width 4)
 
 (setq ispell-dictionary "en_US")
-
-(setq display-time-load-average nil)
-(display-time-mode t)
 
 ;; Autosave when losing focus
 ;; (add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
@@ -340,8 +344,10 @@
    ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
    org-journal-file-format "journal-%Y-%m-%d.org"))
 
-;; Allow executing JS code blocks in org
-(require 'ob-js)
+(after! org
+  :config
+  ;; Allow executing JS code blocks in org
+  (require 'ob-js))
 
 ;; Allow executing TS code blocks in org
 (after! ob-typescript
@@ -392,12 +398,6 @@
 ;; Use this explicitly because I like using it to jump around when I have lots
 ;; of windows open. Keybinding for ace-window is set up below.
 (use-package! ace-window)
-;; this package ensures that whatever PATH additions are a part of my standard
-;; bash config wind up in emacs
-(use-package! exec-path-from-shell
-  ;; only use when in a nix-ish non-terminal app
-  :init (when (memq window-system '(mac ns x))
-          (exec-path-from-shell-initialize)))
 
 ;; load and use one of the kaolin themes
 (use-package! kaolin-themes
