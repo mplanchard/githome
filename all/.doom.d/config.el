@@ -108,6 +108,12 @@
 ;;     )
 ;;   )
 
+;; native comp
+(when (fboundp 'native-compile-async)
+    (setq comp-deferred-compilation t))
+          ;; comp-deferred-compilation-black-list '("/mu4e.*\\.el$")))
+
+
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
@@ -210,75 +216,69 @@
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 
-(after! lsp
-  :config
-  ;; this was a performance problem with python, but not so much wit hrust
-  ;; (setq lsp-enable-file-watchers nil)
+;; this was a performance problem with python, but not so much wit hrust
+;; (setq lsp-enable-file-watchers nil)
 
-  ;; no need for this IMO
-  (setq lsp-enable-on-type-formatting nil)
+;; no need for this IMO
+(setq lsp-enable-on-type-formatting nil)
 
-  ;; the headerline is cool
-  (setq lsp-headerline-breadcrumb-enable t)
-  ;; the icons don't look good
-  (setq lsp-headerline-breadcrumb-icons-enable nil)
-  ;; enable annoying squiggles in the headerline
-  (setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+;; the headerline is cool
+(setq lsp-headerline-breadcrumb-enable t)
+;; the icons don't look good
+(setq lsp-headerline-breadcrumb-icons-enable nil)
+;; enable annoying squiggles in the headerline
+(setq lsp-headerline-breadcrumb-enable-diagnostics nil)
 
-  ;; prevent running lsp stuff for a second, for performance
-  (setq lsp-idle-delay 1)
+;; prevent running lsp stuff for a second, for performance
+(setq lsp-idle-delay 1)
 
-  ;; Show function signatures while writing functions and types for the thing at point
-  (setq lsp-signature-auto-activate t)
-  ;; I like the function signatures while writing functions, but don't like
-  ;; the we way the docs make the little buffer at the bottom pop up distractingly.
-  (setq lsp-signature-render-documentation nil)
+;; Show function signatures while writing functions and types for the thing at point
+(setq lsp-signature-auto-activate t)
+;; I like the function signatures while writing functions, but don't like
+;; the we way the docs make the little buffer at the bottom pop up distractingly.
+(setq lsp-signature-render-documentation nil)
 
-  ;; I just use spc c a for this, don't need them on the modeline
-  (setq lsp-modeline-code-actions-enable nil)
+;; I just use spc c a for this, don't need them on the modeline
+(setq lsp-modeline-code-actions-enable nil)
 
+;; Enable proc-macro expansion
+(setq lsp-rust-analyzer-proc-macro-enable t)
+;; Use build scripts in the analyzer context
+(setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+;; Build with --all-features
+(setq lsp-rust-all-features t)
+;; Build with --test
+(setq lsp-rust-cfg-test t)
 
+;; Add a delay here for performance
+(setq lsp-ui-sideline-delay 0.75)
+;; Show more context b/c rust errors are chonky
+(setq lsp-ui-sideline-diagnostic-max-lines 20)
+;; This is distracting
+(setq lsp-ui-sideline-show-code-actions nil)
+;; This shows function signatures and stuff, but I already get that below
+;; the modeline, so this is just distracting. It does look cool though.
+(setq lsp-ui-sideline-show-hover nil)
 
-  ;; Enable proc-macro expansion
-  (setq lsp-rust-analyzer-proc-macro-enable t)
-  ;; Use build scripts in the analyzer context
-  (setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
-  ;; Build with --all-features
-  (setq lsp-rust-all-features t)
-  ;; Build with --test
-  (setq lsp-rust-cfg-test t))
+;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
+;; for the poppup buffer
+(setq lsp-ui-doc-enable nil)
+;; More performance-related delays
+(setq lsp-ui-doc-delay 0.75)
+;; hover where I'm at when I do trigger it
+(setq lsp-ui-doc-position 'at-point)
 
-(after! lsp-ui
-  :config
-  ;; Add a delay here for performance
-  (setq lsp-ui-sideline-delay 0.75)
-  ;; Show more context b/c rust errors are chonky
-  (setq lsp-ui-sideline-diagnostic-max-lines 20)
-  ;; This is distracting
-  (setq lsp-ui-sideline-show-code-actions nil)
-  ;; This shows function signatures and stuff, but I already get that below
-  ;; the modeline, so this is just distracting. It does look cool though.
-  (setq lsp-ui-sideline-show-hover nil)
+;; the default size is much too small. Make it both wider and taller.
+(setq lsp-ui-doc-max-width 150)
+(setq lsp-ui-doc-max-height 24)
 
-  ;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
-  ;; for the poppup buffer
-  (setq lsp-ui-doc-enable nil)
-  ;; More performance-related delays
-  (setq lsp-ui-doc-delay 0.75)
-  ;; hover where I'm at when I do trigger it
-  (setq lsp-ui-doc-position 'at-point)
+;; Because why not??
+(setq lsp-ui-doc-include-signature t)
 
-  ;; the default size is much too small. Make it both wider and taller.
-  (setq lsp-ui-doc-max-width 150)
-  (setq lsp-ui-doc-max-height 24)
-
-  ;; Because why not??
-  (setq lsp-ui-doc-include-signature t)
-
-  ;; I like "go to definition" (g d) to show me a peek of the definnition, b/c
-  ;; I very often want to just look at it, not travel to it. I can press Enter
-  ;; from the peek if I want to travel.
-  (setq lsp-ui-peek-always-show t))
+;; I like "go to definition" (g d) to show me a peek of the definnition, b/c
+;; I very often want to just look at it, not travel to it. I can press Enter
+;; from the peek if I want to travel.
+(setq lsp-ui-peek-always-show t)
 
 ;; Delay for perf
 (setq flycheck-idle-change-delay 1.5)
@@ -344,6 +344,12 @@
    ;; Make the file names just a bit nicer than the default all numeric %Y%m%d
    org-journal-file-format "journal-%Y-%m-%d.org"))
 
+;; don't highlight bookmarks by default
+(setq bookmark-fontify nil)
+;; set file for annotations
+(setq org-annotate-file-storage-file "~/org/annotations.org")
+(setq org-annotate-file-add-search t)
+
 (after! org
   :config
   ;; Allow executing JS code blocks in org
@@ -385,7 +391,6 @@
 ;; use guile for schema programming
 (setq scheme-program-name "guile")
 
-
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
@@ -398,6 +403,17 @@
 ;; Use this explicitly because I like using it to jump around when I have lots
 ;; of windows open. Keybinding for ace-window is set up below.
 (use-package! ace-window)
+
+(use-package! emms
+  :config
+  (require 'emms-setup)
+  (require 'emms-info-tinytag)
+  (emms-all)
+  (setq emms-info-functions '(emms-info-tinytag))
+  (setq emms-player-list '(emms-player-vlc, emms-player-vlc-playlist))
+  (setq emms-source-file-default-directory "~/Music")
+  (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
+  (emms-history-load))
 
 ;; load and use one of the kaolin themes
 (use-package! kaolin-themes
@@ -449,7 +465,6 @@
 (use-package! mermaid-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
-
 
 (use-package! edit-server
   :commands edit-server-start
@@ -577,15 +592,9 @@
 ;; Email
 ;; **********************************************************************
 
-(if (string-equal system-type "darwin")
-    (lambda ()
-      ;; Add homebrew-installed mu's mu4e path to the load path
-      (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
-      ;; adding this by suggestion from https://magit.vc/manual/magit/MacOS-Performance.html
-      (setq magit-git-executable "/usr/local/bin/git"))
-  (lambda ()
-    ;; Add snap-installed mu4e path to load path (TODO: make ubuntu specific)
-    (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")))
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
 
 (use-package! mu4e
   :config
