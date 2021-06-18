@@ -11,7 +11,7 @@ const ByteArray = imports.byteArray;
 
 const ws_manager = global.workspace_manager;
 
-const WindowState = {
+var WindowState = {
     DEFAULT: 'default',
     HIDE_TITLEBAR: 'hide-titlebar',
     UNDECORATED: 'undecorated',

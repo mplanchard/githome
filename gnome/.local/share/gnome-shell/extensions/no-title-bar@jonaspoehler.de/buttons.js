@@ -7,7 +7,6 @@ const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
 const St = imports.gi.St;
-const Tweener = imports.ui.tweener;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -28,21 +27,19 @@ const Position = {
 
 // Functions for changing opacity (to act as auto-hiding)
 function b_hidden(box) {
-    Tweener.addTween(box,
-        {
-            opacity: 0,
-            time: 1 / 6,
-            transition: 'linear'
-        });
+    box.ease({
+        opacity: 0,
+        time: 1 / 6,
+        transition: Clutter.AnimationMode.LINEAR
+    });
 }
 
 function b_shown(box) {
-    Tweener.addTween(box,
-        {
-            opacity: 255,
-            time: 1 / 6,
-            transition: 'linear'
-        });
+    box.ease({
+        opacity: 255,
+        time: 1 / 6,
+        transition: Clutter.AnimationMode.LINEAR
+    });
 }
 
 /**

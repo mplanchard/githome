@@ -2,15 +2,14 @@ const ExtensionUtils = imports.misc.extensionUtils
 const Extension = ExtensionUtils.getCurrentExtension()
 const Clutter = imports.gi.Clutter
 
-const { Label } = Extension.imports.components
 const { WorkspacesView } = imports.ui.workspacesView
-const { WindowOverlay } = imports.ui.workspace
 const { WindowManager } = imports.ui.windowManager
+const { Workspace } = imports.ui.workspace
 const { overview } = imports.ui.main
 const { Logger } = Extension.imports.utils
 const { CustomWindowManager } = Extension.imports.window.customWindowManager
-const { CustomWindowOverlay } = Extension.imports.window.customWindowOverlay
 const { CustomWorkspaceView } = Extension.imports.customWorkspaceView
+const { CustomWorkspace } = Extension.imports.customWorkspace
 const { Search } = Extension.imports.search
 
 var initializeWindowManager = (injector, search, settings) => {
@@ -19,24 +18,16 @@ var initializeWindowManager = (injector, search, settings) => {
   })
 }
 
-var initializeWindowOverlay = (injector, windowSelector, logger, overlays, settings) => {
-  injector.inject(CustomWindowOverlay, WindowOverlay, parent => {
-    const customWindow = new CustomWindowOverlay(
-      logger,
-      windowSelector,
-      new Label(settings, parent._parentActor),
-      parent._windowClone,
-      parent._windowClone.metaWindow,
-      3,
-      overlays,
-      settings
-    )
-    overlays.addWindow(customWindow)
-    return customWindow
+var initializeWorkspace = (injector, settings, overlays, windowOverlayFactory) => {
+  const logger = new Logger('Custom Workspace', settings)
+
+  injector.inject(CustomWorkspace, Workspace, parent => {
+    return new CustomWorkspace(logger, overlays, windowOverlayFactory, parent)
   })
 }
 
 var initializeWorkspaceView = (injector, logger, search, windowSelector, settings, overlays) => {
+  logger.info('Initialize WorkspaceView')
   injector.inject(CustomWorkspaceView, WorkspacesView, parent => {
     var workspaceManager = global.workspace_manager
     if (!workspaceManager) {

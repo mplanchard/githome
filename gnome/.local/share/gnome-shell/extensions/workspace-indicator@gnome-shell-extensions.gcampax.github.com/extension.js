@@ -30,27 +30,14 @@ class WindowPreview extends St.Button {
         this.connect('destroy', this._onDestroy.bind(this));
 
         this._sizeChangedId = this._window.connect('size-changed',
-            this._relayout.bind(this));
+            () => this.queue_relayout());
         this._positionChangedId = this._window.connect('position-changed',
-            this._relayout.bind(this));
-        this._minimizedChangedId = this._window.connect('notify::minimized',
-            this._relayout.bind(this));
-        this._monitorEnteredId = global.display.connect('window-entered-monitor',
-            this._relayout.bind(this));
-        this._monitorLeftId = global.display.connect('window-left-monitor',
-            this._relayout.bind(this));
-
-        // Do initial layout when we get a parent
-        let id = this.connect('parent-set', () => {
-            this.disconnect(id);
-            if (!this.get_parent())
-                return;
-            this._laterId = Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
-                this._laterId = 0;
-                this._relayout();
-                return false;
+            () => {
+                this._updateVisible();
+                this.queue_relayout();
             });
-        });
+        this._minimizedChangedId = this._window.connect('notify::minimized',
+            this._updateVisible.bind(this));
 
         this._focusChangedId = global.display.connect('notify::focus-window',
             this._onFocusChanged.bind(this));
@@ -58,19 +45,15 @@ class WindowPreview extends St.Button {
     }
 
     // needed for DND
-    get realWindow() {
-        return this._window.get_compositor_private();
+    get metaWindow() {
+        return this._window;
     }
 
     _onDestroy() {
         this._window.disconnect(this._sizeChangedId);
         this._window.disconnect(this._positionChangedId);
         this._window.disconnect(this._minimizedChangedId);
-        global.display.disconnect(this._monitorEnteredId);
-        global.display.disconnect(this._monitorLeftId);
         global.display.disconnect(this._focusChangedId);
-        if (this._laterId)
-            Meta.later_remove(this._laterId);
     }
 
     _onFocusChanged() {
@@ -80,26 +63,42 @@ class WindowPreview extends St.Button {
             this.remove_style_class_name('active');
     }
 
-    _relayout() {
-        let monitor = Main.layoutManager.findIndexForActor(this);
-        this.visible = monitor === this._window.get_monitor() &&
+    _updateVisible() {
+        const monitor = Main.layoutManager.findIndexForActor(this);
+        const workArea = Main.layoutManager.getWorkAreaForMonitor(monitor);
+        this.visible = this._window.get_frame_rect().overlap(workArea) &&
             this._window.window_type !== Meta.WindowType.DESKTOP &&
             this._window.showing_on_its_workspace();
+    }
+});
 
-        if (!this.visible)
-            return;
+let WorkspaceLayout = GObject.registerClass(
+class WorkspaceLayout extends Clutter.LayoutManager {
+    vfunc_get_preferred_width() {
+        return [0, 0];
+    }
 
-        let workArea = Main.layoutManager.getWorkAreaForMonitor(monitor);
-        let hscale = this.get_parent().allocation.get_width() / workArea.width;
-        let vscale = this.get_parent().allocation.get_height() / workArea.height;
+    vfunc_get_preferred_height() {
+        return [0, 0];
+    }
 
-        let frameRect = this._window.get_frame_rect();
-        this.set_size(
-            Math.round(Math.min(frameRect.width, workArea.width) * hscale),
-            Math.round(Math.min(frameRect.height, workArea.height) * vscale));
-        this.set_position(
-            Math.round(frameRect.x * hscale),
-            Math.round(frameRect.y * vscale));
+    vfunc_allocate(container, box) {
+        const monitor = Main.layoutManager.findIndexForActor(container);
+        const workArea = Main.layoutManager.getWorkAreaForMonitor(monitor);
+        const hscale = box.get_width() / workArea.width;
+        const vscale = box.get_height() / workArea.height;
+
+        for (const child of container) {
+            const childBox = new Clutter.ActorBox();
+            const frameRect = child.metaWindow.get_frame_rect();
+            childBox.set_size(
+                Math.round(Math.min(frameRect.width, workArea.width) * hscale),
+                Math.round(Math.min(frameRect.height, workArea.height) * vscale));
+            childBox.set_origin(
+                Math.round((frameRect.x - workArea.x) * hscale),
+                Math.round((frameRect.y - workArea.y) * vscale));
+            child.allocate(childBox);
+        }
     }
 });
 
@@ -109,11 +108,9 @@ class WorkspaceThumbnail extends St.Button {
         super._init({
             style_class: 'workspace',
             child: new Clutter.Actor({
-                layout_manager: new Clutter.BinLayout(),
+                layout_manager: new WorkspaceLayout(),
                 clip_to_allocation: true,
             }),
-            x_fill: true,
-            y_fill: true,
         });
 
         this.connect('destroy', this._onDestroy.bind(this));
@@ -142,16 +139,15 @@ class WorkspaceThumbnail extends St.Button {
     }
 
     acceptDrop(source) {
-        if (!source.realWindow)
+        if (!source.metaWindow)
             return false;
 
-        let window = source.realWindow.get_meta_window();
-        this._moveWindow(window);
+        this._moveWindow(source.metaWindow);
         return true;
     }
 
     handleDragOver(source) {
-        if (source.realWindow)
+        if (source.metaWindow)
             return DND.DragMotionResult.MOVE_DROP;
         else
             return DND.DragMotionResult.CONTINUE;
