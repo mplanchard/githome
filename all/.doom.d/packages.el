@@ -39,10 +39,17 @@
 (package! pandoc-mode) ;; convert ALL the things
 (package! protobuf-mode) ;; support for editing protos
 (package! pyvenv) ;; oh python
+(package! rmsbolt) ;; read the assembly
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
 (package! tree-sitter)  ;; better syntax highlighting and language analysis
 (package! tree-sitter-langs)
+
+;; more up-to-date versions of these fix memory issues that were causing
+;; lag due to excessive GC for very large rust projects
+(unpin! lsp-mode)
+(unpin! lsp-treemacs)
+(unpin! lsp-ui)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:

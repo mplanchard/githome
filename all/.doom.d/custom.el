@@ -7,7 +7,6 @@
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
- '(bmkp-last-as-first-bookmark-file "~/.emacs.d/.local/etc/bookmarks")
  '(custom-safe-themes
    '("d9a28a009cda74d1d53b1fbd050f31af7a1a105aa2d53738e9aa2515908cac4c" default))
  '(fci-rule-color "#5B6268")
@@ -19,7 +18,9 @@
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(safe-local-variable-values
-   '((eval setq-default rustic--buffer-workspace
+   '((rmsbolt-lang . "rust")
+     (rmsbolt-disassemble)
+     (eval setq-default rustic--buffer-workspace
            (projectile-project-root))))
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map

@@ -213,6 +213,10 @@
   (setq evil-ex-search-case 'smart))
 
 ;; LSP Settings and Performance Tuning
+
+;; performance
+(setq lsp-use-plists t)
+
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 
@@ -372,6 +376,15 @@
 (setq deft-directory org-directory
       deft-extensions '("org" "md" "txt")
       deft-recursive t)
+
+(after! rmsbolt
+  :config
+  (if
+      (eq (assq 'rustic-mode rmsbolt-languages) nil)
+      (setq rmsbolt-languages
+            (cons
+             `(,'rustic-mode . ,(alist-get 'rust-mode rmsbolt-languages))
+             rmsbolt-languages))))
 
 (after! rustic
   :config
