@@ -12,28 +12,47 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 
 if [ -e "$PYENV_ROOT/bin/pyenv" ]; then
-	eval "$(pyenv init --path)"
+    eval "$(pyenv init --path)"
 fi
 
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
-	# include .bashrc if it exists
-	if [ -f "$HOME/.bashrc" ]; then
-		. "$HOME/.bashrc"
-	fi
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+        . "$HOME/.bashrc"
+    fi
 fi
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ]; then
-	PATH="$HOME/bin:$PATH"
+    PATH="$HOME/bin:$PATH"
 fi
 
-source "$HOME/.cargo/env"
+. "$HOME/.cargo/env"
 
 if [[ -f "/etc/profile.d/nix.sh" ]]; then
-	source "/etc/profile.d/nix.sh"
+    . "/etc/profile.d/nix.sh"
 fi
 
 if [ "$DESKTOP_SESSION" = "i3" ]; then
-	export "$(gnome-keyring-daemon -s)"
+    export "$(gnome-keyring-daemon -s)"
 fi
+
+# if [ -d "$HOME/.guix-profile" ]; then
+#     export GUIX_PROFILE="/home/matthew/.guix-profile"
+#     . "$GUIX_PROFILE/etc/profile"
+# fi
+
+# # Load the "main" guix profile, with most of the standard stuff in it
+# if [ -d "$HOME/.guix-extra-profiles/main" ]; then
+#     profile="$HOME/.guix-extra-profiles/main/main"
+#     GUIX_PROFILE="$profile"
+#     . "$GUIX_PROFILE/etc/profile"
+
+#     export GUIX_LOCPATH="$profile/lib/locale"
+#     export SSL_CERT_DIR="$profile/etc/ssl/certs"
+#     export SSL_CERT_FILE="$profile/etc/ssl/certs/ca-certificates.crt"
+#     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+
+#     unset profile
+# fi
