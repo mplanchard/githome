@@ -21,6 +21,8 @@
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs
 (package! emms) ;; play music
 ;; (package! exwm) ;; emacs window manager
+;; (package! geiser) ;; all the schemes
+;; (package! geiser-guile) ;; guile
 (package! gh-notify ;; nicer github notifications
   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
