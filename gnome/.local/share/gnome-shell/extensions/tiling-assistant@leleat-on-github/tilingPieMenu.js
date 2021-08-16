@@ -11,7 +11,7 @@ const Domain = Gettext.domain(Me.metadata.uuid);
 const _ = Domain.gettext;
 
 const ACTIONS = [
-	{name: _("Toggle 'Maximize'"), func: _toggleMaximize},
+	{name: _("Toggle Maximization"), func: _toggleMaximize},
 	{name: _("Minimize window"), func: _minimizeWindow},
 	{name: _("Close window"), func: _closeWindow},
 	{name: _("Move to previous workspace"), func: _moveToPrevWorkspace},
@@ -30,6 +30,7 @@ const ACTIONS = [
 	{name: _("Tile to top-right"), func: _tileTopRight},
 	{name: _("Tile to bottom-left"), func: _tileBottomLeft},
 	{name: _("Tile to bottom-right"), func: _tileBottomRight},
+	{name: _("Open Layout selector"), func: _openLayoutSelector},
 ];
 
 var PieMenu = GObject.registerClass(
@@ -76,8 +77,8 @@ var PieMenu = GObject.registerClass(
 
 			// deadzone circle
 			this._deadZone = new St.Widget({
-				x: this._clickPos.x - this._deadZoneRadius,
-				y: this._clickPos.y - this._deadZoneRadius,
+				x: this._clickPos.x - this._deadZoneRadius - x,
+				y: this._clickPos.y - this._deadZoneRadius - y,
 				style_class: "resize-popup",
 				style: "border-radius: 999px;",
 				width: this._deadZoneRadius * 2,
@@ -97,6 +98,11 @@ var PieMenu = GObject.registerClass(
 		}
 
 		destroy() {
+			if (this._haveModal) {
+				main.popModal(this);
+				this._haveModal = false;
+			}
+
 			if (this._alreadyPopped)
 				return;
 
@@ -133,8 +139,8 @@ var PieMenu = GObject.registerClass(
 		}
 
 		_setItemPos(item, angle) {
-			const centerX = this._clickPos.x + (this._itemRadius * Math.cos(angle * Math.PI / 180));
-			const centerY = this._clickPos.y + (this._itemRadius * Math.sin(angle * Math.PI / 180));
+			const centerX = this._clickPos.x + (this._itemRadius * Math.cos(angle * Math.PI / 180)) - this.x;
+			const centerY = this._clickPos.y + (this._itemRadius * Math.sin(angle * Math.PI / 180)) - this.y;
 			const x = centerX - item.width / 2;
 			const y = centerY - item.height / 2;
 			const isLeft = angle > 90 && angle < 270;
@@ -260,4 +266,8 @@ function _tileBottomLeft() {
 function _tileBottomRight() {
 	const window = global.display.focus_window;
 	Util.toggleTileState(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM_RIGHT, window.get_work_area_current_monitor()));
+}
+
+function _openLayoutSelector() {
+	MainExtension.tilingLayoutManager.openLayoutSelector()
 }

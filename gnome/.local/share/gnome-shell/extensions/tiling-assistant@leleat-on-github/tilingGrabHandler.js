@@ -231,9 +231,10 @@ var WindowGrabHandler = class TilingWindowGrabHandler {
 		const pointerAtLeftEdge = eventX <= workArea.x + hDetectionSize;
 		const pointerAtRightEdge = eventX >= workArea.x + workArea.width - hDetectionSize;
 		// also use window's pos for top and bottom area detection for quarters
-		// because global.get_pointer's y isn't accurate (no idea why...)
-		// when slowly going from the left/right sides to the top/bottom corners
-		const windowAtTopEdge = wRect.y === workArea.y;
+		// because global.get_pointer's y isn't accurate (no idea why...) when grabbing on titlebar
+		// & slowly going from the left/right sides to the top/bottom corners
+		const titleBarGrabbed = eventY - wRect.y < 50; // random MagicNrs
+		const windowAtTopEdge = titleBarGrabbed && wRect.y === workArea.y;
 		const windowAtBottomEdge = wRect.y >= workArea.y + workArea.height - 75;
 		const tileTopLeftQuarter = pointerAtLeftEdge && (pointerAtTopEdge || windowAtTopEdge);
 		const tileTopRightQuarter = pointerAtRightEdge && (pointerAtTopEdge || windowAtTopEdge);
@@ -241,24 +242,24 @@ var WindowGrabHandler = class TilingWindowGrabHandler {
 		const tileBottomRightQuarter = pointerAtRightEdge && (pointerAtBottomEdge || windowAtBottomEdge);
 
 		if (tileTopLeftQuarter) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.TOP_LEFT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.TOP_LEFT, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (tileTopRightQuarter) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.TOP_RIGHT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.TOP_RIGHT, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (tileBottomLeftQuarter) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM_LEFT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM_LEFT, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (tileBottomRightQuarter) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM_RIGHT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM_RIGHT, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (pointerAtTopEdge) {
 			const monitorRect = global.display.get_monitor_geometry(this.monitorNr);
 			const isLandscape = monitorRect.width >= monitorRect.height;
 			const shouldMaximize = (isLandscape && !MainExtension.settings.get_boolean("enable-hold-maximize-inverse-landscape"))
 					|| (!isLandscape && !MainExtension.settings.get_boolean("enable-hold-maximize-inverse-portrait"));
-			const tileRect = shouldMaximize ? workArea : Util.getTileRectFor(MainExtension.TILING.TOP, workArea);
-			const holdTileRect = shouldMaximize ? Util.getTileRectFor(MainExtension.TILING.TOP, workArea) : workArea;
+			const tileRect = shouldMaximize ? workArea : Util.getTileRectFor(MainExtension.TILING.TOP, workArea, this.monitorNr);
+			const holdTileRect = shouldMaximize ? Util.getTileRectFor(MainExtension.TILING.TOP, workArea, this.monitorNr) : workArea;
 			// dont open preview / start new timer if preview was already one for the top
 			if (this.tilePreview._rect && (holdTileRect.equal(this.tilePreview._rect) || this.tilePreview._rect.equal(tileRect)))
 				return;
@@ -276,13 +277,13 @@ var WindowGrabHandler = class TilingWindowGrabHandler {
 			timerId = this.latestPreviewTimerId;
 
 		} else if (pointerAtBottomEdge) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.BOTTOM, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (pointerAtLeftEdge) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.LEFT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.LEFT, workArea, this.monitorNr), this.monitorNr);
 
 		} else if (pointerAtRightEdge) {
-			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.RIGHT, workArea), this.monitorNr);
+			this.tilePreview.open(window, Util.getTileRectFor(MainExtension.TILING.RIGHT, workArea, this.monitorNr), this.monitorNr);
 
 		} else {
 			this.tilePreview.close();

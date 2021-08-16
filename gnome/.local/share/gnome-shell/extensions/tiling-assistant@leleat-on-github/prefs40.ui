@@ -223,22 +223,6 @@
       <column type="gint"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="tiling-mode-primary-liststore">
-    <columns>
-      <!-- column-name key -->
-      <column type="gint"/>
-      <!-- column-name mods -->
-      <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="tiling-mode-secondary-liststore">
-    <columns>
-      <!-- column-name key -->
-      <column type="gint"/>
-      <!-- column-name mods -->
-      <column type="gint"/>
-    </columns>
-  </object>
   <object class="GtkAdjustment" id="toggle-maximize-tophalf-timer-adjustment">
     <property name="lower">300</property>
     <property name="upper">1500</property>
@@ -367,7 +351,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="valign">center</property>
-                    <property name="label" translatable="yes">Focus and Tiling</property>
+                    <property name="label" translatable="yes">Dynamic Keybinding Behaviour</property>
                     <property name="xalign">0</property>
                   </object>
                 </child>
@@ -375,53 +359,30 @@
                   <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
-                    <property name="tooltip-text" translatable="yes">The shortcuts to maximize and tile to the top, bottom, left, and right will tile the window, if it isn't tiled.
-Otherwise it will switch focus to the closest tiled window, if there is one.</property>
+                    <property name="tooltip-markup" translatable="yes">The keyboard shortcuts to maximize and tile to the top, bottom, left, and right may change depending on the tiling state of the focused window.
+
+&lt;b&gt;Disabled&lt;/b&gt;: The shortcuts won't change their behaviour based on the window's tiling state.
+
+&lt;b&gt;Focus&lt;/b&gt;: If the current window is tiled and there is a tiled window in the direction of the shortcut, switch focus to that tiled window instead of tiling the current window.
+
+&lt;b&gt;Tiling State&lt;/b&gt;: If the current window is tiled, it adapts to the pressed shortcut. For example, if the current window is tiled to the right half of your monitor and the shortcut to tile to the bottom is activated, the window will tile to the bottom-right quarter instead of the bottom half.</property>
                     <property name="margin-start">12</property>
                     <property name="icon-name">dialog-information-symbolic</property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkSwitch" id="enable-dynamic-tiling">
+                  <object class="GtkComboBoxText" id="dynamic-keybinding-behaviour">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="halign">end</property>
                     <property name="hexpand">True</property>
-                    <property name="active">True</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkListBoxRow">
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="margin-start">12</property>
-                <property name="margin-end">12</property>
-                <property name="margin-top">12</property>
-                <property name="margin-bottom">12</property>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="valign">center</property>
-                    <property name="label" translatable="yes">Tile Editing Mode: Focus Color</property>
-                    <property name="xalign">0</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkColorButton" id="tile-editing-mode-color">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                    <property name="halign">end</property>
-                    <property name="hexpand">True</property>
+                    <property name="active">0</property>
+                    <property name="active-id">0</property>
+                    <items>
+                      <item id="0" translatable="yes">Disabled</item>
+                      <item id="1" translatable="yes">Focus</item>
+                      <item id="2" translatable="yes">Tiling State</item>
+                    </items>
                   </object>
                 </child>
               </object>
@@ -941,7 +902,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Top</property>
+                                    <property name="label" translatable="yes">Tile to top</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -977,7 +938,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Bottom</property>
+                                    <property name="label" translatable="yes">Tile to bottom</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1013,7 +974,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Left</property>
+                                    <property name="label" translatable="yes">Tile to left</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1049,7 +1010,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Right</property>
+                                    <property name="label" translatable="yes">Tile to right</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1128,7 +1089,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Top-Left</property>
+                                    <property name="label" translatable="yes">Tile to top-left</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1164,7 +1125,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Top-Right</property>
+                                    <property name="label" translatable="yes">Tile to top-right</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1200,7 +1161,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Bottom-Left</property>
+                                    <property name="label" translatable="yes">Tile to bottom-left</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1236,7 +1197,7 @@ If there is no space, the window will either untile or maximize depending on wet
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Toggle to Bottom-Right</property>
+                                    <property name="label" translatable="yes">Tile to bottom-right</property>
                                     <property name="xalign">0</property>
                                   </object>
                                 </child>
@@ -1662,8 +1623,7 @@ please open an issue on Github.</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="halign">center</property>
-                <property name="label" translatable="yes">The &lt;big&gt;&lt;b&gt;README&lt;/b&gt;&lt;/big&gt; offers a detailed
-explanation of every feature. </property>
+                <property name="label" translatable="yes">List of known &lt;big&gt;&lt;b&gt;INCOMPATIBLE&lt;/b&gt;&lt;/big&gt; apps/extensions/limitations.</property>
                 <property name="use-markup">True</property>
                 <property name="justify">center</property>
                 <property name="wrap">True</property>
@@ -1673,7 +1633,7 @@ explanation of every feature. </property>
             </child>
             <child>
               <object class="GtkLinkButton">
-                <property name="label">https://github.com/Leleat/Tiling-Assistant/blob/master/Guide.md</property>
+                <property name="label">https://github.com/Leleat/Tiling-Assistant/issues/61</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
@@ -1681,7 +1641,7 @@ explanation of every feature. </property>
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">15</property>
                 <property name="use-underline">True</property>
-                <property name="uri">https://github.com/Leleat/Tiling-Assistant/blob/master/Guide.md</property>
+                <property name="uri">https://github.com/Leleat/Tiling-Assistant/issues/61</property>
               </object>
             </child>
             <child>
@@ -1690,8 +1650,7 @@ explanation of every feature. </property>
                 <property name="can-focus">True</property>
                 <property name="halign">center</property>
                 <property name="margin-top">20</property>
-                <property name="label" translatable="yes">The &lt;big&gt;&lt;b&gt;Changelog&lt;/b&gt;&lt;/big&gt; lists the changes
-made between each extension version. </property>
+                <property name="label" translatable="yes">The &lt;big&gt;&lt;b&gt;GUIDE&lt;/b&gt;&lt;/big&gt; offers a detailed explanation of every feature.</property>
                 <property name="use-markup">True</property>
                 <property name="justify">center</property>
                 <property name="wrap">True</property>
@@ -1701,7 +1660,7 @@ made between each extension version. </property>
             </child>
             <child>
               <object class="GtkLinkButton">
-                <property name="label">https://github.com/Leleat/Tiling-Assistant/blob/master/Changelog.md</property>
+                <property name="label">https://github.com/Leleat/Tiling-Assistant/blob/master/GUIDE.md</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
@@ -1709,7 +1668,34 @@ made between each extension version. </property>
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">15</property>
                 <property name="use-underline">True</property>
-                <property name="uri">https://github.com/Leleat/Tiling-Assistant/blob/master/Changelog.md</property>
+                <property name="uri">https://github.com/Leleat/Tiling-Assistant/blob/master/GUIDE.md</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="halign">center</property>
+                <property name="margin-top">20</property>
+                <property name="label" translatable="yes">The &lt;big&gt;&lt;b&gt;CHANGELOG&lt;/b&gt;&lt;/big&gt; lists the differences between each extension version.</property>
+                <property name="use-markup">True</property>
+                <property name="justify">center</property>
+                <property name="wrap">True</property>
+                <property name="width-chars">27</property>
+                <property name="max-width-chars">47</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLinkButton">
+                <property name="label">https://github.com/Leleat/Tiling-Assistant/blob/master/CHANGELOG.md</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="halign">center</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">15</property>
+                <property name="use-underline">True</property>
+                <property name="uri">https://github.com/Leleat/Tiling-Assistant/blob/master/CHANGELOG.md</property>
               </object>
             </child>
           </object>
@@ -1820,6 +1806,40 @@ Changelog</property>
                             <property name="can-focus">True</property>
                             <property name="valign">center</property>
                             <property name="active">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="valign">center</property>
+                            <property name="label" translatable="yes">Tile Editing Mode: Focus Color</property>
+                            <property name="xalign">0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColorButton" id="tile-editing-mode-color">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="halign">end</property>
+                            <property name="hexpand">True</property>
                           </object>
                         </child>
                       </object>
@@ -2073,134 +2093,6 @@ Changelog</property>
                             <property name="halign">end</property>
                             <property name="hexpand">True</property>
                             <property name="model">debugging-free-rects-liststore</property>
-                            <property name="headers-visible">False</property>
-                            <property name="enable-search">False</property>
-                            <property name="search-column">0</property>
-                            <property name="activate-on-single-click">True</property>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection"/>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBoxRow">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <child>
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
-                        <property name="margin-top">12</property>
-                        <property name="margin-bottom">12</property>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="label" translatable="yes">Experimental: Semi Tiling Mode</property>
-                            <property name="xalign">0</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkImage">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="tooltip-markup" translatable="yes">Apps will open in a tiled state when an &lt;b&gt;AppIcon&lt;/b&gt; is activated while holding &lt;b&gt;Shift&lt;/b&gt;.
-They will try to fill the available space. If there is none, they will share the space with the focused tiled window.
-The position of the newly opened window is indicated by the top panel icon. It can be cycled with the keyboard shortcuts or by clicking the panel icon.</property>
-                            <property name="margin-start">12</property>
-                            <property name="icon-name">dialog-information-symbolic</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSwitch" id="enable-tiling-mode">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="halign">end</property>
-                            <property name="valign">center</property>
-                            <property name="hexpand">True</property>
-                            <property name="active">True</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBoxRow">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <child>
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
-                        <property name="margin-top">16</property>
-                        <property name="margin-bottom">16</property>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="label" translatable="yes">Semi Tiling Mode: Cycle Tiling Modes (primary)</property>
-                            <property name="xalign">0</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeView" id="tiling-mode-primary-treeview">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="halign">end</property>
-                            <property name="hexpand">True</property>
-                            <property name="model">tiling-mode-primary-liststore</property>
-                            <property name="headers-visible">False</property>
-                            <property name="enable-search">False</property>
-                            <property name="search-column">0</property>
-                            <property name="activate-on-single-click">True</property>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection"/>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBoxRow">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <child>
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
-                        <property name="margin-top">16</property>
-                        <property name="margin-bottom">16</property>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="label" translatable="yes">Semi Tiling Mode: Cycle Tiling Modes (secondary)</property>
-                            <property name="xalign">0</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeView" id="tiling-mode-secondary-treeview">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="halign">end</property>
-                            <property name="hexpand">True</property>
-                            <property name="model">tiling-mode-secondary-liststore</property>
                             <property name="headers-visible">False</property>
                             <property name="enable-search">False</property>
                             <property name="search-column">0</property>

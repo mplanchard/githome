@@ -17,8 +17,6 @@ const TILING = { // keybindings
 	AUTO: "auto-tile",
 	MAXIMIZE: "tile-maximize",
 	EDIT_MODE: "tile-edit-mode",
-	TILING_MODE_PRIMARY: "tiling-mode-primary",
-	TILING_MODE_SECONDARY: "tiling-mode-secondary",
 	LAYOUTS_OVERVIEW: "layouts-overview",
 	RIGHT: "tile-right-half",
 	LEFT: "tile-left-half",
@@ -79,10 +77,10 @@ const MyPrefsWidget = new GObject.Class({
 	_bindWidgetsToSettings: function(settingsKeys) {
 		const ints = ["window-gap", "toggle-maximize-tophalf-timer", "vertical-preview-area", "horizontal-preview-area"
 				, "pie-menu-deadzone-radius", "pie-menu-item-radius"];
-		const bools = ["enable-tiling-popup", "enable-dynamic-tiling", "enable-tile-animations", "enable-untile-animations"
+		const bools = ["enable-tiling-popup", "enable-tile-animations", "enable-untile-animations"
 				, "enable-raise-tile-group", "enable-hold-maximize-inverse-landscape", "enable-hold-maximize-inverse-portrait"
-				, "enable-pie-menu", "maximize-with-gap", "tiling-popup-current-workspace-only", "enable-tiling-mode"];
-		const enums = ["restore-window-size-on"];
+				, "enable-pie-menu", "maximize-with-gap", "tiling-popup-current-workspace-only"];
+		const enums = ["restore-window-size-on", "dynamic-keybinding-behaviour"];
 		const colors = ["tile-editing-mode-color"];
 
 		const getBindProperty = function(key) {
@@ -313,10 +311,10 @@ const MyPrefsWidget = new GObject.Class({
 
 	_createPieMenuRow: function(activeId) {
 		const options = [ // make sure this has the same order as tilingPieMenu.js
-				_("Toggle 'Maximize'"), _("Minimize window"), _("Close window"), _("Move to previous workspace"), _("Move to next workspace")
+				_("Toggle Maximization"), _("Minimize window"), _("Close window"), _("Move to previous workspace"), _("Move to next workspace")
 				, _("Move to top monitor"), _("Move to bottom monitor"), _("Move to left monitor"), _("Move to right monitor")
-				, _("Toggle fullscreen"), _("Toggle 'Always on top'"), _("Tile left"), _("Tile right"), _("Tile top"), _("Tile bottom")
-				, _("Tile top-left"), _("Tile top-right"), _("Tile bottom-left"), _("Tile bottom-right")
+				, _("Toggle fullscreen"), _("Toggle 'Always on top'"), _("Tile to left"), _("Tile to right"), _("Tile to top"), _("Tile to bottom")
+				, _("Tile to top-left"), _("Tile to top-right"), _("Tile to bottom-left"), _("Tile to bottom-right"), _("Open Layout selector")
 		];
 		const row = new PieMenuRow(options);
 		activeId && row.setActiveId(activeId);
