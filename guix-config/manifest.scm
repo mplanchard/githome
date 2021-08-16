@@ -6,8 +6,8 @@
    "fontconfig"
    "gs-fonts"
    "font-dejavu"
-   "info-reader"  ;; ensure info gets installed for packages
-   "man-db"  ;; ensure man gets installed for packages
+   ;; "info-reader"  ;; ensure info gets installed for packages
+   ;; "man-db"  ;; ensure man gets installed for packages
    "nss-certs"
 
    ;; my own stuff
@@ -21,10 +21,10 @@
    "font-hack"
    "font-mononoki"
    "git"
-   "gnome-tweaks"
+   ;; "gnome-tweaks"
    "guile"
-   "gst-plugins-bad"
-   "gst-plugins-ugly"
+   ;; "gst-plugins-bad"
+   ;; "gst-plugins-ugly"
    "htop"
    "isync" ;; mail
    "jq"
