@@ -17,3 +17,7 @@
 # Stuff there's just no reason to ever check in
 **/.nvm/
 **/.pyenv/
+
+# Don't check in automatically applied customizations.
+# If it's going to stick it needs to be in config.el
+all/.doom.d/custom.el
