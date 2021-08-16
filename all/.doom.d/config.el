@@ -110,8 +110,8 @@
 
 ;; native comp
 (when (fboundp 'native-compile-async)
-    (setq comp-deferred-compilation t))
-          ;; comp-deferred-compilation-black-list '("/mu4e.*\\.el$")))
+  (setq comp-deferred-compilation t))
+;; comp-deferred-compilation-black-list '("/mu4e.*\\.el$")))
 
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
@@ -197,14 +197,13 @@
 ;; (add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
 
 ;; Search the GH directory for projects by default
-(setq projectile-project-search-path '("~/github/"))
+(setq projectile-project-search-path '("~/s/gh" "~/s/gh/spectrust" "~/s/gh/mplanchard"))
 
 ;; Make the ivy serach buffer larger
 (setq ivy-height 25)
 
 (after! company
-  ;; start showing completion results asap
-  (setq company-idle-delay 0.5))
+  (setq company-idle-delay 0.01))
 
 (after! evil
   (setq evil-esc-delay 0)
@@ -215,7 +214,7 @@
 ;; LSP Settings and Performance Tuning
 
 ;; performance
-(setq lsp-use-plists t)
+;; (setq lsp-use-plists t)
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
@@ -316,7 +315,18 @@
 (setq mac-mouse-wheel-smooth-scroll nil)
 
 ;; Fill the 80th column to let me know I've gone too far
-(setq global-hl-fill-column-mode t)
+(setq global-display-fill-column-indicator-mode t)
+
+;; I use regular escape commands and don't need evil-escape
+(setq evil-escape-inhibit t)
+
+;; (require 'org-protocol)
+;; (let ((t1 '("P" "Protocol" entry (file+headline ,(concat org-directory "inbox.org") "Inbox")
+;;         "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?"))
+;;       (t2 '("L" "Protocol Link" entry (file+headline ,(concat org-directory "inbox.org") "Inbox")
+;;         "* %? [[%:link][%:description]] \nCaptured On: %U")))
+;;   (unless (member t1 org-capture-templates) (add-to-list 'org-capture-templates t1))
+;;   (unless (member t2 org-capture-templates) (add-to-list 'org-capture-templates t2)))
 
 ;; org-mode settings
 (after! org
@@ -357,7 +367,9 @@
 (after! org
   :config
   ;; Allow executing JS code blocks in org
-  (require 'ob-js))
+  (require 'ob-js)
+  ;; prevent killing the agenda buffer
+  (add-hook 'org-agenda-after-show-hook (lambda () (emacs-lock-mode 'kill))))
 
 ;; Allow executing TS code blocks in org
 (after! ob-typescript
@@ -404,6 +416,14 @@
 ;; use guile for schema programming
 (setq scheme-program-name "guile")
 
+(after! yasnippet
+  (unless (member "~/s/gnu/guix/etc/snippets" yas-snippet-dirs)
+    (add-to-list 'yas-snippet-dirs "~/s/gnu/guix/etc/snippets")))
+
+(if (file-exists-p "~/s/gnu/guix/etc/copyright.el")
+    (load-file "~/s/gnu/guix/etc/copyright.el"))
+(setq copyright-names-regexp "Matthew Planchard <msplanchard@gmail.com>")
+
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************
@@ -427,6 +447,16 @@
   (setq emms-source-file-default-directory "~/Music")
   (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
   (emms-history-load))
+
+;; (use-package! geiser)
+;; 
+;; (use-package! geiser-guile
+;;   :config
+;;   (if (eq geiser-guile-load-path nil)
+;;       (setq geiser-guile-load-path '("~s/gnu/guix"))
+;;     (unless
+;;         (member "~/s/gnu/guix" geiser-guile-load-path)
+;;       (add-to-list 'geiser-guile-load-path "~/s/gnu/guix"))))
 
 ;; load and use one of the kaolin themes
 (use-package! kaolin-themes
@@ -511,12 +541,10 @@
 
 (map! (:leader
        :prefix "w"
-       :desc "ace-window" :nv "/" #'ace-window)
-      ;; Sometimes these get mapped to evil-next-visual-line and evil-next-previous-line
-      ;; in operator mode, which makes the behavior of ~dj~ and ~dk~ and friends
-      ;; very odd. Manually set them to their original mappings.
-      (:desc "down" :o "j" #'evil-next-line)
-      (:desc "up" :o "k" #'evil-previous-line))
+       :desc "go-to-window" :nv "g" #'ace-window)
+      (:leader
+       :prefix "w"
+       :desc "swap-window" :nv "/" #'ace-swap-window))
 
 (map! :leader
       :desc "paste from kill ring" :nv "P" #'counsel-yank-pop)
@@ -570,7 +598,11 @@
   (:map vterm-mode-map
    :desc "send up in insert mode" :i "C-k" #'vterm-send-up)
   (:map vterm-mode-map
-   :desc "send down in insert mode" :i "C-j" #'vterm-send-down)))
+   :desc "send down in insert mode" :i "C-j" #'vterm-send-down))
+ (:map shell-mode-map
+  :desc "send up in insert mode" :i "C-k" #'comint-previous-input)
+ (:map shell-mode-map
+  :desc "send up in insert mode" :i "C-j" #'comint-next-input))
 
 ;; Add a "rerun tests" command to the local test command options
 (map!
@@ -623,10 +655,11 @@
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
    mu4e-headers-thread-orphan-prefix '("" . "")
    ;; make indexing faster
-   mu4e-index-cleanup nil
-   mu4e-index-lazy-check t
+   ; mu4e-index-cleanup nil
+   ; mu4e-index-lazy-check t
    ;; update mail every 5 minutes
-   mu4e-update-interval 300)
+   mu4e-update-interval 300
+   mu4e-split-view 'vertical)
   (map! :map mu4e-headers-mode-map
         :desc "mark thread"
         :nv "T"
@@ -659,10 +692,10 @@
   ;;                             (:human-date . 12)
   ;;                             (:subject . nil))))
   (setq mu4e-headers-fields '((:flags . 4)
-                              (:mailing-list . 12)
                               (:from . 22)
-                              (:human-date . 12)
-                              (:subject . nil))))
+                              (:subject . 64)
+                              (:mailing-list . 12)
+                              (:human-date . 12))))
 
 (use-package! mu4e-views
   :config
