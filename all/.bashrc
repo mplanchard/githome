@@ -5,20 +5,31 @@
 export VISUAL=emacsclient
 export EDITOR="$VISUAL"
 export TERM=xterm-color
+export GH_DIR="$HOME/s/gh"
+export STOW_DIR="$GH_DIR/mplanchard/githome"
+export LOCALE_ARCHIVE="/usr/lib/locale/locale-archive"
 
 if $(uname -a | grep -q "Darwin"); then
     # Any mac-specific config here
     true
 else
     # Any linux-specific config here
+    #
     export PATH="/snap/bin:$PATH"
+
+    # export GUIX_PROFILE="/home/matthew/.guix-profile"
+    # source "$GUIX_PROFILE/etc/profile"
+    # export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+    # export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
+    # export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+    # export GIT_SSL_CAINFO="$SSL_CERT_FILE"
 fi
 
 # Ensure we have a nice homedir for executables
 if [[ ! -d "$HOME/bin" ]]; then
     mkdir -p "$HOME/bin"
 fi
-export PATH="$PATH:$HOME/bin"
+export PATH="$HOME/bin:$PATH"
 
 # Source binaries installed for emacs
 if [ -d "$HOME/.emacs.d/bin" ]; then
@@ -40,11 +51,6 @@ if [ -d "/usr/local/go/bin" ]; then
     export PATH="$PATH:/usr/local/go/bin"
 fi
 
-# Direnv
-if [[ $(command -v direnv) != "" ]]; then
-    eval "$(direnv hook bash)"
-fi
-
 # Haskell puts things in ~/.local/bin
 if [ -d "$HOME/.local/bin" ]; then
     export PATH="$HOME/.local/bin:$PATH"
@@ -57,7 +63,7 @@ fi
 
 # Source pyenv stuff
 if [[ $(command -v pyenv) != "" ]]; then
-    eval "$(pyenv init -)"
+    eval "$(pyenv init - --no-rehash)"
 
     pyenv global 3.8.6 3.7.9 3.6.12 3.9.1
 fi
@@ -204,9 +210,6 @@ if ! shopt -oq posix; then
     fi
 fi
 
-# Set up the starship cmdline prompt
-eval "$(starship init bash)"
-
 # NVM
 if [ -d "$HOME/.nvm" ]; then
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
@@ -229,3 +232,11 @@ if [ -f '/home/matthew/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/hom
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/home/matthew/Downloads/google-cloud-sdk/completion.bash.inc'; fi
+
+# Set up the starship cmdline prompt
+eval "$(starship init bash)"
+
+# Direnv
+if [[ $(command -v direnv) != "" ]]; then
+    eval "$(direnv hook bash)"
+fi
