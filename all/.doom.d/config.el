@@ -448,16 +448,6 @@
   (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
   (emms-history-load))
 
-;; (use-package! geiser)
-;; 
-;; (use-package! geiser-guile
-;;   :config
-;;   (if (eq geiser-guile-load-path nil)
-;;       (setq geiser-guile-load-path '("~s/gnu/guix"))
-;;     (unless
-;;         (member "~/s/gnu/guix" geiser-guile-load-path)
-;;       (add-to-list 'geiser-guile-load-path "~/s/gnu/guix"))))
-
 ;; load and use one of the kaolin themes
 (use-package! kaolin-themes
   :config
@@ -547,28 +537,22 @@
        :desc "swap-window" :nv "/" #'ace-swap-window))
 
 (map! :leader
-      :desc "paste from kill ring" :nv "P" #'counsel-yank-pop)
+      :desc "paste from kill ring" :nv "P" #'+default/yank-pop)
 
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-(map! :map ivy-minibuffer-map
-      :desc "Search History" "C-r" #'counsel-minibuffer-history)
-
-(map! :map ivy-occur-mode-map
-      ;; normally this is f, but also the evil commands tend to override it.
-      ;; make it RET instead and ensure it doesn't get overridden
-      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
-      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
-
-(map! :map ivy-occur-grep-mode-map
-      ;; normally this is f, but also the evil commands tend to override it.
-      ;; make it RET instead and ensure it doesn't get overridden
-      :desc "ivy-occur-press" :nv "RET" #'ivy-occur-press
-      :desc "ivy-occur-press-and-switch" :prefix "g" :nv "o" #'ivy-occur-press-and-switch)
-
-(evil-make-overriding-map ivy-occur-mode-map 'normal)
-(evil-make-overriding-map ivy-occur-grep-mode-map 'normal)
+;; Replace rustic's cargo check, which opens in a minibuffer popup, to one that
+;; opens in a dedicated buffer
+(map! :after rustic
+      :map rustic-mode-map
+      :localleader
+      :prefix "b"
+      :desc "cargo check"
+      :nv "c"
+      #'(lambda ()
+          (interactive)
+          (rustic-run-cargo-command "cargo check" '(:buffer "*cargo-check*"))))
 
 (map! (:after org
        :map org-mode-map
@@ -603,24 +587,6 @@
   :desc "send up in insert mode" :i "C-k" #'comint-previous-input)
  (:map shell-mode-map
   :desc "send up in insert mode" :i "C-j" #'comint-next-input))
-
-;; Add a "rerun tests" command to the local test command options
-(map!
- (:map rustic-mode-map
-  :nv "?" #'rustic-popup
-  (:localleader :prefix "t" :desc "rerun tests" :nv "r" #'rustic-cargo-test-rerun)))
-
-;; Very weird to me that these aren't defined by default for the rustic popup
-(map!
- (:map rustic-popup-mode-map
-  :nv "b" #'rustic-cargo-build
-  :nv "r" #'rustic-cargo-run
-  :nv "c" #'rustic-cargo-clippy
-  :nv "o" #'rustic-cargo-outdated
-  :nv "e" #'rustic-cargo-clean
-  :nv "t" #'rustic-cargo-test
-  :nv "d" #'rustic-cargo-doc))
-
 
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
