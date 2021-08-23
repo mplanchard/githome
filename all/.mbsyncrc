@@ -25,8 +25,8 @@ Path ~/.mail/gmail/
 Inbox ~/.mail/gmail/Inbox
 
 Channel gmail
-Master :gmail-remote:
-Slave :gmail-local:
+Far :gmail-remote:
+Near :gmail-local:
 # Exclude All Mail for first sync b/c it's massive
 # Patterns * ![Gmail]* "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred"
 Patterns * ![Gmail]* "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
@@ -65,8 +65,8 @@ Path ~/.mail/spectrust/
 Inbox ~/.mail/spectrust/Inbox
 
 Channel spectrust
-Master :spectrust-remote:
-Slave :spectrust-local:
+Far :spectrust-remote:
+Near :spectrust-local:
 Patterns *
 # Patterns * ![Gmail]* !Sentry "[Gmail]/Drafts" "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
 # Or include everything

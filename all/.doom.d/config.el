@@ -155,7 +155,7 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type t)
 
 ;; Show time in the modeline
 (setq display-time-mode t)
@@ -176,6 +176,17 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+;; **********************************************************************
+;; Experiments
+;; **********************************************************************
+;; Things I'm trying that may or may not pan out.
+;; **********************************************************************
+
+;; 15 is the original setting, but it seems like it's down to 0.5 via doom or
+;; something, so try setting it back up to avoid GC pauses
+(setq gcmh-idle-delay 10)
+
 
 ;; **********************************************************************
 ;; Settings
@@ -288,7 +299,7 @@
 
 ;; headerline mode fails in ediff, so make sure it doesn't start.
 (add-hook!
- 'ediff-prepare-buffer-hook
+ '(ediff-prepare-buffer-hook magit-blob-mode-hook)
  (lambda () (lsp-headerline-breadcrumb-mode -1)))
 
 ;; Allow lots of flycheck errors
@@ -314,8 +325,13 @@
 ;; don't try to smooth scroll on mac
 (setq mac-mouse-wheel-smooth-scroll nil)
 
-;; Fill the 80th column to let me know I've gone too far
-(setq global-display-fill-column-indicator-mode t)
+;; Turn on fill-column-indicator mode globally, except for certain modes.
+(defun mp/disable-fill-column-indicator-mode ()
+  (display-fill-column-indicator-mode 0))
+(global-display-fill-column-indicator-mode)
+(add-hook! '+doom-dashboard-mode-hook #'mp/disable-fill-column-indicator-mode)
+(add-hook! 'vterm-mode-hook #'mp/disable-fill-column-indicator-mode)
+
 
 ;; I use regular escape commands and don't need evil-escape
 (setq evil-escape-inhibit t)
@@ -552,7 +568,7 @@
       :nv "c"
       #'(lambda ()
           (interactive)
-          (rustic-run-cargo-command "cargo check" '(:buffer "*cargo-check*"))))
+          (rustic-run-cargo-command "cargo check --tests" '(:buffer "*cargo-check*"))))
 
 (map! (:after org
        :map org-mode-map
@@ -570,10 +586,9 @@
        :nv "o"
        #'org-open-at-point))
 
-(map! (:after lsp-ui
-       :leader
+(map! (:leader
        :prefix "c"
-       :desc "Show code outline"
+       :desc "Open imenu buffer"
        :nv "O"
        #'lsp-ui-imenu))
 
@@ -603,9 +618,17 @@
 ;; Email
 ;; **********************************************************************
 
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+
+;; Ensure we can find mu4e lisp files
+(let*
+    ((d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
+     (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
+     (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
+     (mu4e-dir (cond
+                ((file-directory-p d1) d1)
+                ((file-directory-p d2) d2)
+                ((file-directory-p d3) d3))))
+  (add-to-list 'load-path mu4e-dir))
 
 (use-package! mu4e
   :config
@@ -650,7 +673,7 @@
                         (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
                         (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
-  (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
+  (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
   ;; (setq mu4e-headers-fields '((:account . 8)
   ;;                             (:flags . 4)
   ;;                             (:mailing-list . 12)
