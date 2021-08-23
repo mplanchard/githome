@@ -14,22 +14,35 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term x-terminal-emulator
+# set $term x-terminal-emulator
+# set $term alacritty
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
+# set $menu dmenu_run | xargs swaymsg exec --
+
+default_border pixel
+
+exec --no-startup-id dropbox start
+exec --no-startup-id ufw enable
+# notifications
+exec mako
 
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in @datadir@/backgrounds/sway/)
-output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
+output * bg ~/Dropbox/nautilus/Documents/Images/Wallpapers/27769_neon_genesis_evangelion.jpg fill
 #
 # Example configuration:
 #
 #   output HDMI-A-1 resolution 1920x1080 position 1920,0
 #
 # You can get the names of your outputs by running: swaymsg -t get_outputs
+
+output eDP-1 position 0 0
+output DP-5 position 1920 0
+output DP-7 transform 90 position 4480 0
 
 ### Idle configuration
 #
@@ -54,6 +67,17 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 #       natural_scroll enabled
 #       middle_emulation enabled
 #   }
+
+input "type:touchpad" {
+    dwt enabled
+    tap enabled
+    natural_scroll enabled
+    middle_emulation enabled
+}
+
+input "type:keyboard" {
+    xkb_options ctrl:nocaps,altwin:swap_lalt_lwin,compose:ralt
+}
 #
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
@@ -66,10 +90,10 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Return exec $term
 
     # Kill focused window
-    bindsym $mod+Shift+q kill
+    bindsym $mod+q kill
 
     # Start your launcher
-    bindsym $mod+d exec $menu
+    bindsym $mod+space exec $menu
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -82,7 +106,7 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
+    # bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
 #
 # Moving around:
 #
@@ -107,6 +131,11 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+Down move down
     bindsym $mod+Shift+Up move up
     bindsym $mod+Shift+Right move right
+
+    bindsym $mod+Ctrl+$left focus output left
+    bindsym $mod+Ctrl+$right focus output right
+    bindsym $mod+Ctrl+$down focus output down
+    bindsym $mod+Ctrl+$up focus output up
 #
 # Workspaces:
 #
@@ -132,6 +161,7 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+8 move container to workspace number 8
     bindsym $mod+Shift+9 move container to workspace number 9
     bindsym $mod+Shift+0 move container to workspace number 10
+
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
 #
@@ -155,7 +185,7 @@ output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+space floating toggle
 
     # Swap focus between the tiling area and the floating area
-    bindsym $mod+space focus mode_toggle
+    # bindsym $mod+space focus mode_toggle
 
     # Move focus to the parent container
     bindsym $mod+a focus parent
@@ -196,16 +226,46 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
+# set $lock_cmd swaylock -f -c 000000
+set $lock_cmd loginctl lock-session
+set $logout_cmd cat /proc/self/sessionid | xargs loginctl terminate-session
+
+# exec_always --no-startup-id /usr/bin/xautolock -time 10 -locker "sh -c '$lock_cmd && systemctl suspend'"
+exec_always --no-startup-id swayidle -w \
+    timeout 300 'loginctl lock-session' \
+    timeout 600 'systemctl suspend' \
+    before-sleep 'swaylock -f -c 000000' \
+    lock 'swaylock -f -c 000000'
+
+
+set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
+mode "$mode_system" {
+     bindsym l exec --no-startup-id $lock_cmd, mode "default"
+     bindsym e exec --no-startup-id $logout_cmd, mode "default"
+     bindsym s exec --no-startup-id systemctl suspend, mode "default"
+     bindsym h exec --no-startup-id systemctl hibernate, mode "default"
+     bindsym r exec --no-startup-id systemctl reboot, mode "default"
+     bindsym Shift+s exec --no-startup-id systemctl poweroff, mode "default"
+
+     bindsym Return mode "default"
+     bindsym Escape mode "default"
+     bindcode Ctrl+34 mode "default"
+}
+bindsym $mod+Shift+e mode "$mode_system"
+
 #
 # Status Bar:
 #
 # Read `man 5 sway-bar` for more information about this section.
 bar {
-    position top
+    position bottom
+
+    font pango:FiraCode, FontAwesome
 
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
-    status_command while date +'%Y-%m-%d %l:%M:%S %p'; do sleep 1; done
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
+    mode hide
 
     colors {
         statusline #ffffff
