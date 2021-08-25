@@ -193,7 +193,7 @@
 ;; **********************************************************************
 
 (setq enable-local-variables t)
-(setq browse-url-browser-function 'browse-url-firefox)
+(setq browse-url-browser-function 'browse-url-xdg-open)
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
@@ -405,6 +405,10 @@
       deft-extensions '("org" "md" "txt")
       deft-recursive t)
 
+(after! github-review
+  :config
+  (add-hook! 'github-review-mode-hook (lambda () (ws-butler-mode -1))))
+
 (after! rmsbolt
   :config
   (if
@@ -603,6 +607,22 @@
  (:map shell-mode-map
   :desc "send up in insert mode" :i "C-j" #'comint-next-input))
 
+(after! magit
+  (map!
+   :map magit-status-mode-map
+   :desc "jump to stashes"
+   :prefix "g"
+   :nv
+   "z"
+   #'magit-jump-to-stashes)
+  (map!
+   :map magit-status-mode-map
+   :desc "jump to section"
+   :prefix "g"
+   :nv
+   "."
+   #'magit-status-jump))
+
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
 ;; "The default fontset can't be used for a frame font".
@@ -630,6 +650,7 @@
                 ((file-directory-p d3) d3))))
   (add-to-list 'load-path mu4e-dir))
 
+
 (use-package! mu4e
   :config
   (setq
@@ -648,7 +669,10 @@
    ; mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    mu4e-update-interval 300
-   mu4e-split-view 'vertical)
+   mu4e-split-view 'vertical
+   ;; used to display an unread count
+   mu4e-alert-interesting-mail-query
+   "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
   (map! :map mu4e-headers-mode-map
         :desc "mark thread"
         :nv "T"
@@ -674,6 +698,10 @@
                         (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
                         (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
   (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
+  (add-to-list 'mu4e-bookmarks
+               '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
+  (add-to-list 'mu4e-bookmarks
+               '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
   ;; (setq mu4e-headers-fields '((:account . 8)
   ;;                             (:flags . 4)
   ;;                             (:mailing-list . 12)
@@ -802,8 +830,8 @@
 ;; Custom Functions
 ;; **********************************************************************
 
-(setq mp-default-github-org "bestowinc")
-
+(setq mp/default-github-org "SpecTrust-Inc")
+(setq mp/default-github-repo "spec-protect")
 
 (defun mp-parse-github-pr-target (target)
   "Parse the given GitHub PR TARGET into a URL
@@ -811,18 +839,20 @@
 A TARGET is something that GitHub would automatically recognize as a GitHub
 link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
 
-If the TARGET does not contain an org name, the value of `mp-default-github-org'
+If the TARGET does not contain an org name, the value of `mp/default-github-org'
 will be used as the org name."
   ;; let*, as opposed to let, ensures that the variables are bound sequentially,
   ;; so that each bound variable is available in the context of the next
   ;; variable being bound
   (let* ((split-url (split-string target "[#/]" t "[[:space:]]+"))
          (split-len (length split-url)))
-    (multiple-value-bind
+    (cl-multiple-value-bind
         (org repo id)
-        (if (eq split-len 3)
-            (list (pop split-url) (pop split-url) (pop split-url))
-          (list mp-default-github-org (pop split-url) (pop split-url)))
+        (cond
+         ((eq split-len 3) (list (pop split-url) (pop split-url) (pop split-url)))
+         ((eq split-len 2) (list mp/default-github-org (pop split-url) (pop split-url)))
+         ((eq split-len 1) (list mp/default-github-org mp/default-github-repo (pop split-url)))
+         (t (error! "Couldn't parse target: %s" target)))
       (list
        (concat "https://github.com/" org "/" repo "/pull/" id)
        target))))
