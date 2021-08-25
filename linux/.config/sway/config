@@ -29,6 +29,18 @@ exec --no-startup-id ufw enable
 # notifications
 exec mako
 
+exec --no-startup-id swayidle -w \
+    timeout 300 'loginctl lock-session' \
+    timeout 600 'systemctl suspend' \
+    before-sleep 'swaylock -f -c 000000' \
+    lock 'swaylock -f -c 000000'
+
+exec_always eval "$(ssh-agent -s)"
+
+# This makes Zoom screensharing not work, but it didn't work anyway. Possibly
+# there's this gnome-xdg-forward thing that might work
+exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in @datadir@/backgrounds/sway/)
@@ -40,9 +52,12 @@ output * bg ~/Dropbox/nautilus/Documents/Images/Wallpapers/27769_neon_genesis_ev
 #
 # You can get the names of your outputs by running: swaymsg -t get_outputs
 
+# The laptop screen
 output eDP-1 position 0 0
-output DP-5 position 1920 0
-output DP-7 transform 90 position 4480 0
+# You mighgt want to use like DP-whatever here but it changes sometimes when
+# you plug and unplug!
+output 'Lenovo Group Limited LEN S27q-10 V5ZV9283' position 1920 0
+output 'Dell Inc. DELL S2715H V14F372O515L' transform 90 position 4480 0
 
 ### Idle configuration
 #
@@ -230,14 +245,6 @@ bindsym $mod+r mode "resize"
 set $lock_cmd loginctl lock-session
 set $logout_cmd cat /proc/self/sessionid | xargs loginctl terminate-session
 
-# exec_always --no-startup-id /usr/bin/xautolock -time 10 -locker "sh -c '$lock_cmd && systemctl suspend'"
-exec_always --no-startup-id swayidle -w \
-    timeout 300 'loginctl lock-session' \
-    timeout 600 'systemctl suspend' \
-    before-sleep 'swaylock -f -c 000000' \
-    lock 'swaylock -f -c 000000'
-
-
 set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
 mode "$mode_system" {
      bindsym l exec --no-startup-id $lock_cmd, mode "default"
@@ -253,6 +260,16 @@ mode "$mode_system" {
 }
 bindsym $mod+Shift+e mode "$mode_system"
 
+# Media Keys
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym XF86AudioPlay exec playerctl play-pause
+bindsym XF86AudioPause exec playerctl play-pause
+bindsym XF86AudioNext exec playerctl next
+bindsym XF86AudioPrev exec playerctl previous
+
 #
 # Status Bar:
 #
@@ -265,7 +282,8 @@ bar {
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
     status_command i3status-rs ~/.config/i3status-rust/config.toml
-    mode hide
+    # dock hide invisible overlay
+    mode dock
 
     colors {
         statusline #ffffff
