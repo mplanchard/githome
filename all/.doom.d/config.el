@@ -1,113 +1,5 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; EXWM stuff left commented for when I want to play around with it more
-;;
-;; EXWM: run only if we're not in a window manager and we're in an x session
-;; (when (get-buffer "*window-manager*")
-;;   (kill-buffer "*window-manager*"))
-;; (when (get-buffer "*window-manager-error*")
-;;   (kill-buffer "*window-manager-error*"))
-;; (when (executable-find "wmctrl")
-;;   (shell-command "wmctrl -m ; echo $?" "*window-manager*" "*window-manager-error*"))
-
-;; if there was an error detecting the window manager, initialize EXWM
-;; (when (and (get-buffer "*window-manager-error*")
-;;            (eq window-system 'x))
-;;   ;; exwm startup goes here
-;;   (use-package! exwm
-;;     :config
-;;     (require 'exwm)
-;;     (require 'exwm-config)
-;;     (require 'exwm-randr)
-;;     (require 'exwm-systemtray)
-;;     (exwm-systemtray-enable)
-
-;;     (setq exwm-workspace-number 4)
-;;     (add-hook 'exwm-update-class-hook
-;;               (lambda ()
-;;                 (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-;;                             (string= "gimp" exwm-instance-name))
-;;                   (exwm-workspace-rename-buffer exwm-class-name))))
-;;     (add-hook 'exwm-update-title-hook
-;;               (lambda ()
-;;                 (when (or (not exwm-instance-name)
-;;                           (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-;;                           (string= "gimp" exwm-instance-name))
-;;                   (exwm-workspace-rename-buffer exwm-title))))
-
-;;     (setq exwm-input-prefix-keys
-;;           (add-to-list 'exwm-input-prefix-keys (kbd "<space>")))
-
-;;     (setq exwm-input-global-keys
-;;           `(
-;;             ;; Bind "s-r" to exit char-mode and fullscreen mode.
-;;             ([?\s-r] . exwm-reset)
-;;             ;; Bind "s-w" to switch workspace interactively.
-;;             ([?\s-w] . exwm-workspace-switch)
-;;             ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
-;;             ,@(mapcar (lambda (i)
-;;                         `(,(kbd (format "s-%d" i)) .
-;;                           (lambda ()
-;;                             (interactive)
-;;                             (exwm-workspace-switch-create ,i))))
-;;                       (number-sequence 0 9))
-;;             ;; Bind "s-&" to launch applications ('M-&' also works if the output
-;;             ;; buffer does not bother you).
-;;             ([?\s-&] . (lambda (command)
-;;                          (interactive (list (read-shell-command "$ ")))
-;;                          (start-process-shell-command command nil command)))
-;;             ;; Bind "s-<f2>" to "slock", a simple X display locker.
-;;             ([s-f2] . (lambda ()
-;;                         (interactive)
-;;                         (start-process "" nil "/usr/bin/slock")))))
-
-;;     ;; To add a key binding only available in line-mode, simply define it in
-;;     ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
-;;     (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
-
-;;     ;; The following example demonstrates how to use simulation keys to mimic
-;;     ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys` is a
-;;     ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
-;;     ;; and DEST is what EXWM actually sends to application.  Note that both SRC
-;;     ;; and DEST should be key sequences (vector or string).
-;;     ;; (setq exwm-input-simulation-keys
-;;     ;;       '(
-;;     ;;         ;; movement
-;;     ;;         ([?\C-b] . [left])
-;;     ;;         ([?\M-b] . [C-left])
-;;     ;;         ([?\C-f] . [right])
-;;     ;;         ([?\M-f] . [C-right])
-;;     ;;         ([?\C-p] . [up])
-;;     ;;         ([?\C-n] . [down])
-;;     ;;         ([?\C-a] . [home])
-;;     ;;         ([?\C-e] . [end])
-;;     ;;         ([?\M-v] . [prior])
-;;     ;;         ([?\C-v] . [next])
-;;     ;;         ([?\C-d] . [delete])
-;;     ;;         ([?\C-k] . [S-end delete])
-;;     ;;         ;; cut/paste.
-;;     ;;         ([?\C-w] . [?\C-x])
-;;     ;;         ([?\M-w] . [?\C-c])
-;;     ;;         ([?\C-y] . [?\C-v])
-;;     ;;         ;; search
-;;     ;;         ([?\C-s] . [?\C-f])))
-
-;;     ;; You can hide the minibuffer and echo area when they're not used, by
-;;     ;; uncommenting the following line.
-;;                                         ;(setq exwm-workspace-minibuffer-position 'bottom)
-
-;;     ;; Do not forget to enable EXWM. It will start by itself when things are
-;;     ;; ready.  Yo
-
-
-;;     (add-hook 'exwm-randr-screen-change-hook
-;;               (lambda ()
-;;                 (start-process-shell-command
-;;                  "autorandr" nil "autorandr --change")))
-;;     (exwm-enable)
-;;     )
-;;   )
-
 ;; native comp
 (when (fboundp 'native-compile-async)
   (setq comp-deferred-compilation t))
@@ -254,6 +146,10 @@
 
 ;; I just use spc c a for this, don't need them on the modeline
 (setq lsp-modeline-code-actions-enable nil)
+
+;; watching all the files in a project doesn't seem to be worth the performance
+;; tradeoff when the project gets large
+(setq lsp-enable-file-watchers nil)
 
 ;; Enable proc-macro expansion
 (setq lsp-rust-analyzer-proc-macro-enable t)
@@ -1020,6 +916,14 @@ If not currently in a Projectile project, does not copy anything.
       "git log --graph --pretty=format:'%%h - %%d %%s (%%cr) (%%an)' %s..%s --abbrev-commit"
       current
       target))))
+
+(defun my/convert (value-string unit-string)
+  "Convert VALUE-STRING to the target UNIT-STRING.
+
+This simple function is just here to make non-interactive unit conversion easier.
+For interactive conversion, use `(calc-convert-units)'."
+  (calc-eval
+   (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
 
 (defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
 
