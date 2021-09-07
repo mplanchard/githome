@@ -15,6 +15,8 @@ if [ -e "$PYENV_ROOT/bin/pyenv" ]; then
     eval "$(pyenv init --path)"
 fi
 
+eval "$(ssh-agent)"
+
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ]; then
     PATH="$HOME/bin:$PATH"

@@ -99,7 +99,8 @@ font:
   #   - (macOS) Menlo
   #   - (Linux) monospace
   #   - (Windows) Consolas
-  # family: "Ubuntu Mono"
+  normal:
+    family: "Fira Code"
 
   # The `style` can be specified to pick a specific face.
   #style: Regular
@@ -363,6 +364,11 @@ draw_bold_text_with_bright_colors: true
 #     - "--login"
 #     - "-c"
 #     - "tmux new-session -A -s $(basename ${PWD})"
+
+shell:
+  program: tmux
+  args:
+    - "-l"
 
 # Startup directory
 #

@@ -44,6 +44,7 @@
 (package! rmsbolt) ;; read the assembly
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
+(package! string-inflection)  ;; modify string cases
 (package! tree-sitter)  ;; better syntax highlighting and language analysis
 (package! tree-sitter-langs)
 
