@@ -276,6 +276,10 @@
 (setq org-annotate-file-storage-file "~/org/annotations.org")
 (setq org-annotate-file-add-search t)
 
+;; disable autocomplete in org-mode. We can always turn it on, and I don't love
+;; autocomplete when I'm just trying to write stuff.
+(add-hook! 'org-mode-hook (lambda () (company-mode -1)))
+
 (after! org
   :config
   ;; Allow executing JS code blocks in org
@@ -560,12 +564,13 @@
    mu4e-headers-thread-child-prefix '("| " . "| ")
    mu4e-headers-thread-last-child-prefix '("| " . "| ")
    mu4e-headers-thread-orphan-prefix '("" . "")
+   mu4e-headers-show-threads t
    ;; make indexing faster
    ; mu4e-index-cleanup nil
    ; mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    mu4e-update-interval 300
-   mu4e-split-view 'vertical
+   ;; mu4e-split-view 'vertical
    ;; used to display an unread count
    mu4e-alert-interesting-mail-query
    "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
@@ -584,8 +589,8 @@
                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
   (set-email-account! "spectrust"
-                      '((user-email-address . "mplanchard@spec-trust.com")
-                        (smtpmail-smtp-user . "mplanchard@spec-trust.com")
+                      '((user-email-address . "matthew@spec-trust.com")
+                        (smtpmail-smtp-user . "matthew@spec-trust.com")
                         (smtpmail-local-domain . "gmail.com")
                         (smtpmail-smtp-server . "smtp.gmail.com")
                         (smtpmail-default-smtp-server . "smtp.gmail.com")
@@ -641,6 +646,11 @@
   (setq markdown-marginalize-headers t)
   (setq markdown-header-scaling t)
   (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
+
+;; Disable autocomplete in markdown mode and gfm mode. I don't love autocomplete
+;; when I'm just trying to write stuff.
+(add-hook! 'markdown-mode-hook (lambda () (company-mode -1)))
+(add-hook! 'gfm-mode-hook (lambda () (company-mode -1)))
 
 ;; **********************************************************************
 ;; Javascript/Typescript
@@ -926,6 +936,14 @@ For interactive conversion, use `(calc-convert-units)'."
    (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
 
 (defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
+
+;; (defun my/aws-login ()
+;;   (interactive)
+;;   )
+
+
+;; (defun my/one-password-login ()
+;;   (interactive))
 
 ;; **********************************************************************
 ;; Externally Sourced Functions
