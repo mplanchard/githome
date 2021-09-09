@@ -42,7 +42,7 @@ IMAPAccount spectrust
 # Address to connect to
 Host imap.gmail.com
 User matthew@spec-trust.com
-PassCmd "~/scripts/get_emacs_password.py imap.gmail.com mplanchard@spec-trust.com"
+PassCmd "~/scripts/get_emacs_password.py imap.gmail.com matthew@spec-trust.com"
 # To store the password in an encrypted file use PassCmd instead of Pass
 # PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.mailpass.gpg"
 #
