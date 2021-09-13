@@ -44,6 +44,193 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
+(setq org-roam-directory (file-truename org-directory))
+;; (setq +org-roam-open-buffer-on-find-file nil)
+;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "presentations")))
+(setq org-journal-dir (file-name-concat org-directory "journal"))
+
+(setq org-roam-capture-templates
+      (list
+       '("d" "default" plain "%?"
+         :if-new (file+head "${slug}.org" "#+title: ${title}\n")
+         :unnarrowed t)))
+
+(setq org-tag-alist (quote ((:startgrouptag)
+                            ("software")
+                            (:grouptags)
+                            ("api")
+                            ("database")
+                            ("emacs")
+                            ("javascript")
+                            ("lisp")
+                            ("rust")
+                            ("software_architecture")
+                            ("software_culture")
+                            ("software_optimization")
+                            ("software_research")
+                            ("software_security")
+                            ("software_people")
+                            ("software_tools")
+                            ("unix")
+                            (:endgrouptag)
+
+                            ("coffee")
+
+                            (:startgrouptag)
+                            ("database") (:grouptags) ("postgres") ("sqlite") ("mysql")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("api") (:grouptags) ("rest") ("graphql")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("emacs")
+                            (:grouptags)
+                            ("emacs_config")
+                            ("emacs_themes")
+                            ("mu4e")
+                            ("org_mode")
+                            (:endgrouptag)
+
+                            (:startgrouptag) ("org_mode") (:grouptags) ("org_roam") (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("people_management")
+                            (:grouptags)
+                            ("relationships")
+                            ("team_dynamics")
+                            (:endgrouptag)
+
+                            ("camping")
+                            ("possible_purchases")
+                            ("possible_gifts")
+                            ("talk")
+
+                            (:startgrouptag)
+                            ("software_architecture")
+                            (:grouptags)
+                            ("complexity")
+                            ("concurrency")
+                            ("design_patterns")
+                            ("dynamic_linking")
+                            ("file_system_architecture")
+                            ("no_silver_bullet")
+                            ("software_patterns")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("concurrency")
+                            (:grouptags)
+                            ("async_await")
+                            ("go_statement")
+                            ("multithread")
+                            ("multiprocess")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("software_patterns")
+                            (:grouptags)
+                            ("type_driven_development")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("software_security") (:grouptags) ("authentication") ("credentials")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("type_driven_development")
+                            (:grouptags)
+                            ("parse_dont_validate")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("javascript")
+                            (:grouptags)
+                            ("react")
+                            ("typescript")
+                            ("vuejs")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("software_optimization")
+                            (:grouptags)
+                            ("cache_utilization")
+                            ("software_performance")
+                            ("software_speed")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("software_people")
+                            (:grouptags)
+                            ("andrew_gallant")
+                            ("dan_luu")
+                            ("fred_brooks")
+                            ("gary_bernhradt")
+                            ("paul_graham")
+                            ("rich_hickey")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("software_tools")
+                            (:grouptags)
+                            ("graphical_applications")
+                            ("gui_frameworks")
+                            ("parsers")
+                            ("shell_applications")
+                            (:endgrouptag)
+
+                            ("spotify")
+                            ("quotes")
+
+                            (:startgrouptag)
+                            ("lisp")
+                            (:grouptags)
+                            ("clojure")
+                            ("elisp")
+                            ("racket")
+                            ("scheme")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("rust")
+                            (:grouptags)
+                            ("actix")
+                            ("warp")
+                            ("rust_analyzer")
+                            ("rust_async")
+                            ("rust_features")
+                            ("rust_web")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("rust_web") (:grouptags) ("actix") ("tokio_axum")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("rust_async") (:grouptags) ("async_std") ("tokio")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("tokio") (:grouptags) ("tokio_axum")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("unix")
+                            (:grouptags)
+                            ("coreutils")
+                            ("virtual_memory")
+                            (:endgrouptag)
+
+                            (:startgrouptag)
+                            ("spectrust")
+                            (:grouptags)
+                            ("workflow_engine")
+                            ("integration_station")
+                            ("spec_proxy")
+                            ("hub_server")
+                            ("hub_client")
+                            (:endgrouptag))))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -93,6 +280,9 @@
 (setq tab-width 4)
 
 (setq ispell-dictionary "en_US")
+
+(setq +format-on-save-enabled-modes
+      '(not web-mode))
 
 ;; Autosave when losing focus
 ;; (add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
@@ -294,8 +484,6 @@
    '((typescript . t))))
 
 ;; org-roam
-(after! org-roam
-  (setq org-roam-directory (file-truename org-directory)))
 (setq
  deft-directory org-directory
  deft-extensions '("org" "md")
@@ -397,11 +585,6 @@
                                      :gdbpath "rust-lldb"
                                      :target nil
                                      :cwd nil)))
-
-;; Use bar and block cursor in terminal emacs rather than just block
-(unless (display-graphic-p)
-  (require 'evil-terminal-cursor-changer)
-  (evil-terminal-cursor-changer-activate))
 
 (use-package! git-link
   :config
