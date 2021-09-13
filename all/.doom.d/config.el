@@ -422,13 +422,14 @@
 ;; I use regular escape commands and don't need evil-escape
 (setq evil-escape-inhibit t)
 
-;; (require 'org-protocol)
-;; (let ((t1 '("P" "Protocol" entry (file+headline ,(concat org-directory "inbox.org") "Inbox")
-;;         "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?"))
-;;       (t2 '("L" "Protocol Link" entry (file+headline ,(concat org-directory "inbox.org") "Inbox")
-;;         "* %? [[%:link][%:description]] \nCaptured On: %U")))
-;;   (unless (member t1 org-capture-templates) (add-to-list 'org-capture-templates t1))
-;;   (unless (member t2 org-capture-templates) (add-to-list 'org-capture-templates t2)))
+(server-start)
+(require 'org-protocol)
+(let ((t1 `("P" "Protocol" entry (file+headline ,(file-name-concat org-directory "inbox.org"))
+        "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?"))
+      (t2 `("L" "Protocol Link" entry (file ,(file-name-concat org-directory "inbox.org"))
+        "* %? [[%:link][%:description]] \nCaptured On: %U")))
+  (unless (member t1 org-capture-templates) (add-to-list 'org-capture-templates t1))
+  (unless (member t2 org-capture-templates) (add-to-list 'org-capture-templates t2)))
 
 ;; org-mode settings
 (after! org
