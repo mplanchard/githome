@@ -707,6 +707,20 @@
    "."
    #'magit-status-jump))
 
+;; The `+eval:region' and `+eval:buffer' commands that are bound to g r and g R
+;; by default don't work in sql mode, so we replace them with the sql-specific
+;; evaluation functions, which will send the region or buffer to an open sql shell
+(map! (:map sql-mode-map
+       :desc "evaluate region"
+       :prefix "g"
+       :nv "r"
+       #'sql-send-region)
+      (:map sql-mode-map
+       :desc "evaluate buffer"
+       :prefix "g"
+       :nv "R"
+       #'sql-send-buffer))
+
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
 ;; "The default fontset can't be used for a frame font".
@@ -915,13 +929,24 @@
       :localleader
       :desc "Blacken Statement" "b s" #'python-black-statement)
 
-
 ;; **********************************************************************
-;; Custom Functions
+;; Work-related
 ;; **********************************************************************
 
 (setq mp/default-github-org "SpecTrust-Inc")
 (setq mp/default-github-repo "spec-protect")
+
+(setq sql-connection-alist
+      '(("st-dev"
+         (sql-product 'postgres)
+         (sql-server "localhost")
+         (sql-port 5432)
+         (sql-user "postgres")
+         (sql-database "spec_protected"))))
+
+;; **********************************************************************
+;; Custom Functions
+;; **********************************************************************
 
 (defun mp-parse-github-pr-target (target)
   "Parse the given GitHub PR TARGET into a URL
@@ -1055,7 +1080,6 @@ If not currently in a Projectile project, does not copy anything.
                       dbuser
                       password))))))
     (sql-connect (concat "bestow-db-" dbenv))))
-
 
 (defun mp-echo-async-run-shell-command (command)
   "Echo the shell command to the *Async Shell Command* buffer, then run it, opening the buffer."
