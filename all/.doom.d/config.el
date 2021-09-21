@@ -39,14 +39,14 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-;; (setq doom-theme 'doom-dark+)
+(setq doom-theme 'doom-zenburn)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
 (setq org-roam-directory (file-truename org-directory))
 ;; (setq +org-roam-open-buffer-on-find-file nil)
-;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "presentations")))
+(setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
 (setq org-journal-dir (file-name-concat org-directory "journal"))
 
 (setq org-roam-capture-templates
@@ -380,12 +380,6 @@
   (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
   (emms-history-load))
 
-;; load and use one of the kaolin themes
-(use-package! kaolin-themes
-  :config
-  (load-theme 'kaolin-dark t)
-  (kaolin-treemacs-theme))
-
 (use-package! gh-notify)
 
 (use-package! dap-mode
@@ -648,6 +642,8 @@
 
 (use-package! magit
   :config
+  ;; Copy abbreviated revisions
+  (setq magit-copy-revision-abbreviated t)
   ;; Show local branches in magit status buffer
   (unless
       (member 'magit-insert-local-branches magit-status-sections-hook)
@@ -1046,6 +1042,10 @@ shell exits, the buffer is killed."
         (:grouptags) ("rest") ("graphql")
         (:endgrouptag)
 
+        (:startgrouptag) ("authorization")
+        (:grouptags) ("rbac")
+        (:endgrouptag)
+
         ("camping")
         ("coffee")
 
@@ -1089,6 +1089,8 @@ shell exits, the buffer is killed."
         (:grouptags)
         ("statistics")
         (:endgrouptag)
+
+        ("model") ;; a standard or ideal way to do something
 
         (:startgrouptag) ("org_mode")
         (:grouptags) ("org_roam")
@@ -1137,7 +1139,7 @@ shell exits, the buffer is killed."
         (:endgrouptag)
 
         (:startgrouptag) ("software_security")
-        (:grouptags) ("authentication") ("credentials")
+        (:grouptags) ("authentication") ("authorization") ("credentials")
         (:endgrouptag)
 
         (:startgrouptag) ("type_driven_development")
