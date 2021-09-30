@@ -57,7 +57,7 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq display-line-numbers-type 'relative)
 
 ;; Show time in the modeline
 (setq display-time-mode t)
@@ -134,9 +134,6 @@
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
-
-;; this was a performance problem with python, but not so much wit hrust
-;; (setq lsp-enable-file-watchers nil)
 
 ;; no need for this IMO
 (setq lsp-enable-on-type-formatting nil)
@@ -1157,6 +1154,7 @@ shell exits, the buffer is killed."
         (:startgrouptag) ("software_people")
         (:grouptags)
         ("andrew_gallant")
+        ("brian_kernighan")
         ("dan_luu")
         ("fred_brooks")
         ("gary_bernhradt")
@@ -1166,6 +1164,7 @@ shell exits, the buffer is killed."
 
         (:startgrouptag) ("software_tools")
         (:grouptags)
+        ("awk")
         ("git")
         ("graphical_applications")
         ("gui_frameworks")
