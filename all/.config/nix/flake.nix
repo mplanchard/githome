@@ -3,19 +3,178 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    emacs-overlay.url = "github:nix-community/emacs-overlay";
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
-  outputs = inputs@{ self, nixpkgs, ... }: rec {
+  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }: rec {
 
     system = "x86_64-linux";
 
-    pkgs = import nixpkgs.legacyPackages.x86_64-linux {
-      inherit system;
-      config.allowUnfree = true;
-      overlays = [];
+    overlays = [
+      emacs-overlay.overlay
+    ];
+
+    # Use nixpkgs for our system and with our specified overlays
+    pkgs = import nixpkgs {
+      inherit system overlays;
+      config = {
+        allowUnfree = true;
+      };
     };
 
-    defaultPackage.${system} = import ./default.nix { config = pkgs.config; lib = pkgs.lib; pkgs = pkgs; };
+    homeManagerConfig = home-manager.lib.homeManagerConfiguration {
+      inherit system pkgs;
+      homeDirectory = "/home/matthew";
+      username = "matthew";
+
+      # This is the home manager config. The attrset should be the same format
+      # as what you find in home-manager's documentation for what you'd put in
+      # a home.nix file.
+      configuration = {
+
+        # The general thing seems to be that if you want home-manager to manage
+        # a program's config, use it as`programs.whatever` or `services.whatever`.
+        # If you just want it available, stick it in packages.
+
+        programs = {
+          # TODO resolve GL errors w/alacritty
+          # alacritty = {
+          #   enable = true;
+          #   settings = {
+          #     scrolling = {
+          #       history = 10000;
+          #       multiplier = 3;
+          #     };
+          #     font = {
+          #       normal.family = "Fira Code";
+          #       use_thin_strokes = true;
+          #     };
+          #     draw_bold_text_with_bright_colors = true;
+          #     shell = {
+          #       program = "tmux";
+          #       args = [ "-l" ];
+          #     };
+          #   };
+          # };
+
+          bat.enable = true;
+
+          exa = {
+            enable = true;
+            # turn this on once I get bash config managed by home manager.
+            # enableAliases = true;
+          };
+
+          direnv = {
+            enable = true;
+            # turn this on once I get bash config managed by home manager.
+            # enableBashIntegration = true;
+            nix-direnv.enable = true;
+          };
+
+          emacs = {
+            enable = true;
+            package = pkgs.emacsPgtkGcc;
+          };
+
+          firefox = {
+            enable = true;
+            package = pkgs.firefox.override {
+              cfg = {
+                enableGnomeExtensions = true;
+              };
+            };
+          };
+
+          # letting home manager do this ensures that both nix-installed
+          # and regular stuff is available to `info`.
+          info.enable = true;
+
+          # Ensure that home-manager installed packages have man pages
+          man = {
+            enable = true;
+            # allow searching w/stuff like apropos
+            generateCaches = true;
+          };
+
+          nix-index = {
+            enable = true;
+            # Enable once I get bash config into home manager
+            # enableBashIntegration = true;
+          };
+
+          nushell.enable = true;
+
+          starship = {
+            enable = true;
+            # Enable once bash is configured by home manager
+            # enableBashIntegration = true;
+          };
+
+          texlive.enable = true;
+        };
+
+        services = {
+          dropbox = {
+            enable = true;
+          };
+          emacs = { enable = true; };
+          gpg-agent = {
+            enable = true;
+            enableSshSupport = true;
+            extraConfig = ''
+              allow-emacs-pinentry
+              allow-loopback-pinentry
+            '';
+            pinentryFlavor = "gnome3";
+          };
+        };
+
+        # cmdline packages to be installed in the user env.
+        home.packages = with pkgs; [
+          bash
+          bottom
+          cmake
+          coreutils
+          curl
+          direnv
+          fd
+          findutils
+          fzf
+          gawk
+          git
+          gnugrep
+          gnumake
+          htmlTidy
+          htop
+          janet
+          jq
+          lld
+          lldb
+          llvm
+          neovim
+          nodejs
+          nodePackages.npm
+          openssh
+          pandoc
+          procps
+          python3Full
+          ripgrep
+          shellcheck
+          sqlite
+          stow
+          wget
+          which
+          yarn
+          zip
+        ];
+      };
+    };
+
+    # Run the home-manager build when we run `nix build` for this directory.
+    defaultPackage.x86_64-linux = homeManagerConfig.activationPackage;
   };
 }

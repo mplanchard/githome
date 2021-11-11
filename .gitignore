@@ -21,3 +21,6 @@
 # Don't check in automatically applied customizations.
 # If it's going to stick it needs to be in config.el
 all/.doom.d/custom.el
+
+# nix output symlinks
+**/result

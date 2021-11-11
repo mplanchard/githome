@@ -8,13 +8,6 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-
-if [ -e "$PYENV_ROOT/bin/pyenv" ]; then
-    eval "$(pyenv init --path)"
-fi
-
 eval "$(ssh-agent)"
 
 # set PATH so it includes user's private bin if it exists
@@ -27,6 +20,8 @@ fi
 if [[ -f "/etc/profile.d/nix.sh" ]]; then
     . "/etc/profile.d/nix.sh"
 fi
+
+export XDG_DATA_DIRS="$HOME/.nix-profile/share:$XDG_DATA_DIRS"
 
 if [ "$DESKTOP_SESSION" = "i3" ]; then
     export "$(gnome-keyring-daemon -s)"

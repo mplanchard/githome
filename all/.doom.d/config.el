@@ -39,7 +39,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-zenburn)
+(setq doom-theme 'kaolin-dark)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -55,9 +55,18 @@
          :if-new (file+head "${slug}.org" "#+title: ${title}\n")
          :unnarrowed t)))
 
+(setq +org-roam-open-buffer-on-find-file nil)
+
+;; Speed up saving of large files in org-roam by batching operations into a
+;; single sqlite txn. From org-roam#1752 on GH.
+(advice-add 'org-roam-db-update-file :around
+              (defun +org-roam-db-update-file (fn &rest args)
+                  (emacsql-with-transaction (org-roam-db)
+                    (apply fn args))))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type t)
 
 ;; Show time in the modeline
 (setq display-time-mode t)
@@ -169,6 +178,13 @@
 (setq lsp-rust-all-features t)
 ;; Build with --test
 (setq lsp-rust-cfg-test t)
+;; Inlay type hints are nice
+(setq lsp-rust-analyzer-server-display-inlay-hints t)
+(setq lsp-rust-analyzer-display-chaining-hints t)
+(setq lsp-rust-analyzer-display-parameter-hints t)
+
+;; can't hit the lenses with the keyboard, don't care about them
+(setq lsp-lens-enable nil)
 
 ;; Add a delay here for performance
 (setq lsp-ui-sideline-delay 0.75)
@@ -183,6 +199,8 @@
 ;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
 ;; for the poppup buffer
 (setq lsp-ui-doc-enable nil)
+(setq lsp-ui-doc-show-with-cursor nil)
+(setq lsp-ui-doc-show-with-mouse nil)
 ;; More performance-related delays
 (setq lsp-ui-doc-delay 0.75)
 ;; hover where I'm at when I do trigger it
@@ -242,7 +260,11 @@
 ;; I use regular escape commands and don't need evil-escape
 (setq evil-escape-inhibit t)
 
-(server-start)
+(unless
+    (and
+     (boundp 'server-process)
+     (memq (process-status server-process) '(connect listen open run)))
+  (server-start))
 (require 'org-protocol)
 (let ((t1 `("P" "Protocol" entry (file+headline ,(file-name-concat org-directory "inbox.org"))
         "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?"))
@@ -492,7 +514,12 @@
        :prefix "c"
        :desc "Open imenu buffer"
        :nv "O"
-       #'lsp-ui-imenu))
+       #'lsp-ui-imenu)
+      (:leader
+       :prefix "c"
+       :desc "Find implementations"
+       :nv "i"
+       #'lsp-find-implementation))
 
 (map!
  (:after vterm
@@ -535,6 +562,18 @@
        :nv "R"
        #'sql-send-buffer))
 
+;; Same deal with janet-mode
+(map! (:map janet-mode-map
+       :desc "evaluate region"
+       :prefix "g"
+       :nv "r"
+       #'ijanet-eval-region)
+      (:map janet-mode-map
+       :desc "evaluate buffer"
+       :prefix "g"
+       :nv "R"
+       #'ijanet-eval-buffer))
+
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
 ;; "The default fontset can't be used for a frame font".
@@ -552,85 +591,85 @@
 
 
 ;; Ensure we can find mu4e lisp files
-(let*
-    ((d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
-     (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
-     (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
-     (mu4e-dir (cond
-                ((file-directory-p d1) d1)
-                ((file-directory-p d2) d2)
-                ((file-directory-p d3) d3))))
-  (add-to-list 'load-path mu4e-dir))
+;; (let*
+;;     ((d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
+;;      (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
+;;      (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
+;;      (mu4e-dir (cond
+;;                 ((file-directory-p d1) d1)
+;;                 ((file-directory-p d2) d2)
+;;                 ((file-directory-p d3) d3))))
+;;   (add-to-list 'load-path mu4e-dir))
 
 
-(use-package! mu4e
-  :config
-  (setq
-   ;; Don't pull in the entire thread from the archive when it gets a new message
-   mu4e-headers-include-related nil
-   ;; More space for the headers
-   mu4e-headers-visible-lines 20
-   mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
-   mu4e-root-maildir "~/.mail"
-   ;; Simpler threading indicators
-   mu4e-headers-thread-child-prefix '("| " . "| ")
-   mu4e-headers-thread-last-child-prefix '("| " . "| ")
-   mu4e-headers-thread-orphan-prefix '("" . "")
-   mu4e-headers-show-threads t
-   ;; make indexing faster
-   ; mu4e-index-cleanup nil
-   ; mu4e-index-lazy-check t
-   ;; update mail every 5 minutes
-   mu4e-update-interval 300
-   ;; mu4e-split-view 'vertical
-   ;; used to display an unread count
-   mu4e-alert-interesting-mail-query
-   "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
-  (map! :map mu4e-headers-mode-map
-        :desc "mark thread"
-        :nv "T"
-        #'mu4e-headers-mark-thread)
-  (set-email-account! "gmail"
-                      '((user-email-address . "msplanchard@gmail.com")
-                        (smtpmail-smtp-user . "msplanchard")
-                        (smtpmail-local-domain . "gmail.com")
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-default-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
-                        (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
-                        (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-  (set-email-account! "spectrust"
-                      '((user-email-address . "matthew@spec-trust.com")
-                        (smtpmail-smtp-user . "matthew@spec-trust.com")
-                        (smtpmail-local-domain . "gmail.com")
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-default-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
-                        (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
-                        (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
-  (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
-  (add-to-list 'mu4e-bookmarks
-               '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
-  (add-to-list 'mu4e-bookmarks
-               '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
-  ;; (setq mu4e-headers-fields '((:account . 8)
-  ;;                             (:flags . 4)
-  ;;                             (:mailing-list . 12)
-  ;;                             (:from . 22)
-  ;;                             (:human-date . 12)
-  ;;                             (:subject . nil))))
-  (setq mu4e-headers-fields '((:flags . 4)
-                              (:from . 22)
-                              (:subject . 64)
-                              (:mailing-list . 12)
-                              (:human-date . 12))))
+;; (use-package! mu4e
+;;   :config
+;;   (setq
+;;    ;; Don't pull in the entire thread from the archive when it gets a new message
+;;    mu4e-headers-include-related nil
+;;    ;; More space for the headers
+;;    mu4e-headers-visible-lines 20
+;;    mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
+;;    mu4e-root-maildir "~/.mail"
+;;    ;; Simpler threading indicators
+;;    mu4e-headers-thread-child-prefix '("| " . "| ")
+;;    mu4e-headers-thread-last-child-prefix '("| " . "| ")
+;;    mu4e-headers-thread-orphan-prefix '("" . "")
+;;    mu4e-headers-show-threads t
+;;    ;; make indexing faster
+;;    ; mu4e-index-cleanup nil
+;;    ; mu4e-index-lazy-check t
+;;    ;; update mail every 5 minutes
+;;    mu4e-update-interval 300
+;;    ;; mu4e-split-view 'vertical
+;;    ;; used to display an unread count
+;;    mu4e-alert-interesting-mail-query
+;;    "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
+;;   (map! :map mu4e-headers-mode-map
+;;         :desc "mark thread"
+;;         :nv "T"
+;;         #'mu4e-headers-mark-thread)
+;;   (set-email-account! "gmail"
+;;                       '((user-email-address . "msplanchard@gmail.com")
+;;                         (smtpmail-smtp-user . "msplanchard")
+;;                         (smtpmail-local-domain . "gmail.com")
+;;                         (smtpmail-smtp-server . "smtp.gmail.com")
+;;                         (smtpmail-default-smtp-server . "smtp.gmail.com")
+;;                         (smtpmail-smtp-service . 587)
+;;                         (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
+;;                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
+;;                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
+;;   (set-email-account! "spectrust"
+;;                       '((user-email-address . "matthew@spec-trust.com")
+;;                         (smtpmail-smtp-user . "matthew@spec-trust.com")
+;;                         (smtpmail-local-domain . "gmail.com")
+;;                         (smtpmail-smtp-server . "smtp.gmail.com")
+;;                         (smtpmail-default-smtp-server . "smtp.gmail.com")
+;;                         (smtpmail-smtp-service . 587)
+;;                         (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
+;;                         (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
+;;                         (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
+;;   (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
+;;   (add-to-list 'mu4e-bookmarks
+;;                '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
+;;   (add-to-list 'mu4e-bookmarks
+;;                '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
+;;   ;; (setq mu4e-headers-fields '((:account . 8)
+;;   ;;                             (:flags . 4)
+;;   ;;                             (:mailing-list . 12)
+;;   ;;                             (:from . 22)
+;;   ;;                             (:human-date . 12)
+;;   ;;                             (:subject . nil))))
+;;   (setq mu4e-headers-fields '((:flags . 4)
+;;                               (:from . 22)
+;;                               (:subject . 64)
+;;                               (:mailing-list . 12)
+;;                               (:human-date . 12))))
 
-(use-package! mu4e-views
-  :config
-  (setq mu4e-views-completion-method 'ivy)
-  (setq mu4e-views-next-previous-message-behavior 'stick-to-current-window))
+;; (use-package! mu4e-views
+;;   :config
+;;   (setq mu4e-views-completion-method 'ivy)
+;;   (setq mu4e-views-next-previous-message-behavior 'stick-to-current-window))
 
 
 ;; Send HTML messages by default.
@@ -647,13 +686,13 @@
     (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches)))))
 
 
-(defun mp-email-empty-trash ()
-  "Empty the mu4e trash directory of anything older than 10 days old"
-  (interactive)
-  (async-shell-command
-   (format
-    "%s find maildir:/trash AND date:10d..1000d --fields=l | xargs rm -f"
-    mu4e-mu-binary)))
+;; (defun mp-email-empty-trash ()
+;;   "Empty the mu4e trash directory of anything older than 10 days old"
+;;   (interactive)
+;;   (async-shell-command
+;;    (format
+;;     "%s find maildir:/trash AND date:10d..1000d --fields=l | xargs rm -f"
+;;     mu4e-mu-binary)))
 
 
 (after! markdown-mode

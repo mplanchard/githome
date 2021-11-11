@@ -27,6 +27,9 @@
   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
+(package! ijanet  ;; support for interactive janet lang
+  :recipe (:host github :repo "serialdev/ijanet-mode"))
+(package! janet-mode) ;; support for janet lang
 (package! jest) ;; javascript testing
 (package! kaolin-themes) ;; some themes
 (package! kubernetes) ;; kubernetes overview

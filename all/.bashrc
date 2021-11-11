@@ -9,6 +9,21 @@ export GH_DIR="$HOME/s/gh"
 export STOW_DIR="$GH_DIR/mplanchard/githome"
 export LOCALE_ARCHIVE="/usr/lib/locale/locale-archive"
 
+export PYTHONPATH="${PYTHONPATH}":/usr/local/lib/python3.9:/usr/local/lib/python3.9/dist-packages:/usr/local/lib/python3.9/site-packages
+
+# Set up janet (installed via nix) to use some local directories for package
+# installs, since the nix store is immutable
+export JANET_BASE="$HOME/.janet"
+export JANET_HEADERPATH="$JANET_BASE]/include"
+export JANET_LIBPATH="$JANET_BASE/lib"
+export JANET_BINPATH="$JANET_BASE/bin"
+export JANET_MODPATH="$JANET_BASE/mod"
+export JANET_PATH="$JANET_MODPATH"
+
+for p in $JANET_HEADERPATH $JANET_LIBPATH $JANET_BINPATH $JANET_MODPATH; do
+    mkdir -p "$p"
+done
+
 if $(uname -a | grep -q "Darwin"); then
     # Any mac-specific config here
     true
@@ -59,13 +74,6 @@ fi
 # For homebrew on macos
 if [ -d "/usr/local/bin" ]; then
     export PATH="/usr/local/bin:$PATH"
-fi
-
-# Source pyenv stuff
-if [[ $(command -v pyenv) != "" ]]; then
-    eval "$(pyenv init - --no-rehash)"
-
-    pyenv global 3.8.6 3.7.9 3.6.12 3.9.1
 fi
 
 # Source nvm stuff
