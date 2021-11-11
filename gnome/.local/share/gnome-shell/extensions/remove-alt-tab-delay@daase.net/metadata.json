@@ -10,9 +10,10 @@
     "3.32",
     "3.36",
     "3.38",
-    "40"
+    "40",
+    "41"
   ],
   "url": "https://github.com/BjoernDaase/remove-alt-tab-delay",
   "uuid": "remove-alt-tab-delay@daase.net",
-  "version": 5
+  "version": 6
 }

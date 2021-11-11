@@ -4,9 +4,9 @@
   "name": "Overview Navigation",
   "settings-schema": "org.gnome.shell.extensions.overview-navigation",
   "shell-version": [
-    "3.38"
+    "40"
   ],
   "url": "https://github.com/nathanielsimard/overview-navigation",
   "uuid": "overview-navigation@nathanielsimard.github.com",
-  "version": 14
+  "version": 15
 }
