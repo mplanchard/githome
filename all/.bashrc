@@ -31,13 +31,6 @@ else
     # Any linux-specific config here
     #
     export PATH="/snap/bin:$PATH"
-
-    # export GUIX_PROFILE="/home/matthew/.guix-profile"
-    # source "$GUIX_PROFILE/etc/profile"
-    # export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-    # export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
-    # export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
-    # export GIT_SSL_CAINFO="$SSL_CERT_FILE"
 fi
 
 # Ensure we have a nice homedir for executables

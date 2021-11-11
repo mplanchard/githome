@@ -21,6 +21,7 @@ if [[ -f "/etc/profile.d/nix.sh" ]]; then
     . "/etc/profile.d/nix.sh"
 fi
 
+# Ensure nix applications get picked up in the gnome shell
 export XDG_DATA_DIRS="$HOME/.nix-profile/share:$XDG_DATA_DIRS"
 
 if [ "$DESKTOP_SESSION" = "i3" ]; then
@@ -34,22 +35,3 @@ if [ -n "$BASH_VERSION" ]; then
         . "$HOME/.bashrc"
     fi
 fi
-
-# if [ -d "$HOME/.guix-profile" ]; then
-#     export GUIX_PROFILE="/home/matthew/.guix-profile"
-#     . "$GUIX_PROFILE/etc/profile"
-# fi
-
-# # Load the "main" guix profile, with most of the standard stuff in it
-# if [ -d "$HOME/.guix-extra-profiles/main" ]; then
-#     profile="$HOME/.guix-extra-profiles/main/main"
-#     GUIX_PROFILE="$profile"
-#     . "$GUIX_PROFILE/etc/profile"
-
-#     export GUIX_LOCPATH="$profile/lib/locale"
-#     export SSL_CERT_DIR="$profile/etc/ssl/certs"
-#     export SSL_CERT_FILE="$profile/etc/ssl/certs/ca-certificates.crt"
-#     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
-
-#     unset profile
-# fi

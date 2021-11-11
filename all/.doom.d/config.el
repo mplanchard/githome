@@ -364,17 +364,6 @@
   direnv
   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
 
-;; use guile for schema programming
-(setq scheme-program-name "guile")
-
-(after! yasnippet
-  (unless (member "~/s/gnu/guix/etc/snippets" yas-snippet-dirs)
-    (add-to-list 'yas-snippet-dirs "~/s/gnu/guix/etc/snippets")))
-
-(if (file-exists-p "~/s/gnu/guix/etc/copyright.el")
-    (load-file "~/s/gnu/guix/etc/copyright.el"))
-(setq copyright-names-regexp "Matthew Planchard <msplanchard@gmail.com>")
-
 ;; **********************************************************************
 ;; Packages
 ;; **********************************************************************

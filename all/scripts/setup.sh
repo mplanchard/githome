@@ -69,33 +69,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt-get install build-essential curl git wget
 
     # Repositories
-    echo "Checking for emacs PPA ..."
-    if [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-focal.list ] &&
-        [ ! -f /etc/apt/sources.list.d/kelleyk-ubuntu-emacs-groovy.list ]; then
-        sudo add-apt-repository ppa:kelleyk/emacs
-    fi
-
-    echo "Checking for git PPA..."
-    if [ ! -f /etc/apt/sources.list.d/git-core-ubuntu-ppa-focal.list ]; then
-        sudo add-apt-repository ppa:git-core/ppa
-    fi
-
-    echo "Checking for hashicorp PPA..."
-    if [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-focal.list ] &&
-        [ ! -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-groovy.list ]; then
-        curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-        sudo apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    fi
-
-    echo "Checking for signal PPA"
-    if [ ! -f /etc/apt/sources.list.d/signal-xenial.list ]; then
-        wget -O- https://updates.signal.org/desktop/apt/keys.asc |
-            gpg --dearmor >signal-desktop-keyring.gpg
-        sudo mv signal-desktop-keyring.gpg /usr/share/keyrings/
-        echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' |
-            sudo tee -a /etc/apt/sources.list.d/signal-xenial.list
-    fi
-
     echo "Checking for 1Password PPA..."
     if [ ! -f "/etc/apt/sources.list.d/1password.list" ]; then
         curl -sS https://downloads.1password.com/linux/keys/1password.asc |
@@ -116,15 +89,8 @@ if [[ "$ENV" == "$LINUX" ]]; then
     PKGS=(
         1password
         apt-file
-        build-essential # pyenv
         ca-certificates # email
-        cmake
-        curl # pyenv
-        direnv
         editorconfig
-        emacs-common-non-dfsg # emacs docs
-        emacs27               # emacs
-        fd-find               # doom-emacs
         fonts-firacode
         fonts-font-awesome
         fonts-hack
@@ -133,16 +99,12 @@ if [[ "$ENV" == "$LINUX" ]]; then
         gir1.2-clutter-1.0
         gir1.2-gtop-2.0
         gir1.2-nm-1.0
-        git         # emacs, pyenv
         gnome-sushi # file preview
         gnome-system-monitor
         gnome-tweaks
         gstreamer1.0-plugins-bad
         gstreamer1.0-plugins-ugly
-        htop
         i3
-        isync                  # email
-        jq                     # doom-emacs
         libbz2-dev             # pyenv
         libc6-i386             # steam
         libffi-dev             # pyenv
@@ -158,37 +120,18 @@ if [[ "$ENV" == "$LINUX" ]]; then
         libssl-dev             # pyenv
         libtool
         libtool-bin
-        lldb-11
-        llvm          # pyenv
-        maildir-utils # mu
         make
-        mu4e
-        neovim
-        node-typescript
-        nodejs
-        npm
-        nscd # nameservice caching daemon, used by guix
-        pandoc
         pavucontrol
         playerctl
         pm-utils
-        python3-lldb-11
-        python3-openssl # pyenv
         rust-lldb
-        shellcheck
-        signal-desktop # from the signal repository
-        sqlite3
-        stow      # dotfile management
-        terraform # from the hashicorp repository
         texlive-fonts-recommended
         texlive-latex-base
         texlive-latex-extra
         texlive-latex-recommended
         texlive-latex-recommended-doc
-        tidy   # org-mode html export
         tk-dev # pyenv
         ubuntu-gnome-desktop
-        wget # pyenv
         wmctrl
         xautolock
         x11-utils
@@ -212,16 +155,6 @@ if [[ "$ENV" == "$LINUX" ]]; then
     sudo apt-get install -y "${PKGS[@]}"
     # See https://github.com/sharkdp/bat/issues/938
     sudo apt install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep
-
-    echo "Check for guix..."
-    if [[ $(command -v guix) == "" ]]; then
-        GUIX_TARGET="$HOME/Downloads/guix-install.sh"
-        wget https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh -O "$GUIX_TARGET"
-        cmod +x "$GUIX_TARGET"
-        "$GUIX_TARGET"
-    fi
-
-    # todo: guix pull channels, guix install manifest
 
     if [[ "$UPGRADE" ]]; then
         sudo apt-get upgrade -y

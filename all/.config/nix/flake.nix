@@ -135,6 +135,7 @@
 
         # cmdline packages to be installed in the user env.
         home.packages = with pkgs; [
+          automake
           bash
           bottom
           cmake
@@ -145,6 +146,7 @@
           findutils
           fzf
           gawk
+          gcc
           git
           gnugrep
           gnumake
@@ -156,6 +158,7 @@
           lldb
           llvm
           neovim
+          niv
           nodejs
           nodePackages.npm
           openssh
@@ -164,6 +167,7 @@
           python3Full
           ripgrep
           shellcheck
+          signal-desktop
           sqlite
           stow
           wget
