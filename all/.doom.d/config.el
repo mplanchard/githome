@@ -34,7 +34,8 @@
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
-(setq doom-font (font-spec :family "Fira Code" :size 14))
+(setq doom-font "Hack-11")
+;; (setq doom-font "Fira Code-12")
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -311,7 +312,14 @@
 
 ;; disable autocomplete in org-mode. We can always turn it on, and I don't love
 ;; autocomplete when I'm just trying to write stuff.
-(add-hook! 'org-mode-hook (lambda () (company-mode -1)))
+(add-hook! 'org-mode-hook
+  (lambda ()
+    (company-mode -1)
+    (auto-fill-mode)))
+(add-hook! 'markdown-mode-hook
+  (lambda ()
+    (company-mode -1)
+    (auto-fill-mode)))
 
 (after! org
   :config
@@ -427,6 +435,11 @@
 (use-package! mermaid-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
+
+;; use dockerfile-mode for files with .dockerfile extension
+(use-package! docker
+  :config
+  (add-to-list 'auto-mode-alist '("\\.[dD]ockerfile\\'" . dockerfile-mode)))
 
 (use-package! edit-server
   :commands edit-server-start
@@ -574,97 +587,6 @@
 (after! evil
   (define-key evil-motion-state-map (kbd "<tab>") nil))
 
-;; **********************************************************************
-;; Email
-;; **********************************************************************
-
-
-;; Ensure we can find mu4e lisp files
-;; (let*
-;;     ((d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
-;;      (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
-;;      (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
-;;      (mu4e-dir (cond
-;;                 ((file-directory-p d1) d1)
-;;                 ((file-directory-p d2) d2)
-;;                 ((file-directory-p d3) d3))))
-;;   (add-to-list 'load-path mu4e-dir))
-
-
-;; (use-package! mu4e
-;;   :config
-;;   (setq
-;;    ;; Don't pull in the entire thread from the archive when it gets a new message
-;;    mu4e-headers-include-related nil
-;;    ;; More space for the headers
-;;    mu4e-headers-visible-lines 20
-;;    mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
-;;    mu4e-root-maildir "~/.mail"
-;;    ;; Simpler threading indicators
-;;    mu4e-headers-thread-child-prefix '("| " . "| ")
-;;    mu4e-headers-thread-last-child-prefix '("| " . "| ")
-;;    mu4e-headers-thread-orphan-prefix '("" . "")
-;;    mu4e-headers-show-threads t
-;;    ;; make indexing faster
-;;    ; mu4e-index-cleanup nil
-;;    ; mu4e-index-lazy-check t
-;;    ;; update mail every 5 minutes
-;;    mu4e-update-interval 300
-;;    ;; mu4e-split-view 'vertical
-;;    ;; used to display an unread count
-;;    mu4e-alert-interesting-mail-query
-;;    "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
-;;   (map! :map mu4e-headers-mode-map
-;;         :desc "mark thread"
-;;         :nv "T"
-;;         #'mu4e-headers-mark-thread)
-;;   (set-email-account! "gmail"
-;;                       '((user-email-address . "msplanchard@gmail.com")
-;;                         (smtpmail-smtp-user . "msplanchard")
-;;                         (smtpmail-local-domain . "gmail.com")
-;;                         (smtpmail-smtp-server . "smtp.gmail.com")
-;;                         (smtpmail-default-smtp-server . "smtp.gmail.com")
-;;                         (smtpmail-smtp-service . 587)
-;;                         (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
-;;                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
-;;                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-;;   (set-email-account! "spectrust"
-;;                       '((user-email-address . "matthew@spec-trust.com")
-;;                         (smtpmail-smtp-user . "matthew@spec-trust.com")
-;;                         (smtpmail-local-domain . "gmail.com")
-;;                         (smtpmail-smtp-server . "smtp.gmail.com")
-;;                         (smtpmail-default-smtp-server . "smtp.gmail.com")
-;;                         (smtpmail-smtp-service . 587)
-;;                         (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
-;;                         (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
-;;                         (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
-;;   (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
-;;   (add-to-list 'mu4e-bookmarks
-;;                '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
-;;   (add-to-list 'mu4e-bookmarks
-;;                '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
-;;   ;; (setq mu4e-headers-fields '((:account . 8)
-;;   ;;                             (:flags . 4)
-;;   ;;                             (:mailing-list . 12)
-;;   ;;                             (:from . 22)
-;;   ;;                             (:human-date . 12)
-;;   ;;                             (:subject . nil))))
-;;   (setq mu4e-headers-fields '((:flags . 4)
-;;                               (:from . 22)
-;;                               (:subject . 64)
-;;                               (:mailing-list . 12)
-;;                               (:human-date . 12))))
-
-;; (use-package! mu4e-views
-;;   :config
-;;   (setq mu4e-views-completion-method 'ivy)
-;;   (setq mu4e-views-next-previous-message-behavior 'stick-to-current-window))
-
-
-;; Send HTML messages by default.
-(after! org-msg
-  (setq org-msg-default-alternatives '(text html)))
-
 (use-package! magit
   :config
   ;; Copy abbreviated revisions
@@ -673,15 +595,6 @@
   (unless
       (member 'magit-insert-local-branches magit-status-sections-hook)
     (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches)))))
-
-
-;; (defun mp-email-empty-trash ()
-;;   "Empty the mu4e trash directory of anything older than 10 days old"
-;;   (interactive)
-;;   (async-shell-command
-;;    (format
-;;     "%s find maildir:/trash AND date:10d..1000d --fields=l | xargs rm -f"
-;;     mu4e-mu-binary)))
 
 
 (after! markdown-mode

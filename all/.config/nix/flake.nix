@@ -29,11 +29,24 @@
       inherit system pkgs;
       homeDirectory = "/home/matthew";
       username = "matthew";
-
       # This is the home manager config. The attrset should be the same format
       # as what you find in home-manager's documentation for what you'd put in
       # a home.nix file.
       configuration = {
+
+        # ensure nix programs can find nix-installed fonts
+        fonts.fontconfig.enable = true;
+
+        # Extra variables to add to PATH
+        home.sessionPath = [
+          "$HOME/bin"
+        ];
+
+        home.sessionVariables = {
+          MOZ_ENABLE_WAYLAND = 1;
+          MOZ_DBUS_REMOTE = 1;
+        };
+
 
         # The general thing seems to be that if you want home-manager to manage
         # a program's config, use it as`programs.whatever` or `services.whatever`.
@@ -82,7 +95,7 @@
 
           firefox = {
             enable = true;
-            package = pkgs.firefox.override {
+            package = pkgs.firefox-wayland.override {
               cfg = {
                 enableGnomeExtensions = true;
               };
@@ -142,14 +155,18 @@
           coreutils
           curl
           direnv
+          evolution
           fd
           findutils
+          fira-code
+          fontconfig
           fzf
           gawk
           gcc
           git
           gnugrep
           gnumake
+          hack-font
           htmlTidy
           htop
           janet
