@@ -6,15 +6,26 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # GL support on non nixOS systems
+    nixGL.url = "github:guibou/nixGL";
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
-  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }: rec {
+  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, nixGL, ... }: rec {
 
     system = "x86_64-linux";
 
     overlays = [
       emacs-overlay.overlay
+      # Add in GL wrappers, used below.
+      ((import ./nixGL.nix) (import inputs.nixGL.outPath))
+      (final: prev: {
+        # Resolve an issue where alacritty cannot find GL libraries since they
+        # are system libraries.
+        alacritty = prev.wrapWithNixGLIntel prev.alacritty;
+        # There is some suggestion on GH that this should also work for zoom-us
+        # (i.e. zoom), but it doesn't for me. See discussion here: https://github.com/NixOS/nixpkgs/issues/82959
+      })
     ];
 
     # Use nixpkgs for our system and with our specified overlays
@@ -53,25 +64,24 @@
         # If you just want it available, stick it in packages.
 
         programs = {
-          # TODO resolve GL errors w/alacritty
-          # alacritty = {
-          #   enable = true;
-          #   settings = {
-          #     scrolling = {
-          #       history = 10000;
-          #       multiplier = 3;
-          #     };
-          #     font = {
-          #       normal.family = "Fira Code";
-          #       use_thin_strokes = true;
-          #     };
-          #     draw_bold_text_with_bright_colors = true;
-          #     shell = {
-          #       program = "tmux";
-          #       args = [ "-l" ];
-          #     };
-          #   };
-          # };
+          alacritty = {
+            enable = true;
+            settings = {
+              scrolling = {
+                history = 10000;
+                multiplier = 3;
+              };
+              font = {
+                normal.family = "Fira Code";
+                use_thin_strokes = true;
+              };
+              draw_bold_text_with_bright_colors = true;
+              shell = {
+                program = "tmux";
+                args = [ "-l" ];
+              };
+            };
+          };
 
           bat.enable = true;
 
@@ -160,6 +170,7 @@
           findutils
           fira-code
           fontconfig
+          foot  # super fast wayland terminal
           fzf
           gawk
           gcc
@@ -171,6 +182,7 @@
           htop
           janet
           jq
+          libreoffice
           lld
           lldb
           llvm
