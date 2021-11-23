@@ -24,7 +24,9 @@
         # are system libraries.
         alacritty = prev.wrapWithNixGLIntel prev.alacritty;
         # There is some suggestion on GH that this should also work for zoom-us
-        # (i.e. zoom), but it doesn't for me. See discussion here: https://github.com/NixOS/nixpkgs/issues/82959
+        # (i.e. zoom), but haven't been able to figure it out for me:
+        # https://github.com/NixOS/nixpkgs/issues/82959
+        # zoom-us = prev.wrapWithNixGLIntel prev.zoom-us;
       })
     ];
 
