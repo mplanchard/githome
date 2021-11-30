@@ -13,8 +13,10 @@
 (package! browse-at-remote) ;; hopefully a bit of a better git-link
 (package! cargo-mode
   :recipe (:host github :repo "ayrat555/cargo-mode"))
+(package! code-review) ;; better code review
 (package! csv-mode)  ;; some support for CSVs
 (package! dap-mode)  ;; debugger
+(package! dhall-mode)  ;; support for dhall config language
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time

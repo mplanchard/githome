@@ -5,7 +5,6 @@
   (setq comp-deferred-compilation t))
 ;; comp-deferred-compilation-black-list '("/mu4e.*\\.el$")))
 
-
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
@@ -99,6 +98,13 @@
 ;; something, so try setting it back up to avoid GC pauses
 (setq gcmh-idle-delay 10)
 
+;; Specify that buffers must have unique names and specify logic
+(require 'uniquify)
+;; Use path components with forward slashes, so foo/mod.rs and bar/mod.rs
+;; are named as such
+(setq uniquify-buffer-name-style 'forward)
+
+(add-to-list 'orderless-matching-styles #'orderless-prefixes)
 
 ;; **********************************************************************
 ;; Settings
@@ -123,7 +129,12 @@
 ;; (add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
 
 ;; Search the GH directory for projects by default
-(setq projectile-project-search-path '("~/s/gh" "~/s/gh/spectrust" "~/s/gh/mplanchard"))
+(setq projectile-project-search-path
+      '("~/s/gh"
+        "~/s/gh/spectrust"
+        "~/s/gl"
+        "~s/gl/spectrust"
+        "~/s/gh/mplanchard"))
 
 ;; Make the ivy serach buffer larger
 (setq ivy-height 25)
@@ -598,9 +609,7 @@
 
 
 (after! markdown-mode
-  (setq markdown-marginalize-headers t)
-  (setq markdown-header-scaling t)
-  (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
+  (setq markdown-header-scaling t))
 
 ;; Disable autocomplete in markdown mode and gfm mode. I don't love autocomplete
 ;; when I'm just trying to write stuff.

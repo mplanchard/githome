@@ -177,6 +177,7 @@
           gawk
           gcc
           git
+          gnome.gnome-calendar
           gnugrep
           gnumake
           hack-font
