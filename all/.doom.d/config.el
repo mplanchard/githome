@@ -598,15 +598,15 @@
 (after! evil
   (define-key evil-motion-state-map (kbd "<tab>") nil))
 
-(use-package! magit
-  :config
-  ;; Copy abbreviated revisions
-  (setq magit-copy-revision-abbreviated t)
-  ;; Show local branches in magit status buffer
-  (unless
-      (member 'magit-insert-local-branches magit-status-sections-hook)
-    (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches)))))
+(add-hook 'magit-status-mode-hook
+          (lambda ()
+            ;; Show local branches in magit status buffer
+            (unless
+                (member 'magit-insert-local-branches magit-status-sections-hook)
+              (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))))
 
+;; Copy abbreviated revisions instead of the whole thing
+(setq magit-copy-revision-abbreviated t)
 
 (after! markdown-mode
   (setq markdown-header-scaling t))
