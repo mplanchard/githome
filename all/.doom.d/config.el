@@ -34,6 +34,7 @@
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
 (setq doom-font "Hack-11")
+(setq doom-variable-pitch-font "DejaVu Serif-11")
 ;; (setq doom-font "Fira Code-12")
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -66,7 +67,7 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq display-line-numbers-type 'relative)
 
 ;; Show time in the modeline
 (setq display-time-mode t)
@@ -94,6 +95,9 @@
 ;; Things I'm trying that may or may not pan out.
 ;; **********************************************************************
 
+(after! lsp-mode
+  (advice-remove #'lsp #'+lsp-dont-prompt-to-install-servers-maybe-a))
+
 ;; 15 is the original setting, but it seems like it's down to 0.5 via doom or
 ;; something, so try setting it back up to avoid GC pauses
 (setq gcmh-idle-delay 10)
@@ -104,7 +108,8 @@
 ;; are named as such
 (setq uniquify-buffer-name-style 'forward)
 
-(add-to-list 'orderless-matching-styles #'orderless-prefixes)
+(after! orderless
+  (add-to-list 'orderless-matching-styles #'orderless-prefixes))
 
 ;; **********************************************************************
 ;; Settings
@@ -272,6 +277,7 @@
 ;; I use regular escape commands and don't need evil-escape
 (setq evil-escape-inhibit t)
 
+;; don't try to restart the server if it's already running
 (unless
     (and
      (boundp 'server-process)
@@ -466,6 +472,15 @@
                   (minibuffer . t)
                   (menu-bar-lines . t))))
 
+(use-package! magit
+  :config
+  ;; Show local branches in magit status buffer
+  (unless
+      (member 'magit-insert-local-branches magit-status-sections-hook)
+    (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))
+  ;; Copy abbreviated revisions instead of the whole thing
+  (setq magit-copy-revision-abbreviated t))
+
 (use-package! tree-sitter-langs)
 
 ;; Better local syntax highlighting and language analysis
@@ -488,6 +503,37 @@
       (:leader
        :prefix "w"
        :desc "swap-window" :nv "/" #'ace-swap-window))
+
+(after! avy
+  (map!
+   (:prefix "g s"
+    :desc "select and delete region"
+    :nv "D"
+    #'avy-kill-region)
+   (:prefix "g s"
+    :desc "select and delete line"
+    :nv "d"
+    #'avy-kill-whole-line)
+   (:prefix "g s"
+    :desc "select and copy region"
+    :nv "Y"
+    #'avy-kill-ring-save-region)
+   (:prefix "g s"
+    :desc "select and copy line"
+    :nv "y"
+    #'avy-kill-ring-save-whole-line)))
+
+;; syntax aware text objects for evil motion
+(after! evil-text-object-change-visual-type
+  (map! (:textobj "f"
+         (evil-textobj-tree-sitter-get-textobj "function.inner")
+         (evil-textobj-tree-sitter-get-textobj "function.outer"))
+        (:textobj "c"
+         (evil-textobj-tree-sitter-get-textobj "comment.outer")
+         (evil-textobj-tree-sitter-get-textobj "comment.outer"))
+        (:textobj "C"
+         (evil-textobj-tree-sitter-get-textobj "class.inner")
+         (evil-textobj-tree-sitter-get-textobj "class.outer"))))
 
 (map! :leader
       :desc "paste from kill ring" :nv "P" #'+default/yank-pop)
@@ -598,18 +644,14 @@
 (after! evil
   (define-key evil-motion-state-map (kbd "<tab>") nil))
 
-(add-hook 'magit-status-mode-hook
-          (lambda ()
-            ;; Show local branches in magit status buffer
-            (unless
-                (member 'magit-insert-local-branches magit-status-sections-hook)
-              (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))))
-
-;; Copy abbreviated revisions instead of the whole thing
-(setq magit-copy-revision-abbreviated t)
-
 (after! markdown-mode
-  (setq markdown-header-scaling t))
+  (setq markdown-header-scaling t)
+  ;; doom sets this to nil because of a potential error, described in
+  ;; jrblevin/markdown-mode#578, with native comp and headings in markdown.
+  ;; I don't see this error, and not setting this to nil makes the generated
+  ;; toc by markdown-toc non-nested.
+  (setq markdown-nested-imenu-heading-index t)
+  (setq markdown-toc-header-toc-start "<!-- markdown-toc-start -->"))
 
 ;; Disable autocomplete in markdown mode and gfm mode. I don't love autocomplete
 ;; when I'm just trying to write stuff.

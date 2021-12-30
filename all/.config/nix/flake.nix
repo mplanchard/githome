@@ -7,7 +7,7 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     # GL support on non nixOS systems
-    nixGL.url = "github:guibou/nixGL";
+    nixGL = { url = "github:guibou/nixGL"; flake = false; };
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
