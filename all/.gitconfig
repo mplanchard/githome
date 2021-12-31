@@ -3,6 +3,7 @@
 [user]
 	email = msplanchard@gmail.com
 	name = Matthew Planchard
+	signingkey = BA628A8D7DD99FEDDC83C6C93D77D8F065D3570B
 [includeIf "gitdir:~/s/gh/spectrust/**"]
 	path = ~/.gitconfig.spectrust
 [include]
