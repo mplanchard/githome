@@ -25,7 +25,7 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 default_border pixel
 
 exec --no-startup-id dropbox start
-exec --no-startup-id ufw enable
+# exec --no-startup-id ufw enable
 # notifications
 exec mako
 
@@ -35,7 +35,7 @@ exec --no-startup-id swayidle -w \
     before-sleep 'swaylock -f -c 000000' \
     lock 'swaylock -f -c 000000'
 
-exec_always eval "$(ssh-agent -s)"
+# exec_always eval "$(ssh-agent -s)"
 
 # This makes Zoom screensharing not work, but it didn't work anyway. Possibly
 # there's this gnome-xdg-forward thing that might work

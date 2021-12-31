@@ -34,7 +34,7 @@
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
 (setq doom-font "Hack-11")
-(setq doom-variable-pitch-font "DejaVu Serif-11")
+;; (setq doom-variable-pitch-font "DejaVu Serif-11")
 ;; (setq doom-font "Fira Code-12")
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -278,11 +278,11 @@
 (setq evil-escape-inhibit t)
 
 ;; don't try to restart the server if it's already running
-(unless
-    (and
-     (boundp 'server-process)
-     (memq (process-status server-process) '(connect listen open run)))
-  (server-start))
+;; (unless
+;;     (and
+;;      (boundp 'server-process)
+;;      (memq (process-status server-process) '(connect listen open run)))
+;;   (server-start))
 (require 'org-protocol)
 (let ((t1 `("P" "Protocol" entry (file+headline ,(file-name-concat org-directory "inbox.org"))
         "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?"))
@@ -415,27 +415,27 @@
 
 (use-package! gh-notify)
 
-(use-package! dap-mode
-  :config
-  (dap-ui-mode)
-  (dap-ui-controls-mode t)
-  (require 'dap-lldb)
-  (require 'dap-gdb-lldb)
-  (dap-gdb-lldb-setup)
-  (dap-register-debug-template "Rust::GDB Run Configuration"
-                               (list :type "gdb"
-                                     :request "launch"
-                                     :name "GDB::Run"
-                                     :gdbpath "rust-gdb"
-                                     :target nil
-                                     :cwd nil))
-  (dap-register-debug-template "Rust::LLDB Run Configuration"
-                               (list :type "lldb"
-                                     :request "launch"
-                                     :name "LLDB::Run"
-                                     :gdbpath "rust-lldb"
-                                     :target nil
-                                     :cwd nil)))
+;; (use-package! dap-mode
+;;   :config
+;;   (dap-ui-mode)
+;;   (dap-ui-controls-mode t)
+;;   (require 'dap-lldb)
+;;   (require 'dap-gdb-lldb)
+;;   (dap-gdb-lldb-setup)
+;;   (dap-register-debug-template "Rust::GDB Run Configuration"
+;;                                (list :type "gdb"
+;;                                      :request "launch"
+;;                                      :name "GDB::Run"
+;;                                      :gdbpath "rust-gdb"
+;;                                      :target nil
+;;                                      :cwd nil))
+;;   (dap-register-debug-template "Rust::LLDB Run Configuration"
+;;                                (list :type "lldb"
+;;                                      :request "launch"
+;;                                      :name "LLDB::Run"
+;;                                      :gdbpath "rust-lldb"
+;;                                      :target nil
+;;                                      :cwd nil)))
 
 (use-package! git-link
   :config
