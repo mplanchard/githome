@@ -16,7 +16,6 @@
   };
   services.fstrim.enable = lib.mkDefault true;
 
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -26,6 +25,11 @@
     preLVM = true;
     allowDiscards = true;
   };
+
+  # install man pages for libraries and stuff
+  documentation.dev.enable = true;
+  # ensure apropos is populated
+  documentation.man.generateCaches = true;
 
   environment.loginShellInit = ''
     if [ -e $HOME/.profile ]
@@ -77,6 +81,12 @@
   #   font = "Lat2-Terminus16";
   #   keyMap = "us";
   # };
+
+  # unlock wallet on login
+  security.pam.services.kwallet = {
+    name = "kwallet";
+    enableKwallet = true;
+  };
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
@@ -141,6 +151,8 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     git
+    man-pages
+    man-pages-posix
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     firefox
@@ -166,7 +178,7 @@
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

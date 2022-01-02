@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-21.11";
+    # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -14,6 +15,7 @@
   outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }: 
 let 
     system = "x86_64-linux";
+    # unstable = import inputs.nixpkgs-unstable { inherit system; };
     overlays = [
       emacs-overlay.overlay
       # Add in GL wrappers, used below.
@@ -27,6 +29,9 @@ let
       #   # https://github.com/NixOS/nixpkgs/issues/82959
       #   # zoom-us = prev.wrapWithNixGLIntel prev.zoom-us;
       # })
+      # (self: super: {
+      #   kalendar = unstable.kalendar;
+      # })
     ];
     # Use nixpkgs for our system and with our specified overlays
     pkgs = import nixpkgs {
@@ -37,6 +42,59 @@ let
     };
 
     homeManagerConfig = {
+
+      # relative to ~
+      accounts.email.maildirBasePath = ".mail";
+      accounts.email.accounts.gmail = {
+        address = "msplanchard@gmail.com";
+        flavor = "gmail.com";
+        maildir.path = "gmail";
+        passwordCommand = "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine imap.gmail.com login msplanchard@gmail.com password/ {print $NF}'";
+        primary = true;
+        realName = "Matthew Planchard";
+        mbsync = {
+          enable = true;
+          create = "both";
+          expunge = "both";
+          patterns = [
+            "*"
+            "![Gmail]*"
+            "[Gmail]/Drafts"
+            "[Gmail]/Sent Mail"
+            "[Gmail]/Starred"
+            "[Gmail]/All Mail"
+          ];
+          # local = {
+          #   SubFolders = "Verbatim";
+          # };
+        };
+      };
+
+      accounts.email.accounts.spectrust = {
+        address = "matthew@spec-trust.com";
+        flavor = "gmail.com";
+        maildir.path = "spectrust";
+        passwordCommand = "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine imap.gmail.com login matthew@spec-trust.com password/ {print $NF}'";
+        realName = "Matthew Planchard";
+        mbsync = {
+          enable = true;
+          create = "both";
+          expunge = "both";
+        };
+      };
+
+      # accounts.email.accounts.protonmail = {
+      #   address = "inbox@mplanchard.com";
+      #   maildir.path = "protonmail";
+      #   passwordCommand = "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk '/machine 127.0.0.1 login inbox@mplanchard.com password/ {print $NF}'";
+      #   realName = "Matthew Planchard";
+      #   mbsync = {
+      #     enable = true;
+      #     create = "both";
+      #     expunge = "both";
+      #   };
+      # };
+
       # ensure nix programs can find nix-installed fonts
       fonts.fontconfig.enable = true;
 
@@ -100,6 +158,7 @@ let
         emacs = {
           enable = true;
           package = pkgs.emacsPgtkGcc;
+          # automatically install vterm so we don't need to compile it in doom
           extraPackages = epkgs: [ epkgs.vterm ];
         };
 
@@ -116,11 +175,13 @@ let
         # and regular stuff is available to `info`.
         info.enable = true;
 
-        # keychain = {
-        #   enable = true;
-        #   enableBashIntegration = true;
-        #   enableXsessionIntegration = true;
-        # };
+        mbsync = {
+          enable = true;
+          # extraConfig = ''
+          #   SSLType IMAPS
+          #   AuthMechs LOGIN
+          # '';
+        };
 
         # Ensure that home-manager installed packages have man pages
         man = {
@@ -128,6 +189,9 @@ let
           # allow searching w/stuff like apropos
           generateCaches = true;
         };
+
+        # mail stuff
+        mu.enable = true;
 
         nix-index = {
           enable = true;
@@ -161,6 +225,8 @@ let
           '';
           pinentryFlavor = "emacs";
         };
+        # Automatically synchronize mail
+        mbsync.enable = true;
       };
 
       # Custom services
@@ -189,10 +255,15 @@ let
         };
       };
 
+      # home.file.".aspell.conf".text = "data-dir ${pkgs.aspell}/lib/aspell";
+
       # cmdline packages to be installed in the user env.
       home.packages = with pkgs; [
         _1password
         _1password-gui
+        aspell
+        aspellDicts.en
+        # aspellDicts.en-computers
         automake
         bottom
         cmake
@@ -202,7 +273,6 @@ let
         direnv
         dropbox
         emacs-all-the-icons-fonts
-        evolution
         # libtool # for emacs (vterm)
         # libvterm # also for emacs
         fd
@@ -218,12 +288,14 @@ let
         hack-font
         htmlTidy
         htop
+        ispell
         janet
         jq
         libreoffice
         lld
         lldb
         llvm
+        lsof
         neovim
         niv
         nodejs
@@ -246,6 +318,36 @@ let
         yarn
         zip
         zoom-us
+
+        (makeDesktopItem {
+          name = "org-protocol";
+          exec = "emacsclient %u";
+          comment = "Org protocol";
+          desktopName = "org-protocol";
+          type = "Application";
+          mimeType = "x-scheme-handler/org-protocol";
+          icon = "emacs";
+          terminal = false;
+          categories = "System";
+        })
+
+        # kde-specific stuff
+        plasma5Packages.accounts-qt
+        plasma5Packages.akonadi
+        plasma5Packages.akonadi-calendar
+        plasma5Packages.calendarsupport
+        plasma5Packages.kaccounts-integration
+        plasma5Packages.kaccounts-providers
+        plasma5Packages.kcalendarcore
+        plasma5Packages.kcharselect
+        plasma5Packages.kontact
+        plasma5Packages.korganizer
+        plasma5Packages.yakuake
+
+        # protonmail
+        pass
+        protonmail-bridge
+
 
         # for sway
         # dmenu
