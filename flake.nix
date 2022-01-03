@@ -177,10 +177,6 @@ let
 
         mbsync = {
           enable = true;
-          # extraConfig = ''
-          #   SSLType IMAPS
-          #   AuthMechs LOGIN
-          # '';
         };
 
         # Ensure that home-manager installed packages have man pages
