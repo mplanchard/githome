@@ -218,6 +218,9 @@ let
         emacs = { enable = true; };
         gpg-agent = {
           enable = true;
+          # make it last all day
+          defaultCacheTtl = 28800;
+          defaultCacheTtlSsh = 28800;
           enableSshSupport = true;
           extraConfig = ''
             allow-emacs-pinentry
@@ -226,7 +229,10 @@ let
           pinentryFlavor = "emacs";
         };
         # Automatically synchronize mail
-        mbsync.enable = true;
+        mbsync = {
+          enable = true;
+          postExec = "${pkgs.mu}/bin/mu index";
+        };
       };
 
       # Custom services
