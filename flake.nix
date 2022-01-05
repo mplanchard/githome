@@ -241,11 +241,6 @@ let
             Description = "dropbox";
           };
           Service = {
-            # Environment =
-            # environment = {
-            #   QT_PLUGIN_PATH = "/run/current-system/sw/" + pkgs.qt5.qtbase.qtPluginPrefix;
-            #   QML2_IMPORT_PATH = "/run/current-system/sw/" + pkgs.qt5.qtbase.qtQmlPrefix;
-            # };
             ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
             ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
             KillMode = "control-group"; # upstream recommends process
@@ -265,7 +260,6 @@ let
         _1password-gui
         aspell
         aspellDicts.en
-        # aspellDicts.en-computers
         automake
         bottom
         cmake
@@ -275,8 +269,6 @@ let
         direnv
         dropbox
         emacs-all-the-icons-fonts
-        # libtool # for emacs (vterm)
-        # libvterm # also for emacs
         fd
         findutils
         fira-code
@@ -312,9 +304,11 @@ let
         shellcheck
         signal-desktop
         slack
+        spotify
         sqlite
         stow
         tmux
+        unzip
         wget
         which
         yarn
@@ -334,6 +328,9 @@ let
         })
 
         # kde-specific stuff
+	kdeconnect
+	korganizer
+	yakuake
         plasma5Packages.accounts-qt
         plasma5Packages.akonadi
         plasma5Packages.akonadi-calendar
@@ -343,8 +340,9 @@ let
         plasma5Packages.kcalendarcore
         plasma5Packages.kcharselect
         plasma5Packages.kontact
-        plasma5Packages.korganizer
-        plasma5Packages.yakuake
+        # plasma5Packages.korganizer
+        # plasma5Packages.plasma-browser-integration
+        # plasma5Packages.yakuake
 
         # protonmail
         pass
@@ -352,20 +350,20 @@ let
 
 
         # for sway
-        # dmenu
-        # foot
-        # i3status-rust
-        # mako
-        # swaylock
-        # swayidle
-        # wl-clipboard
+        dmenu
+        foot
+        i3status-rust
+        mako
+        swaylock
+        swayidle
+        wl-clipboard
       ];
     };
 
-    # wayland.windowManager.sway = {
-    #   enable = true;
-    #   wrapperFeatures.gtk = true;
-    # };
+    wayland.windowManager.sway = {
+      enable = true;
+      wrapperFeatures.gtk = true;
+    };
 
 in {
 

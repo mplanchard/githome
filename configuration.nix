@@ -40,6 +40,7 @@
 
   # graphics optimization
   hardware.opengl.enable = true;
+  hardware.opengl.driSupport = true;
   hardware.opengl.extraPackages = with pkgs; [
     vaapiIntel
     vaapiVdpau
@@ -99,6 +100,7 @@
   # Enable the Plasma 5 Desktop Environment.
   # services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
+  nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
 
   # services.xserver.desktopManager.gnome.enable = true;
   # environment.gnome.excludePackages = [
@@ -180,6 +182,14 @@
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
+  
+  # For KDE Connect
+  networking.firewall.allowedTCPPortRanges = [
+    {from=1714; to=1764;}
+  ];
+  networking.firewall.allowedUDPPortRanges = [
+    {from=1714; to=1764;}
+  ];
   networking.firewall.enable = true;
 
   # This value determines the NixOS release from which the default

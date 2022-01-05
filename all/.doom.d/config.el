@@ -581,7 +581,15 @@
        :prefix "c"
        :desc "Find implementations"
        :nv "i"
-       #'lsp-find-implementation))
+       #'lsp-find-implementation)
+      ;; find-references on SPC-c-D as opposed to the peek, which I already
+      ;; have on g-D. This allows me to use embark-export on the results to
+      ;; get a persistent buffer of refs
+      (:leader
+       :prefix "c"
+       :desc "Find references"
+       :nv "D"
+       #'lsp-find-references))
 
 (map!
  (:after vterm
@@ -1210,13 +1218,20 @@ shell exits, the buffer is killed."
                 ((file-directory-p d3) d3))))
   (add-to-list 'load-path mu4e-dir))
 
+(use-package! mu4e-alert
+  :config (mu4e-alert-enable-mode-line-display))
+
 (use-package! mu4e
+  :init
+  (set-face-background 'mu4e-header-highlight-face "gray18")
   :config
   (setq
    ;; Don't pull in the entire thread from the archive when it gets a new message
    mu4e-headers-include-related nil
    ;; More space for the headers
    mu4e-headers-visible-lines 20
+   ;; systemd mbsync job handles this for us
+   mu4e-index-update-in-background nil
    ;; mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
    ;; mu4e-root-maildir "~/.mail"
    ;; Simpler threading indicators
@@ -1224,6 +1239,8 @@ shell exits, the buffer is killed."
    ;; mu4e-headers-thread-last-child-prefix '("| " . "| ")
    ;; mu4e-headers-thread-orphan-prefix '("" . "")
    mu4e-headers-show-threads t
+   mu4e-split-view 'vertical
+   mu4e-headers-visible-columns 160
    ;; make indexing faster
    ; mu4e-index-cleanup nil
    ; mu4e-index-lazy-check t
@@ -1271,5 +1288,4 @@ shell exits, the buffer is killed."
                               ;; (:mailing-list . 15)
                               (:flags . 8)
                               (:from . 30)
-                              (:subject . nil)))
-  (set-face-background 'mu4e-header-highlight-face "gray18"))
+                              (:subject . nil))))
