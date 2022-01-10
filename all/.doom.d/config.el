@@ -34,7 +34,8 @@
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
 (setq doom-font "Hack-11")
-;; (setq doom-variable-pitch-font "DejaVu Serif-11")
+(setq doom-serif-font "DejaVu Serif-11")
+(setq doom-variable-pitch-font "DejaVu Serif-11")
 ;; (setq doom-font "Fira Code-12")
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -263,6 +264,25 @@
   ;; the view, to avoid work when scrolling
   (setq jit-lock-stealth-time 32))
 
+(after! company
+  ;; -------------------------------------------
+  ;; Disable global completion for certain modes
+  ;; -------------------------------------------
+  ;;
+  ;; ensure the first element is `not', so that the list is negated
+  (unless (eq (car company-global-modes) 'not)
+    ;; remove any existing not, just in case
+    (setq company-global-modes (remove 'not company-global-modes))
+    ;; set the first element to not
+    (setcar company-global-modes 'not))
+  ;; add modes in which to disable company-mode to the list, passing `t' for the
+  ;; APPEND argument, which will ensure they are added to the end of the list, so
+  ;; that they do not interfere with the negation.
+  (add-to-list 'company-global-modes 'markdown-mode t)
+  (add-to-list 'company-global-modes 'org-mode t)
+  (add-to-list 'company-global-modes 'gfm-mode t))
+  ;; -------------------------------------------
+
 ;; don't try to smooth scroll on mac
 (setq mac-mouse-wheel-smooth-scroll nil)
 
@@ -328,17 +348,6 @@
 ;; set file for annotations
 (setq org-annotate-file-storage-file "~/org/annotations.org")
 (setq org-annotate-file-add-search t)
-
-;; disable autocomplete in org-mode. We can always turn it on, and I don't love
-;; autocomplete when I'm just trying to write stuff.
-(add-hook! 'org-mode-hook
-  (lambda ()
-    (company-mode -1)
-    (auto-fill-mode)))
-(add-hook! 'markdown-mode-hook
-  (lambda ()
-    (company-mode -1)
-    (auto-fill-mode)))
 
 (after! org
   :config
@@ -1011,6 +1020,54 @@ shell exits, the buffer is killed."
     (set-process-sentinel vterm--process #'my/run-in-vterm-kill)
     (vterm-send-string command)
     (vterm-send-return)))
+
+(defun my/aws-mfa (mfa-code)
+  (interactive "sMFA Code: ")
+  ;; For whatever reason, AWS won't log you in if you already have any
+  ;; of these set.
+  (setenv "AWS_ACCESS_KEY_ID")
+  (setenv "AWs_SECRET_ACCESS_KEY")
+  (setenv "AWS_SESSION_TOKEN")
+  (let* ((iam-user
+          ;; substring to remove the final newline
+          (substring
+           ;; get username, e.g. mplanchard
+           (shell-command-to-string
+            "aws sts get-caller-identity \
+             --output json \
+             | jq -r '.Arn' \
+             | awk -F '/' '{print $2}'") 0 -1))
+         (mfa-arn
+          (substring
+           ;; get the MFA device identifier
+           (shell-command-to-string
+            (format "aws iam list-mfa-devices \
+                    --user-name %s \
+                    --output json \
+                    | jq -r '.MFADevices[0].SerialNumber'"
+                    iam-user)) 0 -1))
+         (credentials
+          ;; get the credentials, which are space-separated, and
+          ;; split them into a list
+          (split-string
+           (shell-command-to-string
+            (format "aws sts get-session-token \
+                     --serial-number %s \
+                     --token %s \
+                     --output text \
+                     --duration-seconds 21600 \
+                     | awk '{print $2, $4, $5}'"
+                    mfa-arn
+                    mfa-code))))
+         ;; pull individual items out of the credentials list
+         (access-key-id (nth 0 credentials))
+         (secret-access-key (nth 1 credentials))
+         (session-token (nth 2 credentials)))
+    (unless (seq-every-p #'identity (list access-key-id secret-access-key session-token))
+      (error "Problem getting AWS info"))
+    (setenv "AWS_ACCESS_KEY_ID" access-key-id)
+    (setenv "AWS_SECRET_ACCESS_KEY" secret-access-key)
+    (setenv "AWS_SESSION_TOKEN" session-token)))
 
 ;; **********************************************************************
 ;; Org Tags

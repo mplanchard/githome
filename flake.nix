@@ -214,6 +214,22 @@ let
 
         nushell.enable = true;
 
+        ssh = {
+          enable = true;
+          matchBlocks = {
+            "aws-ssm" = {
+              host = "i-* mi-*";
+              user = "admin";
+              proxyCommand = ''
+                sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+              '';
+              extraOptions = {
+                StrictHostKeyChecking = "no";
+              };
+            };
+          };
+        };
+
         starship = {
           enable = true;
           # Enable once bash is configured by home manager
@@ -281,6 +297,7 @@ let
         _1password-gui
         aspell
         aspellDicts.en
+        awscli2
         automake
         bottom
         cmake
@@ -311,6 +328,7 @@ let
         lldb
         llvm
         lsof
+        mozwire  # TODO configure this
         neovim
         niv
         nodejs
@@ -325,6 +343,7 @@ let
         shellcheck
         signal-desktop
         slack
+        ssm-session-manager-plugin
         spotify
         sqlite
         stow
@@ -349,9 +368,9 @@ let
         })
 
         # kde-specific stuff
-	kdeconnect
-	korganizer
-	yakuake
+        kdeconnect
+        korganizer
+        yakuake
         plasma5Packages.accounts-qt
         plasma5Packages.akonadi
         plasma5Packages.akonadi-calendar
