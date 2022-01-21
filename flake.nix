@@ -80,6 +80,10 @@ let
           enable = true;
           create = "both";
           expunge = "both";
+          patterns = [
+            "*"
+            "![Gmail]/Important"
+          ];
         };
       };
 
@@ -107,6 +111,7 @@ let
       home.sessionVariables = {
         # MOZ_ENABLE_WAYLAND = 1;
         MOZ_DBUS_REMOTE = 1;
+        GITLAB_USER = "mplanchard";
       };
 
       xdg.enable = true;
@@ -154,6 +159,9 @@ let
             vterm_prompt_end(){
                 vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
             }
+
+            PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
+            export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab.com\/api login mplanchard/ { print $NF }')
           '';
         };
 
@@ -161,13 +169,11 @@ let
 
         exa = {
           enable = true;
-          # turn this on once I get bash config managed by home manager.
           enableAliases = true;
         };
 
         direnv = {
           enable = true;
-          # turn this on once I get bash config managed by home manager.
           enableBashIntegration = true;
           nix-direnv.enable = true;
         };
@@ -254,6 +260,8 @@ let
           # make it last all day
           defaultCacheTtl = 28800;
           defaultCacheTtlSsh = 28800;
+          maxCacheTtl = 28800;
+          maxCacheTtlSsh = 28800;
           enableSshSupport = true;
           extraConfig = ''
             allow-emacs-pinentry
@@ -328,6 +336,7 @@ let
         lldb
         llvm
         lsof
+        lynx
         mozwire  # TODO configure this
         neovim
         niv
@@ -348,6 +357,7 @@ let
         sqlite
         stow
         tmux
+        tokei
         unzip
         wget
         which

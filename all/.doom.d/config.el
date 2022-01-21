@@ -68,7 +68,7 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'visual)
 
 ;; Show time in the modeline
 (setq display-time-mode t)
@@ -286,6 +286,9 @@
 ;; don't try to smooth scroll on mac
 (setq mac-mouse-wheel-smooth-scroll nil)
 
+;; smooth scrolling!
+(setq pixel-scroll-precision-mode t)
+
 ;; Turn on fill-column-indicator mode globally, except for certain modes.
 (defun mp/disable-fill-column-indicator-mode ()
   (display-fill-column-indicator-mode 0))
@@ -315,6 +318,14 @@
 
 ;; org-mode settings
 (after! org
+  ;; set up associations for org-file-open
+  ;; - set the system opener
+  ;; -- for linux, use xdg-open
+  (setf (alist-get 'system org-file-apps-gnu) "xdg-open %s")
+  ;; -- for mac, use open
+  (setf (alist-get 'system org-file-apps-macos) "open %s")
+  ;; - for (x)html files, open w/the system opener
+  (setf (alist-get "\\.x?html?\\'" org-file-apps nil nil #'equal) 'system)
   ;; don't add section numbers to headings on export
   (setq org-export-with-section-numbers nil)
   ;; keep quotes as I wrote them, don't automatically use smart quotes
@@ -505,6 +516,10 @@
 ;; Keybindings
 ;; **********************************************************************
 
+(map! :map dired-mode-map
+      :nv "y y"
+      #'my/dired-kill-full-path)
+
 (map! :map org-mode-map
       :localleader
       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
@@ -588,6 +603,11 @@
        #'lsp-ui-imenu)
       (:leader
        :prefix "c"
+       :desc "Show buffer errors"
+       :nv "X"
+       #'flycheck-list-errors)
+      (:leader
+       :prefix "c"
        :desc "Find implementations"
        :nv "i"
        #'lsp-find-implementation)
@@ -652,6 +672,27 @@
        :prefix "g"
        :nv "R"
        #'ijanet-eval-buffer))
+
+
+(map! (:map code-review-mode-map
+       :desc "Add or edit comment"
+       "C-c C-c"
+       #'code-review-comment-add-or-edit)
+      (:map code-review-mode-map
+       :desc "Add or edit comment"
+       :localleader
+       "c"
+       #'code-review-comment-add-or-edit)
+      (:map code-review-mode-map
+       :desc "Show transient api"
+       :localleader
+       "m"
+       #'code-review-transient-api)
+      (:map code-review-comment-mode-map
+       :desc "Show transient API"
+       :localleader
+       "m"
+       #'code-review-transient-api))
 
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
@@ -776,6 +817,18 @@
 ;; Custom Functions
 ;; **********************************************************************
 
+(defun my/dired-kill-full-path ()
+    "Copy the absolute path to a file in dired"
+    (interactive)
+    (dired-copy-filename-as-kill 0))
+
+;; toggle from absolute to visual relative numbers
+(defun my/toggle-relative-line-numbers ()
+  (interactive)
+  (if (eq display-line-numbers t)
+      (setq display-line-numbers 'visual)
+    (setq display-line-numbers t)))
+
 (defun mp-parse-github-pr-target (target)
   "Parse the given GitHub PR TARGET into a URL
 
@@ -868,100 +921,10 @@ If not currently in a Projectile project, does not copy anything.
   (interactive)
   (kill-new (mp-get-relative-path)))
 
-
-(defun mp-bestow-db (dbenv dbuser)
-  (interactive "sEnvironment: \nsUser: ")
-  ;; Open a tunnel to the DB
-  (shell-command
-   (format
-    "source ~/.pyenv/take-two/bin/activate && cd ~/github/bestowinc/take-two/ && ~/github/bestowinc/take-two/go db tunnel %s &"
-    dbenv))
-  ;; ensure we have had time to establish the tunnel
-  (message "Establishing a tunnel...")
-  (sleep-for 10)
-  ;; Decrypt the password and set up teh sql-connection-alist variable so that
-  ;; it's set to connect to the DB
-  (let*
-      ((cmdstr
-        (format
-         "sops --decrypt --extract %s %s"
-         (format "'[\"%s\"]'"
-                 (cond
-                  ((string-equal dbuser "enrollment-ro") "ENROLLMENT_READ_ONLY_PASSWORD")
-                  ((string-equal dbuser "enrollment-rw") "ENROLLMENT_READ_WRITE_PASSWORD")
-                  ((string-equal dbuser "enrollment-owner") "ENROLLMENT_OWNER_PASSWORD")
-                  (t (throw 'no-user "No such user"))))
-         (format
-          "~/github/bestowinc/spellbook/.kubernetes/%s/encrypted/environment.yaml"
-          dbenv)))
-       (password (shell-command-to-string cmdstr))
-       (sql-connection-alist
-        (list (list
-               (concat "bestow-db-" dbenv)
-               '(sql-product 'postgres)
-               '(sql-server "localhost")
-               '(sql-port 5433)
-               (list 'sql-user dbuser)
-               (list 'sql-database
-                     (format
-                      "postgresql://%s:%s@localhost:5433/enrollment"
-                      dbuser
-                      password))))))
-    (sql-connect (concat "bestow-db-" dbenv))))
-
-(defun mp-echo-async-run-shell-command (command)
+(defun mp/echo-async-run-shell-command (command)
   "Echo the shell command to the *Async Shell Command* buffer, then run it, opening the buffer."
   (async-shell-command (format "echo '%s' && %s" command command))
   (get-buffer "*Async Shell Command*"))
-
-
-(defun mp-githome (git_command)
-  (interactive "sGit Command: ")
-  (mp-echo-async-run-shell-command
-   (format
-    "git --git-dir $HOME/.dotfiles --work-tree=$HOME %s"
-    git_command)))
-
-
-(defun mp-run-system-setup ()
-  "Run my system setup script."
-  (interactive)
-  (mp-echo-async-run-shell-command "bash ~/scripts/setup.sh"))
-
-
-(defun mp-githome-pull ()
-  "Pull any changes to the githome"
-  (interactive)
-  (mp-githome "pull"))
-
-(defun mp-take-two-deploy-list (&optional target)
-  "Get a list of commits to deploy from up to TARGET, or master/HEAD if not provided"
-  (interactive "sTarget [default current staging SHA]: ")
-  (let ((current
-         ;; grab the current deployed
-         (cdr (assoc 'commit_sha
-                     (with-current-buffer (url-retrieve-synchronously "https://api.hellobestow.com/version")
-                       (goto-char url-http-end-of-headers)
-                       (json-read)))))
-        (target
-         (if (string-empty-p target)
-             (cdr (assoc 'commit_sha
-                         (with-current-buffer (url-retrieve-synchronously "https://api.stage.bestow.io/version")
-                           (goto-char url-http-end-of-headers)
-                           (json-read))))
-           target)))
-    ;; ensure we're up to date with origin
-    (magit-git-fetch "origin" "master")
-    ;; output git log to buffer (note we could use ~magit-log-other~ here, but
-    ;; I cannot figure out how to copy the git logs in a way that includes the
-    ;; author, even though it shows up in the log view. Since copying and pasting
-    ;; the logs into slack and tagging people for approval is a critical part of
-    ;; this workflow, we're sticking with running the shell command)
-    (shell-command
-     (format
-      "git log --graph --pretty=format:'%%h - %%d %%s (%%cr) (%%an)' %s..%s --abbrev-commit"
-      current
-      target))))
 
 (defun my/convert (value-string unit-string)
   "Convert VALUE-STRING to the target UNIT-STRING.
@@ -1254,9 +1217,6 @@ shell exits, the buffer is killed."
         (:grouptags) ("coreutils") ("virtual_memory")
         (:endgrouptag))))
 
-
-
-
 ;; **********************************************************************
 ;; Email
 ;; **********************************************************************
@@ -1278,9 +1238,11 @@ shell exits, the buffer is killed."
 (use-package! mu4e-alert
   :config (mu4e-alert-enable-mode-line-display))
 
+(setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
+AND \"maildir:/gmail/Inbox\" \
+AND \"maildir:/spectrust/Inbox\"")
+
 (use-package! mu4e
-  :init
-  (set-face-background 'mu4e-header-highlight-face "gray18")
   :config
   (setq
    ;; Don't pull in the entire thread from the archive when it gets a new message
@@ -1304,8 +1266,8 @@ shell exits, the buffer is killed."
    ;; update mail every 5 minutes
    ;; mu4e-split-view 'vertical
    ;; used to display an unread count
-   mu4e-alert-interesting-mail-query
-   "flag:unread AND NOT flag:trashed AND NOT maildir:'/gmail/[Gmail]/All Mail' AND NOT /spectrust/[Gmail]/All Mail")
+   mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query)
+
   (map! :map mu4e-headers-mode-map
         :desc "mark thread"
         :nv "T"
@@ -1330,11 +1292,17 @@ shell exits, the buffer is killed."
                         (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
                         (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
+
   (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
+  (add-hook! 'mu4e-headers-mode-hook
+    #'(lambda () (set-face-background 'mu4e-header-highlight-face "gray18")))
+
   (add-to-list 'mu4e-bookmarks
                '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
   (add-to-list 'mu4e-bookmarks
                '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
+  (add-to-list 'mu4e-bookmarks
+               '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
   ;; (setq mu4e-headers-fields '((:account . 8)
   ;;                             (:flags . 4)
   ;;                             (:mailing-list . 12)

@@ -19,6 +19,7 @@
 (package! dhall-mode)  ;; support for dhall config language
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
+(package! elpher) ;; gopher in emacs
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
 (package! evil-textobj-tree-sitter) ;; tree-sitter objects as vim targets
 (package! exec-path-from-shell) ;; ensure the path generated from bashrc gets used in emacs

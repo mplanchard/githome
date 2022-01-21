@@ -10,6 +10,8 @@
 	path = ~/.gitconfig.local
 [github]
 	user = mplanchard
+[merge]
+	conflictstyle = diff3
 [pager]
 	diff = delta
 	log = delta
@@ -17,6 +19,8 @@
 	show = delta
 [pull]
 	ff = only
+[push]
+	default = current
 [ineractive]
 	diffFilter = delta --color-only
 [alias]
