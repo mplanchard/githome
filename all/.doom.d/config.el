@@ -1235,12 +1235,10 @@ shell exits, the buffer is killed."
                 ((file-directory-p d3) d3))))
   (add-to-list 'load-path mu4e-dir))
 
-(use-package! mu4e-alert
-  :config (mu4e-alert-enable-mode-line-display))
+(add-hook! 'after-init-hook #'mu4e-alert-enable-mode-line-display)
 
 (setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
-AND \"maildir:/gmail/Inbox\" \
-AND \"maildir:/spectrust/Inbox\"")
+AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
 
 (use-package! mu4e
   :config
