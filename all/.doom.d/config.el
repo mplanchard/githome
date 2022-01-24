@@ -520,6 +520,13 @@
       :nv "y y"
       #'my/dired-kill-full-path)
 
+(map! (:map embark-file-map
+       :desc "v-split"
+       "V" (lambda (file) (+evil/window-vsplit-and-follow) (find-file file)))
+      (:map embark-file-map
+       :desc "h-split"
+       "H" (lambda (file) (+evil/window-split-and-follow) (find-file file))))
+
 (map! :map org-mode-map
       :localleader
       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
