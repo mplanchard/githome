@@ -103,11 +103,13 @@
 ;; something, so try setting it back up to avoid GC pauses
 (setq gcmh-idle-delay 10)
 
-;; Specify that buffers must have unique names and specify logic
-(require 'uniquify)
-;; Use path components with forward slashes, so foo/mod.rs and bar/mod.rs
-;; are named as such
-(setq uniquify-buffer-name-style 'forward)
+;; doom's `persp-mode' activation disables uniquify, b/c it says it breaks it.
+;; It doesn't cause big enough problems for me to worry about it, so we override
+;; the override. `pers-mode' is activated in the `doom-init-ui-hook', so we add
+;; another hook at the end of the list of hooks to set our uniquify values.
+(add-hook! 'doom-init-ui-hook
+           :append ;; ensure it gets added to the end.
+           #'(lambda () (require 'uniquify) (setq uniquify-buffer-name-style 'forward)))
 
 (after! orderless
   (add-to-list 'orderless-matching-styles #'orderless-prefixes))
@@ -527,9 +529,14 @@
        :desc "h-split"
        "H" (lambda (file) (+evil/window-split-and-follow) (find-file file))))
 
-(map! :map org-mode-map
-      :localleader
-      :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
+(map! (:map org-mode-map
+       :localleader
+       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
+      (:map org-mode-map
+       :localleader
+       :desc "emphasize"
+       "!"
+       #'org-emphasize))
 
 (map! (:leader
        :prefix "w"
