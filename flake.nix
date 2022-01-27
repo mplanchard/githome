@@ -102,6 +102,13 @@ let
       # ensure nix programs can find nix-installed fonts
       fonts.fontconfig.enable = true;
 
+      home.file.gdbinit = {
+        target = ".gdbinit";
+        text = ''
+        set auto-load safe-path /nix/store/
+        '';
+      };
+
       # Extra variables to add to PATH
       home.sessionPath = [
         "$HOME/bin"

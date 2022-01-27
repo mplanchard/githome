@@ -119,7 +119,7 @@
 ;; **********************************************************************
 
 (setq enable-local-variables t)
-(setq browse-url-browser-function 'browse-url-xdg-open)
+;; (setq browse-url-browser-function 'browse-url-xdg-open)
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
@@ -144,119 +144,111 @@
         "~s/gl/spectrust"
         "~/s/gh/mplanchard"))
 
-;; Make the ivy serach buffer larger
-(setq ivy-height 25)
-
 (after! company
   (setq company-idle-delay 0.01))
 
 (after! evil
+  ;; ensure escape happens immediately, so subsequent normal commands are executed
   (setq evil-esc-delay 0)
-  (setq evil-escape-delay 0)
-  (setq evil-escape-mode nil)
+  (setq evil-escape-delay 0.1) ;; delay between pressing j and k to escape
   (setq evil-ex-search-case 'smart))
 
 ;; LSP Settings and Performance Tuning
-
 ;; performance
 ;; (setq lsp-use-plists t)
-
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 
-;; no need for this IMO
-(setq lsp-enable-on-type-formatting nil)
+(use-package! lsp
+  :config
+  ;; no need for this IMO
+  (setq lsp-enable-on-type-formatting nil)
+  ;; the headerline is cool
+  (setq lsp-headerline-breadcrumb-enable t)
+  ;; the icons don't look good
+  (setq lsp-headerline-breadcrumb-icons-enable nil)
+  ;; enable annoying squiggles in the headerline
+  (setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+  ;; prevent running lsp stuff for a second, for performance
+  (setq lsp-idle-delay 1)
 
-;; the headerline is cool
-(setq lsp-headerline-breadcrumb-enable t)
-;; the icons don't look good
-(setq lsp-headerline-breadcrumb-icons-enable nil)
-;; enable annoying squiggles in the headerline
-(setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+  ;; Show function signatures while writing functions and types for the thing at point
+  (setq lsp-signature-auto-activate t)
+  ;; I like the function signatures while writing functions, but don't like
+  ;; the we way the docs make the little buffer at the bottom pop up distractingly.
+  (setq lsp-signature-render-documentation nil)
 
-;; prevent running lsp stuff for a second, for performance
-(setq lsp-idle-delay 1)
+  ;; I just use spc c a for this, don't need them on the modeline
+  (setq lsp-modeline-code-actions-enable nil)
 
-;; Show function signatures while writing functions and types for the thing at point
-(setq lsp-signature-auto-activate t)
-;; I like the function signatures while writing functions, but don't like
-;; the we way the docs make the little buffer at the bottom pop up distractingly.
-(setq lsp-signature-render-documentation nil)
+  ;; watching all the files in a project doesn't seem to be worth the performance
+  ;; tradeoff when the project gets large
+  (setq lsp-enable-file-watchers nil)
 
-;; I just use spc c a for this, don't need them on the modeline
-(setq lsp-modeline-code-actions-enable nil)
+  ;; can't hit the lenses with the keyboard, don't care about them
+  (setq lsp-lens-enable nil)
 
-;; watching all the files in a project doesn't seem to be worth the performance
-;; tradeoff when the project gets large
-(setq lsp-enable-file-watchers nil)
+  ;; Enable proc-macro expansion
+  (setq lsp-rust-analyzer-proc-macro-enable t)
+  ;; Use build scripts in the analyzer context
+  (setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+  ;; Build with --all-features
+  (setq lsp-rust-all-features t)
+  ;; Build with --test
+  (setq lsp-rust-cfg-test t)
+  ;; Inlay type hints are nice
+  (setq lsp-rust-analyzer-server-display-inlay-hints t)
+  (setq lsp-rust-analyzer-display-chaining-hints t)
+  (setq lsp-rust-analyzer-display-parameter-hints t))
 
-;; Enable proc-macro expansion
-(setq lsp-rust-analyzer-proc-macro-enable t)
-;; Use build scripts in the analyzer context
-(setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
-;; Build with --all-features
-(setq lsp-rust-all-features t)
-;; Build with --test
-(setq lsp-rust-cfg-test t)
-;; Inlay type hints are nice
-(setq lsp-rust-analyzer-server-display-inlay-hints t)
-(setq lsp-rust-analyzer-display-chaining-hints t)
-(setq lsp-rust-analyzer-display-parameter-hints t)
+(use-package! lsp-ui
+  :config
+  ;; Add a delay here for performance
+  (setq lsp-ui-sideline-delay 0.75)
+  ;; Show more context b/c rust errors are chonky
+  (setq lsp-ui-sideline-diagnostic-max-lines 20)
+  ;; This is distracting
+  (setq lsp-ui-sideline-show-code-actions nil)
+  ;; This shows function signatures and stuff, but I already get that below
+  ;; the modeline, so this is just distracting. It does look cool though.
+  (setq lsp-ui-sideline-show-hover nil)
 
-;; can't hit the lenses with the keyboard, don't care about them
-(setq lsp-lens-enable nil)
+  ;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
+  ;; for the poppup buffer
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-show-with-mouse nil)
+  ;; More performance-related delays
+  (setq lsp-ui-doc-delay 0.75)
+  ;; hover where I'm at when I do trigger it
+  (setq lsp-ui-doc-position 'at-point)
 
-;; Add a delay here for performance
-(setq lsp-ui-sideline-delay 0.75)
-;; Show more context b/c rust errors are chonky
-(setq lsp-ui-sideline-diagnostic-max-lines 20)
-;; This is distracting
-(setq lsp-ui-sideline-show-code-actions nil)
-;; This shows function signatures and stuff, but I already get that below
-;; the modeline, so this is just distracting. It does look cool though.
-(setq lsp-ui-sideline-show-hover nil)
+  ;; the default size is much too small. Make it both wider and taller.
+  (setq lsp-ui-doc-max-width 150)
+  (setq lsp-ui-doc-max-height 24)
 
-;; Don't want auto-docs. I have it triggering on g h for hover or shift+k
-;; for the poppup buffer
-(setq lsp-ui-doc-enable nil)
-(setq lsp-ui-doc-show-with-cursor nil)
-(setq lsp-ui-doc-show-with-mouse nil)
-;; More performance-related delays
-(setq lsp-ui-doc-delay 0.75)
-;; hover where I'm at when I do trigger it
-(setq lsp-ui-doc-position 'at-point)
+  ;; Because why not??
+  (setq lsp-ui-doc-include-signature t)
 
-;; the default size is much too small. Make it both wider and taller.
-(setq lsp-ui-doc-max-width 150)
-(setq lsp-ui-doc-max-height 24)
+  ;; I like "go to definition" (g d) to show me a peek of the definnition, b/c
+  ;; I very often want to just look at it, not travel to it. I can press Enter
+  ;; from the peek if I want to travel.
+  (setq lsp-ui-peek-always-show t))
 
-;; Because why not??
-(setq lsp-ui-doc-include-signature t)
-
-;; I like "go to definition" (g d) to show me a peek of the definnition, b/c
-;; I very often want to just look at it, not travel to it. I can press Enter
-;; from the peek if I want to travel.
-(setq lsp-ui-peek-always-show t)
 
 ;; Delay for perf
 (setq flycheck-idle-change-delay 1.5)
 
+;; Allow lots of flycheck errors
+(setq flycheck-checker-error-threshold 1000)
+
 ;; headerline mode fails in ediff, so make sure it doesn't start.
 (add-hook!
  '(ediff-prepare-buffer-hook magit-blob-mode-hook)
- (lambda () (lsp-headerline-breadcrumb-mode -1)))
-
-;; Allow lots of flycheck errors
-(after! flycheck
-  (setq flycheck-checker-error-threshold 1000))
-
-;; honestly I don't use this anymore (dired is better), but I like this theme
-(after! neotree
-  (setq neo-theme 'ascii))
+ #'(lambda () (lsp-headerline-breadcrumb-mode -1)))
 
 ;; treat camelCase words as two words for spellcheck
-(after! ispell
-  (setq ispell-extra-args (append '("--camel-case") ispell-extra-args)))
+(setq ispell-extra-args (append '("--camel-case") ispell-extra-args))
 
 ;; Try to improve syntax hihglighting performance for really large files
 (after! jit-lock
@@ -282,7 +274,8 @@
   ;; that they do not interfere with the negation.
   (add-to-list 'company-global-modes 'markdown-mode t)
   (add-to-list 'company-global-modes 'org-mode t)
-  (add-to-list 'company-global-modes 'gfm-mode t))
+  (add-to-list 'company-global-modes 'gfm-mode t)
+  (add-to-list 'company-global-modes 'git-commit-mode t))
   ;; -------------------------------------------
 
 ;; don't try to smooth scroll on mac
@@ -299,8 +292,12 @@
 (add-hook! 'vterm-mode-hook #'mp/disable-fill-column-indicator-mode)
 
 
-;; I use regular escape commands and don't need evil-escape
-(setq evil-escape-inhibit t)
+;; doom hack
+;; disable evil-snipe-override mode, which causes `d f SPC' and similar commands
+;; to delete up to but not including the space
+(add-hook! 'doom-first-input-hook ;; this is the mode that enables it
+           :append ;; add to end of list so that ours executes last
+           #'(lambda () (evil-snipe-override-mode -1)))
 
 ;; don't try to restart the server if it's already running
 ;; (unless
@@ -308,13 +305,15 @@
 ;;      (boundp 'server-process)
 ;;      (memq (process-status server-process) '(connect listen open run)))
 ;;   (server-start))
-(require 'org-protocol)
-(let ((t1 `("P" "Protocol" entry (file "inbox.org")
-        "* TODO %:description \nSource: [[%:link][%:description]] \nCaptured On: %U \n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?"))
-      (t2 `("L" "Protocol Link" entry (file "inbox.org")
-        "* TODO %:description \nSource: [[%:link][%:description]] \nCaptured On: %U\n%?")))
-  (unless (member t1 org-capture-templates) (add-to-list 'org-capture-templates t1))
-  (unless (member t2 org-capture-templates) (add-to-list 'org-capture-templates t2)))
+(use-package! org-protocol
+  :config
+  (let ((t1 `("P" "Protocol" entry (file "inbox.org")
+              "* TODO %:description \nSource: [[%:link][%:description]] \nCaptured On: %U \n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?"))
+        (t2 `("L" "Protocol Link" entry (file "inbox.org")
+              "* TODO %:description \nSource: [[%:link][%:description]] \nCaptured On: %U\n%?")))
+    (unless (member t1 org-capture-templates) (add-to-list 'org-capture-templates t1))
+    (unless (member t2 org-capture-templates) (add-to-list 'org-capture-templates t2))))
+
 ;; for debugging
 ;; (setq org-capture-templates nil)
 
@@ -336,10 +335,23 @@
   ;; caret doesn't get interpreted as such
   (setq org-export-with-sub-superscripts '{})
   ;; don't automatically add a ToC to exports
-  (setq org-export-with-toc nil))
+  (setq org-export-with-toc nil)
+  ;; Allow executing JS code blocks in org
+  (use-package! ob-js)
+  ;; Allow executing TS code blocks in org
+  (use-package! ob-typescript
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((typescript . t))))
+  ;; enable auto-fill in org-mode by default
+  (add-hook! org-mode #'(lambda () (auto-fill-mode)))
+  ;; prevent killing the agenda buffer, since it takes a while to load
+  (add-hook! 'org-agenda-after-show-hook #'(lambda () (emacs-lock-mode 'kill))))
 
 ;; org-journal settings
-(after! org-journal
+(use-package! org-journal
+  :config
   (setq
    ;; Just shove it straight into the org dir
    org-journal-dir org-directory
@@ -362,20 +374,6 @@
 (setq org-annotate-file-storage-file "~/org/annotations.org")
 (setq org-annotate-file-add-search t)
 
-(after! org
-  :config
-  ;; Allow executing JS code blocks in org
-  (require 'ob-js)
-  ;; prevent killing the agenda buffer
-  (add-hook 'org-agenda-after-show-hook (lambda () (emacs-lock-mode 'kill))))
-
-;; Allow executing TS code blocks in org
-(after! ob-typescript
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((typescript . t))))
-
-;; org-roam
 (setq
  deft-directory org-directory
  deft-extensions '("org" "md")
@@ -387,7 +385,7 @@
 
 (after! github-review
   :config
-  (add-hook! 'github-review-mode-hook (lambda () (ws-butler-mode -1))))
+  (add-hook! 'github-review-mode-hook #'(lambda () (ws-butler-mode -1))))
 
 (after! rmsbolt
   :config
@@ -426,10 +424,10 @@
 ;; of windows open. Keybinding for ace-window is set up below.
 (use-package! ace-window)
 
-(use-package! emms
-  :config
-  (require 'emms-setup)
-  (require 'emms-info-tinytag)
+;; music player in in emacs
+(after! emms
+  (use-package! emms-setup)
+  (use-package! emms-info-tinytag)
   (emms-all)
   (setq emms-info-functions '(emms-info-tinytag))
   (setq emms-player-list '(emms-player-vlc, emms-player-vlc-playlist))
@@ -439,27 +437,28 @@
 
 (use-package! gh-notify)
 
-;; (use-package! dap-mode
-;;   :config
-;;   (dap-ui-mode)
-;;   (dap-ui-controls-mode t)
-;;   (require 'dap-lldb)
-;;   (require 'dap-gdb-lldb)
-;;   (dap-gdb-lldb-setup)
-;;   (dap-register-debug-template "Rust::GDB Run Configuration"
-;;                                (list :type "gdb"
-;;                                      :request "launch"
-;;                                      :name "GDB::Run"
-;;                                      :gdbpath "rust-gdb"
-;;                                      :target nil
-;;                                      :cwd nil))
-;;   (dap-register-debug-template "Rust::LLDB Run Configuration"
-;;                                (list :type "lldb"
-;;                                      :request "launch"
-;;                                      :name "LLDB::Run"
-;;                                      :gdbpath "rust-lldb"
-;;                                      :target nil
-;;                                      :cwd nil)))
+;; visual debugger
+(use-package! dap-cpptools
+  :config
+  (dap-ui-mode)
+  (dap-ui-controls-mode t)
+  (use-package! dap-lldb)
+  (use-package! dap-gdb-lldb)
+  (dap-gdb-lldb-setup)
+  (dap-register-debug-template "Rust::GDB Run Configuration"
+                               (list :type "gdb"
+                                     :request "launch"
+                                     :name "GDB::Run"
+                                     :gdbpath "rust-gdb"
+                                     :target nil
+                                     :cwd nil))
+  (dap-register-debug-template "Rust::LLDB Run Configuration"
+                               (list :type "lldb"
+                                     :request "launch"
+                                     :name "LLDB::Run"
+                                     :gdbpath "rust-lldb"
+                                     :target nil
+                                     :cwd nil)))
 
 (use-package! git-link
   :config
@@ -702,6 +701,14 @@
        :localleader
        "m"
        #'code-review-transient-api)
+      (:map code-review-mode-map
+       :desc "Next comment"
+       "] ]"
+       #'code-review-comment-jump-next)
+      (:map code-review-mode-map
+       :desc "Previous comment"
+       "[ ["
+       #'code-review-comment-jump-previous)
       (:map code-review-comment-mode-map
        :desc "Show transient API"
        :localleader
@@ -728,10 +735,9 @@
   (setq markdown-nested-imenu-heading-index t)
   (setq markdown-toc-header-toc-start "<!-- markdown-toc-start -->"))
 
-;; Disable autocomplete in markdown mode and gfm mode. I don't love autocomplete
-;; when I'm just trying to write stuff.
-(add-hook! 'markdown-mode-hook (lambda () (company-mode -1)))
-(add-hook! 'gfm-mode-hook (lambda () (company-mode -1)))
+;; Enable auto-fill mode for markdown
+(add-hook! 'markdown-mode-hook #'(lambda () (auto-fill-mode)))
+(add-hook! 'gfm-mode-hook #'(lambda () (auto-fill-mode)))
 
 ;; **********************************************************************
 ;; Javascript/Typescript
@@ -949,14 +955,6 @@ For interactive conversion, use `(calc-convert-units)'."
    (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
 
 (defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
-
-;; (defun my/aws-login ()
-;;   (interactive)
-;;   )
-
-
-;; (defun my/one-password-login ()
-;;   (interactive))
 
 ;; **********************************************************************
 ;; Externally Sourced Functions
@@ -1249,7 +1247,10 @@ shell exits, the buffer is killed."
                 ((file-directory-p d3) d3))))
   (add-to-list 'load-path mu4e-dir))
 
-(add-hook! 'after-init-hook #'mu4e-alert-enable-mode-line-display)
+;; refresh the modeline display for unread emails every 5 minuts
+(add-hook! 'after-init-hook
+  #'(lambda ()
+    (run-with-timer 0 300 #'mu4e-alert-enable-mode-line-display)))
 
 (setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
 AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
@@ -1315,12 +1316,6 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
   (add-to-list 'mu4e-bookmarks
                '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
-  ;; (setq mu4e-headers-fields '((:account . 8)
-  ;;                             (:flags . 4)
-  ;;                             (:mailing-list . 12)
-  ;;                             (:from . 22)
-  ;;                             (:human-date . 12)
-  ;;                             (:subject . nil))))
   (setq mu4e-headers-fields '((:human-date . 12)
                               ;; (:mailing-list . 15)
                               (:flags . 8)
