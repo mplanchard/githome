@@ -581,17 +581,35 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-;; Replace rustic's cargo check, which opens in a minibuffer popup, to one that
-;; opens in a dedicated buffer
-(map! :after rustic
-      :map rustic-mode-map
-      :localleader
-      :prefix "b"
-      :desc "cargo check"
-      :nv "c"
-      #'(lambda ()
-          (interactive)
-          (rustic-run-cargo-command "cargo check --tests" '(:buffer "*cargo-check*"))))
+;; Replace rustic's cargo check, build, and run, which open in a minibuffer
+;; popup, to open in dedicated buffers
+(map! (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "b"
+       :desc "cargo check"
+       :nv "c"
+       #'(lambda ()
+           (interactive)
+           (rustic-run-cargo-command "cargo check --tests" '(:buffer "*cargo-check*"))))
+      (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "b"
+       :desc "cargo build"
+       :nv "b"
+       #'(lambda ()
+           (interactive)
+           (rustic-run-cargo-command "cargo build" '(:buffer "*cargo-build*"))))
+      (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "b"
+       :desc "cargo run"
+       :nv "r"
+       #'(lambda ()
+           (interactive)
+           (rustic-run-cargo-command "cargo run" '(:buffer "*cargo-run*")))))
 
 (map! (:after org
        :map org-mode-map
