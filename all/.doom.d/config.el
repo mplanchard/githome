@@ -582,7 +582,7 @@
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
 ;; Replace rustic's cargo check, build, and run, which open in a minibuffer
-;; popup, to open in dedicated buffers
+;; popup, so that they open in dedicated buffers
 (map! (:after rustic
        :map rustic-mode-map
        :localleader

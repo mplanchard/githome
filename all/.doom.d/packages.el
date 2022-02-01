@@ -10,6 +10,7 @@
 ;(package! some-package)
 
 (package! ace-window) ;; allow easy jumping between many windows
+(package! anzu) ;; preview find and replace
 (package! browse-at-remote) ;; hopefully a bit of a better git-link
 (package! cargo-mode
   :recipe (:host github :repo "ayrat555/cargo-mode"))

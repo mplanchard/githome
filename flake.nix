@@ -119,6 +119,7 @@ let
         # MOZ_ENABLE_WAYLAND = 1;
         MOZ_DBUS_REMOTE = 1;
         GITLAB_USER = "mplanchard";
+        EDITOR = "emacsclient";
       };
 
       xdg.enable = true;
