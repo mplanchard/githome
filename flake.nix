@@ -5,7 +5,9 @@
     nixpkgs.url = "nixpkgs/nixos-21.11";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
-    home-manager.url = "github:nix-community/home-manager";
+    # must match nixpkgs version
+    home-manager.url = "github:nix-community/home-manager/release-21.11";
+
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     # GL support on non nixOS systems
     # nixGL = { url = "github:guibou/nixGL"; flake = false; };
@@ -102,6 +104,9 @@ let
       # ensure nix programs can find nix-installed fonts
       fonts.fontconfig.enable = true;
 
+      # ensure home-manager version matches nixpkgs version
+      home.enableNixpkgsReleaseCheck = true;
+
       home.file.gdbinit = {
         target = ".gdbinit";
         text = ''
@@ -184,6 +189,7 @@ let
           enable = true;
           enableBashIntegration = true;
           nix-direnv.enable = true;
+          nix-direnv.enableFlakes = true;
         };
 
         emacs = {
