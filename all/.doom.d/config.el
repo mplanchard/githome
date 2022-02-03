@@ -849,7 +849,13 @@
          (sql-server "localhost")
          (sql-port 5432)
          (sql-user "postgres")
-         (sql-database "spec_protected"))))
+         (sql-database "spec_protected"))
+        ("st-dev-test"
+         (sql-product 'postgres)
+         (sql-server "localhost")
+         (sql-port 5432)
+         (sql-user "postgres")
+         (sql-database "spec_protected_test"))))
 
 ;; **********************************************************************
 ;; Custom Functions
