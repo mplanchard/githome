@@ -199,7 +199,8 @@
   ;; Inlay type hints are nice
   (setq lsp-rust-analyzer-server-display-inlay-hints t)
   (setq lsp-rust-analyzer-display-chaining-hints t)
-  (setq lsp-rust-analyzer-display-parameter-hints t))
+  (setq lsp-rust-analyzer-display-parameter-hints t)
+  (setq lsp-rust-analyzer-experimental-proc-attr-macros t))
 
 (use-package! lsp-ui
   :config
@@ -609,7 +610,14 @@
        :nv "r"
        #'(lambda ()
            (interactive)
-           (rustic-run-cargo-command "cargo run" '(:buffer "*cargo-run*")))))
+           (rustic-run-cargo-command "cargo run" '(:buffer "*cargo-run*"))))
+      (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "t"
+       :desc "rerun test"
+       :nv "r"
+       #'rustic-cargo-test-rerun))
 
 (map! (:after org
        :map org-mode-map
