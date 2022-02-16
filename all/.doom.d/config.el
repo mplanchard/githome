@@ -592,7 +592,7 @@
        :nv "c"
        #'(lambda ()
            (interactive)
-           (rustic-run-cargo-command "cargo check --tests" '(:buffer "*cargo-check*"))))
+           (rustic-run-cargo-command "cargo check --tests --all-features" '(:buffer "*cargo-check*"))))
       (:after rustic
        :map rustic-mode-map
        :localleader
@@ -634,6 +634,15 @@
        :desc "open at point"
        :nv "o"
        #'org-open-at-point))
+
+(map! (:map pdf-view-mode-map
+       :desc "history-back"
+       :nv "C-o"
+       #'pdf-history-backward)
+      (:map pdf-view-mode-map
+       :desc "history-forward"
+       :nv "<C-i>" ;; note that C-i without brackets is equivalent to TAB
+       #'pdf-history-forward))
 
 (map! (:leader
        :prefix "c"
