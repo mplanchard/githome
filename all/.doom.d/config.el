@@ -48,8 +48,8 @@
 (setq org-directory "~/org/")
 (setq org-roam-directory (file-truename org-directory))
 ;; (setq +org-roam-open-buffer-on-find-file nil)
-(setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
-(setq org-journal-dir (file-name-concat org-directory "journal"))
+;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
+;; (setq org-journal-dir (file-name-concat org-directory "journal"))
 
 (setq org-roam-capture-templates
       (list
@@ -1272,11 +1272,13 @@ shell exits, the buffer is killed."
      (d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
      (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
      (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
+     (d4 "~/.nix-profile/share/emacs/site-lisp/mu4e") ;; install from nix on not NixOS
      (mu4e-dir (cond
                 ((file-directory-p d0) d0)
                 ((file-directory-p d1) d1)
                 ((file-directory-p d2) d2)
-                ((file-directory-p d3) d3))))
+                ((file-directory-p d3) d3)
+                ((file-directory-p d4) d4))))
   (add-to-list 'load-path mu4e-dir))
 
 ;; refresh the modeline display for unread emails every 5 minuts

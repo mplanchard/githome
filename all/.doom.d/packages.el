@@ -43,6 +43,7 @@
 (package! magit-delta) ;; nice diff highlighting
 (package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
+(package! modus-themes) ;; for pre-emacs 28
 (package! mu4e-views) ;; html emails in xwidgets view
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! prettier-js)  ;; use prettier for formatting JS/TS
