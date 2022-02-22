@@ -127,8 +127,7 @@ in
   xdg.enable = true;
 
   home.packages = with pkgs; hmConfig . packages or [] ++ [
-    aspell
-    aspellDicts.en
+    (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cmake
     coreutils
