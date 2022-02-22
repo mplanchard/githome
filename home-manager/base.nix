@@ -69,7 +69,9 @@ in
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacsPgtkGcc;
+      package = (pkgs.emacsPgtkGcc.override {
+        withXwidgets = true;
+      });
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
@@ -129,6 +131,7 @@ in
   home.packages = with pkgs; hmConfig . packages or [] ++ [
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
+    cachix
     cmake
     coreutils
     curl
@@ -161,6 +164,7 @@ in
     pinentry-curses
     procps
     python3Full
+    python3Packages.grip
     ripgrep
     shellcheck
     sqlite
