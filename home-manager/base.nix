@@ -171,6 +171,8 @@
     ripgrep
     shellcheck
     slack
+    signal-desktop
+    spotify
     sqlite
     stow
     tmux
