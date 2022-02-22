@@ -16,7 +16,6 @@
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
   outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }:
   let
-    system = "x86_64-linux";
     # unstable = import inputs.nixpkgs-unstable { inherit system; };
     overlays = [
       emacs-overlay.overlay
@@ -60,12 +59,19 @@
         (pkgs.lib.tail modules);
 
   in rec {
-    homeManagerConfigs = {
-      mp-st-nix = (home-manager.lib.homeManagerConfiguration (
-        let
+    mp-st-nix =
+      let
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
-        in {
+      in rec {
+        homeManagerConfig = combineHomeManagerModules systemPkgs [
+            (import ./home-manager/base.nix)
+            (import ./home-manager/not-aarch64.nix)
+            (import ./home-manager/email.nix)
+            (import ./home-manager/kde.nix)
+          ];
+        homeManager = (home-manager.lib.homeManagerConfiguration (
+        {
           inherit system;
           pkgs = systemPkgs;
           homeDirectory = "/home/matthew";
@@ -74,19 +80,21 @@
           # as what you find in home-manager's documentation for what you'd put in
           # a home.nix file.
           # configuration = homeManagerConfig;
-          configuration = combineHomeManagerModules systemPkgs [
-            (import ./home-manager/base.nix)
-            (import ./home-manager/not-aarch64.nix)
-            (import ./home-manager/email.nix)
-            (import ./home-manager/kde.nix)
-          ];
+          configuration = homeManagerConfig;
         })).activationPackage;
+      };
 
-      mp-st-m1 = (home-manager.lib.homeManagerConfiguration (
-        let
+    mp-st-m1 =
+      let
           system = "aarch64-darwin";
           systemPkgs = pkgs.x86_64-darwin;
-        in {
+      in rec {
+        homeManagerConfig = combineHomeManagerModules systemPkgs [
+            (import ./home-manager/base.nix)
+            (import ./home-manager/email.nix)
+          ];
+        homeManager = (home-manager.lib.homeManagerConfiguration (
+        {
           inherit system;
           pkgs = systemPkgs;
           homeDirectory = "/Users/matthew";
@@ -95,22 +103,19 @@
           # as what you find in home-manager's documentation for what you'd put in
           # a home.nix file.
           # configuration = homeManagerConfig;
-          configuration = combineHomeManagerModules systemPkgs [
-            (import ./home-manager/base.nix)
-            (import ./home-manager/email.nix)
-          ];
+          configuration = homeManagerConfig;
         })).activationPackage;
-    };
+      };
 
     nixosConfigurations = {
       mp-st-nix = nixpkgs.lib.nixosSystem {
-        inherit system;
+        system = "x86_64-linux";
         modules = [
           ./configuration.nix
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.matthew = homeManagerConfigs.mp-st-nix;
+            home-manager.users.matthew = mp-st-nix.homeManagerConfig;
           }
         ];
       };

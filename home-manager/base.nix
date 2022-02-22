@@ -1,15 +1,12 @@
 # standard home-manager config that's the same on all machines
 { pkgs, ... }:
 
-let 
-  hmConfig = {};
-in
 {
   # The general thing seems to be that if you want home-manager to manage
   # a program's config, use it as`programs.whatever` or `services.whatever`.
   # If you just want it available, stick it in packages.
-  programs = hmConfig . programs or {} // {
-    alacritty = hmConfig . programs.alacritty or {} // {
+  programs = {
+    alacritty = {
       enable = true;
       settings = {
         scrolling = {
@@ -28,7 +25,7 @@ in
       };
     };
 
-    bash = hmConfig . programs.bash or {} // {
+    bash = {
       enable = true;
       initExtra = ''
         vterm_printf(){
@@ -49,7 +46,13 @@ in
 
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
         export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab.com\/api login mplanchard/ { print $NF }')
+        set_profile() {
+            export AWS_PROFILE="$1"
+        }
       '';
+      shellAliases = {
+        iam = "set_profile";
+      };
     };
 
     bat.enable = true;
@@ -113,12 +116,12 @@ in
   home.enableNixpkgsReleaseCheck = true;
 
   # Extra variables to add to PATH
-  home.sessionPath = hmConfig . home.sessionPath or [] ++ [
+  home.sessionPath = [
     "$HOME/bin"
     "$HOME/.emacs.d/bin"
   ];
 
-  home.sessionVariables = hmConfig . home.sessionVariables or {} // {
+  home.sessionVariables = {
     # MOZ_ENABLE_WAYLAND = 1;
     MOZ_DBUS_REMOTE = 1;
     GITLAB_USER = "mplanchard";
@@ -128,7 +131,7 @@ in
   # Enable XDG env vars for config locations and such
   xdg.enable = true;
 
-  home.packages = with pkgs; hmConfig . packages or [] ++ [
+  home.packages = with pkgs; [
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
@@ -167,6 +170,7 @@ in
     python3Packages.grip
     ripgrep
     shellcheck
+    slack
     sqlite
     stow
     tmux
@@ -176,6 +180,7 @@ in
     which
     yarn
     zip
+    zoom-us
 
     (makeDesktopItem {
       name = "org-protocol";
@@ -190,7 +195,7 @@ in
     })
   ];
 } // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-  services = hmConfig . services or {} // {
+  services = {
     emacs = { enable = true; };
     gpg-agent = {
       enable = true;

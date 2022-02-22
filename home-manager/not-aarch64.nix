@@ -1,6 +1,6 @@
 { hmConfig, pkgs, ... }:
 
-{
+hmConfig // {
   programs = hmConfig . programs or {} // {
     starship = hmConfig . programs.starship or {} // {
       enable = true;
@@ -24,7 +24,7 @@
     };
   };
 
-  home.packages = with pkgs; hmConfig . packages or [] ++ [
+  home.packages = with pkgs; hmConfig . home.packages or [] ++ [
     _1password
     _1password-gui
     dropbox

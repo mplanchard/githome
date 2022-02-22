@@ -1,6 +1,6 @@
 { hmConfig, pkgs, ... }:
 
-{
+hmConfig // {
   home.packages = with pkgs; hmConfig . home.packages or [] ++ [
     kdeconnect
     korganizer

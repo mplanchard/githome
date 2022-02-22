@@ -125,6 +125,15 @@
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
+  services.printing.drivers = [
+    pkgs.gutenprint
+    pkgs.brlaser
+    pkgs.brgenml1lpr
+    pkgs.brgenml1cupswrapper
+  ];
+  services.avahi.enable = true;
+  # needed for printers
+  services.avahi.nssmdns = true;
 
   # Enable sound.
   # sound.enable = true;
@@ -151,7 +160,7 @@
     extraGroups = [ "wheel" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
   };
 
-  nix.trustedUsers = [ "root" "matthew" ];
+  nix.settings.trusted-users = [ "root" "matthew" ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

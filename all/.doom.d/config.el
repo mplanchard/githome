@@ -1236,6 +1236,7 @@ shell exits, the buffer is killed."
         ("gary_bernhradt")
         ("paul_graham")
         ("rich_hickey")
+        ("ulrich_drepper")
         (:endgrouptag)
 
         (:startgrouptag) ("software_tools")
