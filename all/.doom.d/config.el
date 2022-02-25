@@ -132,9 +132,9 @@
       '(not web-mode))
 
 ;; Autosave when losing focus
-;; (add-to-list 'doom-switch-buffer-hook (lambda () (when buffer-file-name (save-buffer))))
-;; (add-to-list 'doom-switch-window-hook (lambda () (when buffer-file-name (save-buffer))))
-;; (add-to-list 'doom-switch-frame-hook (lambda () (when buffer-file-name (save-buffer))))
+;; (add-hook! 'doom-switch-buffer-hook #'(lambda () (when buffer-file-name (save-buffer))))
+;; (add-hook! 'doom-switch-window-hook #'(lambda () (when buffer-file-name (save-buffer))))
+;; (add-hook! 'doom-switch-frame-hook #'(lambda () (when buffer-file-name (save-buffer))))
 
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path

@@ -95,6 +95,28 @@
     # Always install ssh
     ssh = {
       enable = true;
+      matchBlocks = {
+        "aws-ssm" = {
+          host = "i-* mi-*";
+          user = "admin";
+          proxyCommand = ''
+            sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+          '';
+          extraOptions = {
+            StrictHostKeyChecking = "no";
+          };
+        };
+      };
+    };
+
+    starship = {
+      enable = true;
+      # Enable once bash is configured by home manager
+      enableBashIntegration = true;
+      settings = {
+        # Allow emacs-libvterm to jump between prompts
+        format = "$all\\$\\(vterm_prompt_end\\)";
+      };
     };
 
     # Install latex packages
@@ -139,6 +161,7 @@
     coreutils
     curl
     delta
+    discord
     direnv
     emacs-all-the-icons-fonts
     fd
@@ -183,6 +206,7 @@
     yarn
     zip
     zoom-us
+    zulip
 
     (makeDesktopItem {
       name = "org-protocol";

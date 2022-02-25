@@ -65,11 +65,11 @@
           systemPkgs = pkgs.x86_64-linux;
       in rec {
         homeManagerConfig = combineHomeManagerModules systemPkgs [
-            (import ./home-manager/base.nix)
-            (import ./home-manager/not-aarch64.nix)
-            (import ./home-manager/email.nix)
-            (import ./home-manager/kde.nix)
-          ];
+          (import ./home-manager/base.nix)
+          (import ./home-manager/not-aarch64.nix)
+          (import ./home-manager/email.nix)
+          (import ./home-manager/kde.nix)
+        ];
         homeManager = (home-manager.lib.homeManagerConfiguration (
         {
           inherit system;

@@ -2,16 +2,6 @@
 
 hmConfig // {
   programs = hmConfig . programs or {} // {
-    starship = hmConfig . programs.starship or {} // {
-      enable = true;
-      # Enable once bash is configured by home manager
-      enableBashIntegration = true;
-      settings = hmConfig . programs.starship.settings or {} // {
-        # Allow emacs-libvterm to jump between prompts
-        format = "$all\\$\\(vterm_prompt_end\\)";
-      };
-    };
-
     firefox = {
       enable = true;
     };
@@ -24,10 +14,13 @@ hmConfig // {
     };
   };
 
-  home.packages = with pkgs; hmConfig . home.packages or [] ++ [
-    _1password
-    _1password-gui
-    dropbox
-    niv
-  ];
+  home = hmConfig . home or {} // {
+    packages = with pkgs; hmConfig . home.packages or [] ++ [
+      _1password
+      _1password-gui
+      dropbox
+      niv
+    ];
+  };
+
 }
