@@ -192,6 +192,7 @@
     python3Full
     python3Packages.grip
     ripgrep
+    rnix-lsp
     shellcheck
     slack
     signal-desktop

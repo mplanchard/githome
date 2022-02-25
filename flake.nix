@@ -15,110 +15,114 @@
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
   outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }:
-  let
-    # unstable = import inputs.nixpkgs-unstable { inherit system; };
-    overlays = [
-      emacs-overlay.overlay
-      # Add in GL wrappers, used below.
-      # ((import ./nixGL.nix) (import inputs.nixGL.outPath))
-      # (final: prev: {
-      #   # Resolve an issue where alacritty cannot find GL libraries since they
-      #   # are system libraries.
-      #   alacritty = prev.wrapWithNixGLIntel prev.alacritty;
-      #   # There is some suggestion on GH that this should also work for zoom-us
-      #   # (i.e. zoom), but haven't been able to figure it out for me:
-      #   # https://github.com/NixOS/nixpkgs/issues/82959
-      #   # zoom-us = prev.wrapWithNixGLIntel prev.zoom-us;
-      # })
-      # (self: super: {
-      #   kalendar = unstable.kalendar;
-      # })
-    ];
+    let
+      # unstable = import inputs.nixpkgs-unstable { inherit system; };
+      overlays = [
+        emacs-overlay.overlay
+        # Add in GL wrappers, used below.
+        # ((import ./nixGL.nix) (import inputs.nixGL.outPath))
+        # (final: prev: {
+        #   # Resolve an issue where alacritty cannot find GL libraries since they
+        #   # are system libraries.
+        #   alacritty = prev.wrapWithNixGLIntel prev.alacritty;
+        #   # There is some suggestion on GH that this should also work for zoom-us
+        #   # (i.e. zoom), but haven't been able to figure it out for me:
+        #   # https://github.com/NixOS/nixpkgs/issues/82959
+        #   # zoom-us = prev.wrapWithNixGLIntel prev.zoom-us;
+        # })
+        # (self: super: {
+        #   kalendar = unstable.kalendar;
+        # })
+      ];
 
-    supportedSystems = [
-      "x86_64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ];
+      supportedSystems = [
+        "x86_64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
-    # Call a function for all supported systems, generating an attrset
-    # keyed by system
-    forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
+      # Call a function for all supported systems, generating an attrset
+      # keyed by system
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
 
-    pkgs = forAllSystems (system:
-      import nixpkgs {
-        inherit system overlays;
-        config.allowUnfree = true;
-      }
-    );
+      pkgs = forAllSystems (system:
+        import nixpkgs {
+          inherit system overlays;
+          config.allowUnfree = true;
+        }
+      );
 
-    combineHomeManagerModules = pkgs: modules:
-      pkgs.lib.foldl
-        (config: module: module { inherit pkgs; hmConfig = config; })
-        ((pkgs.lib.head modules) { inherit pkgs; })
-        (pkgs.lib.tail modules);
+      combineHomeManagerModules = pkgs: modules:
+        pkgs.lib.foldl
+          (config: module: module { inherit pkgs; hmConfig = config; })
+          ((pkgs.lib.head modules) { inherit pkgs; })
+          (pkgs.lib.tail modules);
 
-  in rec {
-    mp-st-nix =
-      let
+    in
+    rec {
+      mp-st-nix =
+        let
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
-      in rec {
-        homeManagerConfig = combineHomeManagerModules systemPkgs [
-          (import ./home-manager/base.nix)
-          (import ./home-manager/not-aarch64.nix)
-          (import ./home-manager/email.nix)
-          (import ./home-manager/kde.nix)
-        ];
-        homeManager = (home-manager.lib.homeManagerConfiguration (
-        {
-          inherit system;
-          pkgs = systemPkgs;
-          homeDirectory = "/home/matthew";
-          username = "matthew";
-          # This is the home manager config. The attrset should be the same format
-          # as what you find in home-manager's documentation for what you'd put in
-          # a home.nix file.
-          # configuration = homeManagerConfig;
-          configuration = homeManagerConfig;
-        })).activationPackage;
-      };
+        in
+        rec {
+          homeManagerConfig = combineHomeManagerModules systemPkgs [
+            (import ./home-manager/base.nix)
+            (import ./home-manager/not-aarch64.nix)
+            (import ./home-manager/email.nix)
+            (import ./home-manager/kde.nix)
+          ];
+          homeManager = (home-manager.lib.homeManagerConfiguration (
+            {
+              inherit system;
+              pkgs = systemPkgs;
+              homeDirectory = "/home/matthew";
+              username = "matthew";
+              # This is the home manager config. The attrset should be the same format
+              # as what you find in home-manager's documentation for what you'd put in
+              # a home.nix file.
+              # configuration = homeManagerConfig;
+              configuration = homeManagerConfig;
+            })).activationPackage;
+        };
 
-    mp-st-m1 =
-      let
+      mp-st-m1 =
+        let
           system = "aarch64-darwin";
           systemPkgs = pkgs.x86_64-darwin;
-      in rec {
-        homeManagerConfig = combineHomeManagerModules systemPkgs [
+        in
+        rec {
+          homeManagerConfig = combineHomeManagerModules systemPkgs [
             (import ./home-manager/base.nix)
             (import ./home-manager/email.nix)
           ];
-        homeManager = (home-manager.lib.homeManagerConfiguration (
-        {
-          inherit system;
-          pkgs = systemPkgs;
-          homeDirectory = "/Users/matthew";
-          username = "matthew";
-          # This is the home manager config. The attrset should be the same format
-          # as what you find in home-manager's documentation for what you'd put in
-          # a home.nix file.
-          # configuration = homeManagerConfig;
-          configuration = homeManagerConfig;
-        })).activationPackage;
-      };
+          homeManager = (home-manager.lib.homeManagerConfiguration (
+            {
+              inherit system;
+              pkgs = systemPkgs;
+              homeDirectory = "/Users/matthew";
+              username = "matthew";
+              # This is the home manager config. The attrset should be the same format
+              # as what you find in home-manager's documentation for what you'd put in
+              # a home.nix file.
+              # configuration = homeManagerConfig;
+              configuration = homeManagerConfig;
+            })).activationPackage;
+        };
 
-    nixosConfigurations = {
-      mp-st-nix = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./configuration.nix
-          home-manager.nixosModules.home-manager {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.matthew = mp-st-nix.homeManagerConfig;
-          }
-        ];
+      nixosConfigurations = {
+        mp-st-nix = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            ./configuration.nix
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.matthew = mp-st-nix.homeManagerConfig;
+            }
+          ];
+        };
       };
     };
-  };
 }
