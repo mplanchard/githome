@@ -750,6 +750,17 @@
        "m"
        #'code-review-transient-api))
 
+;; Evil bindings for xwidget webkit browsers
+(map! :map xwidget-webkit-mode-map
+      :n "gr" #'xwidget-webkit-reload
+      :nv "y" #'xwidget-webkit-copy-selection-as-kill
+      :nv "C-o" #'xwidget-webkit-back
+      :nv "<C-i>" #'xwidget-webkit-forward
+      :nv "G" #'xwidget-webkit-scroll-bottom
+      :nv "gg" #'xwidget-webkit-scroll-top
+      :nv "j" #'xwidget-webkit-scroll-down-line
+      :nv "k" #'xwidget-webkit-scroll-up-line)
+
 ;; This resolves a weird error when creating a new frame via (make-frame) that
 ;; I haven't been able to find any info on. Error message is
 ;; "The default fontset can't be used for a frame font".
