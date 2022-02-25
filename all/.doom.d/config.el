@@ -1299,6 +1299,13 @@ shell exits, the buffer is killed."
 (setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
 AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
 
+(use-package! mu4e-views
+  :after mu4e
+  :bind (:map mu4e-headers-mode-map
+         ("X" . mu4e-views-view-current-msg-with-method))
+  :config
+  (setq mu4e-views-default-view-method "html"))
+
 (use-package! mu4e
   :config
   (setq
@@ -1325,10 +1332,10 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
    ;; used to display an unread count
    mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query)
 
-  (map! :map mu4e-headers-mode-map
-        :desc "mark thread"
-        :nv "T"
-        #'mu4e-headers-mark-thread)
+  (map! (:map mu4e-headers-mode-map
+         :desc "mark thread"
+         :nv "T"
+         #'mu4e-headers-mark-thread))
   (set-email-account! "gmail"
                       '((user-email-address . "msplanchard@gmail.com")
                         (smtpmail-smtp-user . "msplanchard")
