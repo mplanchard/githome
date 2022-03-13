@@ -36,6 +36,7 @@
   :recipe (:host github :repo "serialdev/ijanet-mode"))
 (package! janet-mode) ;; support for janet lang
 (package! jest) ;; javascript testing
+(package! json-par) ;; structural editing of JSON
 (package! kaolin-themes) ;; some themes
 (package! kubernetes) ;; kubernetes overview
 (package! kubernetes-evil) ;; kubernetes evil support
@@ -45,7 +46,10 @@
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
 (package! modus-themes) ;; for pre-emacs 28
 (package! mu4e-views) ;; html emails in xwidgets view
+(package! nginx-mode)
 (package! ob-typescript)  ;; org-bable support for typescript
+(package! org-remark) ;; keep highlights and margin notes on any document
+(package! org-transclusion) ;; copy content by link and keep it up to date
 (package! prettier-js)  ;; use prettier for formatting JS/TS
 (package! pandoc-mode) ;; convert ALL the things
 (package! protobuf-mode) ;; support for editing protos
@@ -56,6 +60,7 @@
 (package! string-inflection)  ;; modify string cases
 (package! tree-sitter)  ;; better syntax highlighting and language analysis
 (package! tree-sitter-langs)
+(package! unfill) ;; opposite of fill paragraph
 
 ;; more up-to-date versions of these fix memory issues that were causing
 ;; lag due to excessive GC for very large rust projects

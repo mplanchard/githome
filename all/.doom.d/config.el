@@ -124,6 +124,8 @@
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
 (setq rustic-indent-offset 4)
+(setq gud-gdb-command-name "rust-gdb -i=mi")
+(setq gud-gud-gdb-command-name "rust-gdb --fullname")
 (setq tab-width 4)
 
 (setq ispell-dictionary "en_US")
@@ -145,6 +147,7 @@
         "~/s/gh/mplanchard"))
 
 (after! company
+  ;; faster autocomplete suggestions
   (setq company-idle-delay 0.01))
 
 (after! evil
@@ -188,12 +191,17 @@
   ;; can't hit the lenses with the keyboard, don't care about them
   (setq lsp-lens-enable nil)
 
+  ;; this provides some pretty sweet file overview stuff
+  (setq lsp-treemacs-sync-mode 1)
+
   ;; Enable proc-macro expansion
   (setq lsp-rust-analyzer-proc-macro-enable t)
   ;; Use build scripts in the analyzer context
   (setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
   ;; Build with --all-features
   (setq lsp-rust-all-features t)
+  ;; enable clippy by default
+  (setq lsp-rust-clippy-preference "on")
   ;; Build with --test
   (setq lsp-rust-cfg-test t)
   ;; Inlay type hints are nice
@@ -506,6 +514,10 @@
   ;; Copy abbreviated revisions instead of the whole thing
   (setq magit-copy-revision-abbreviated t))
 
+(use-package! org-remark
+  :config
+  (org-remark-global-tracking-mode +1))
+
 (use-package! tree-sitter-langs)
 
 ;; Better local syntax highlighting and language analysis
@@ -569,10 +581,10 @@
   (map! (:textobj "f"
          (evil-textobj-tree-sitter-get-textobj "function.inner")
          (evil-textobj-tree-sitter-get-textobj "function.outer"))
-        (:textobj "c"
+        (:textobj "/"
          (evil-textobj-tree-sitter-get-textobj "comment.outer")
          (evil-textobj-tree-sitter-get-textobj "comment.outer"))
-        (:textobj "C"
+        (:textobj "c"
          (evil-textobj-tree-sitter-get-textobj "class.inner")
          (evil-textobj-tree-sitter-get-textobj "class.outer"))))
 
@@ -1139,13 +1151,16 @@ shell exits, the buffer is killed."
         ("go_statement")
         ("multithread")
         ("multiprocess")
+          (:startgrouptag) ("tokio")
+          (:grouptags) ("tokio_axum")
+          (:endgrouptag)
         (:endgrouptag)
-
-        ("fun")
 
         (:startgrouptag) ("database")
         (:grouptags) ("postgres") ("sqlite") ("mysql")
         (:endgrouptag)
+
+        ("debugging")
 
         (:startgrouptag) ("emacs")
         (:grouptags)
@@ -1161,13 +1176,25 @@ shell exits, the buffer is killed."
         (:grouptags) ("gpg") ("ssh")
         (:endgrouptag)
 
+        ("fun")
+
         (:startgrouptag) ("javascript")
         (:grouptags) ("react") ("typescript") ("vuejs")
+        (:endgrouptag)
+
+        (:startgrouptag) ("linux")
+        (:grouptags)
+        ("coreutils")
+        ("systemd")
+        ("virtual_memory")
         (:endgrouptag)
 
         (:startgrouptag) ("lisp")
         (:grouptags) ("clojure") ("elisp") ("racket") ("scheme")
         (:endgrouptag)
+
+        ("low_level")
+        ("machine_learning")
 
         (:startgrouptag) ("math")
         (:grouptags)
@@ -1175,6 +1202,7 @@ shell exits, the buffer is killed."
         (:endgrouptag)
 
         ("model") ;; a standard or ideal way to do something
+        ("nix")
 
         (:startgrouptag) ("org_mode")
         (:grouptags) ("org_roam")
@@ -1186,6 +1214,7 @@ shell exits, the buffer is killed."
 
         ("possible_purchases")
         ("possible_gifts")
+        ("project_management")
 
         (:startgrouptag) ("rust")
         (:grouptags)
@@ -1258,7 +1287,6 @@ shell exits, the buffer is killed."
         ("gui_frameworks")
         ("parsers")
         ("shell_applications")
-        ("systemd")
         (:endgrouptag)
 
         (:startgrouptag) ("spectrust")
@@ -1272,15 +1300,7 @@ shell exits, the buffer is killed."
 
         ("spotify")
         ("talk")
-        ("quotes")
-
-        (:startgrouptag) ("tokio")
-        (:grouptags) ("tokio_axum")
-        (:endgrouptag)
-
-        (:startgrouptag) ("unix")
-        (:grouptags) ("coreutils") ("virtual_memory")
-        (:endgrouptag))))
+        ("quotes"))))
 
 ;; **********************************************************************
 ;; Email
@@ -1315,7 +1335,8 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
   :bind (:map mu4e-headers-mode-map
          ("X" . mu4e-views-view-current-msg-with-method))
   :config
-  (setq mu4e-views-default-view-method "html"))
+  (setq mu4e-views-default-view-method "html")
+  (mu4e-views-mu4e-use-view-msg-method "html"))
 
 (use-package! mu4e
   :config
