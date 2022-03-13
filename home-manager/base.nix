@@ -175,12 +175,13 @@
     gnugrep
     gnumake
     hack-font
-    htmlTidy
+    html-tidy
     htop
     ispell
     janet
     jq
     lsof
+    neofetch
     neovim
     nodejs
     nodePackages.npm
@@ -216,9 +217,10 @@
       desktopName = "org-protocol";
       type = "Application";
       mimeType = "x-scheme-handler/org-protocol";
+      # mimeTypes = [ "x-scheme-handler/org-protocol" ];
       icon = "emacs";
       terminal = false;
-      categories = "System";
+      categories = [ "System" ];
     })
   ];
 } // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {

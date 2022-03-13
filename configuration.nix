@@ -135,6 +135,8 @@
   # needed for printers
   services.avahi.nssmdns = true;
 
+  services.fwupd.enable = true;
+
   # Enable sound.
   # sound.enable = true;
   # hardware.pulseaudio.enable = true;
@@ -160,7 +162,7 @@
     extraGroups = [ "wheel" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
   };
 
-  nix.settings.trusted-users = [ "root" "matthew" ];
+  nix.trustedUsers = [ "root" "matthew" ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

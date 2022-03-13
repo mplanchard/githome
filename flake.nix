@@ -2,11 +2,11 @@
   description = "System config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/release-21.11";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/master";
+    home-manager.url = "github:nix-community/home-manager/release-21.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # GL support on non nixOS systems
@@ -115,6 +115,12 @@
           system = "x86_64-linux";
           modules = [
             ./configuration.nix
+            ({ pkgs, ... }: {
+              services.clamav = {
+                daemon.enable = true;
+                updater.enable = true;
+              };
+            })
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;

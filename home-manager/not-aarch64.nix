@@ -18,6 +18,7 @@ hmConfig // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
       _1password
       _1password-gui
+      dmidecode
       dropbox
       niv
     ];
