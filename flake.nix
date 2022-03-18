@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/release-21.11";
+    nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     # must match nixpkgs version
@@ -14,8 +15,9 @@
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
-  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, ... }:
+  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, nixpkgs-unstable, ... }:
     let
+
       # unstable = import inputs.nixpkgs-unstable { inherit system; };
       overlays = [
         emacs-overlay.overlay
@@ -46,7 +48,26 @@
       forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
 
       pkgs = forAllSystems (system:
-        import nixpkgs {
+        let
+          unstable = import nixpkgs-unstable {
+            inherit system;
+            config.allowUnfree = true;
+          };
+          unstable-overlay = self: super: {
+            _1password = unstable._1password;
+            _1password-gui = unstable._1password-gui;
+            zoom-us = unstable.zoom-us;
+          };
+        in
+          import nixpkgs {
+            inherit system;
+            overlays = overlays ++ [ unstable-overlay ];
+            config.allowUnfree = true;
+          }
+      );
+
+      unstable = forAllSystems (system:
+        import nixpkgs-unstable {
           inherit system overlays;
           config.allowUnfree = true;
         }
