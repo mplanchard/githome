@@ -21,6 +21,9 @@
 	ff = only
 [push]
 	default = current
+[rerere]
+	enabled = true
+	autoupdate = true
 [ineractive]
 	diffFilter = delta --color-only
 [alias]
