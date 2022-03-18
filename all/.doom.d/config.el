@@ -618,6 +618,24 @@
        :map rustic-mode-map
        :localleader
        :prefix "b"
+       :desc "cargo doc"
+       :nv "d"
+       #'(lambda ()
+           (interactive)
+           (rustic-run-cargo-command "cargo doc" '(:buffer "*cargo-doc*"))))
+      (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "b"
+       :desc "cargo doc"
+       :nv "D"
+       #'(lambda ()
+           (interactive)
+           (rustic-run-cargo-command "cargo doc --open" '(:buffer "*cargo-doc*"))))
+      (:after rustic
+       :map rustic-mode-map
+       :localleader
+       :prefix "b"
        :desc "cargo run"
        :nv "r"
        #'(lambda ()
