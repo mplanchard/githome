@@ -145,6 +145,26 @@
   ;; the function rustic uses to set up a buffer for any of its calls.
   (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))
 
+  ;; Ensure that `rustic-cargo-run-test' is run with the default test arguments.
+  ;; This enables running on a per-package basis and ensures any other standard
+  ;; argumetns are included.
+  (define-advice rustic-cargo-run-test
+      ;; Completely replace the original function with a new one taking the
+      ;; same args (a single arg of the test name)
+      (:override (test) current-test-with-args)
+    ;; everything other than adding the default arguments into the `test' var
+    ;; is taken directly from the original function. Couldn't figure out a
+    ;; better way to override other than replacing the whole function.
+    (let ((test (format "%s %s" rustic-default-test-arguments test)))
+      (let* ((c (append (list (rustic-cargo-bin) "test") (split-string test)))
+             (buf rustic-test-buffer-name)
+             (proc rustic-test-process-name)
+             (mode 'rustic-cargo-test-mode))
+        (rustic-compilation c (list :buffer buf :process proc :mode mode)))))
+
+  ;; used to remove the above advice for testing
+  ;; (advice-remove 'rustic-cargo-run-test 'rustic-cargo-run-test@current-test-with-args)
+
   (defun mp/rustic-get-crate-name ()
     "Retrieve the crate name for the currently active buffer, or nil"
     (let ((base-dir (rustic-buffer-crate)))
