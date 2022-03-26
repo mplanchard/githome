@@ -62,9 +62,9 @@
 ;; Speed up saving of large files in org-roam by batching operations into a
 ;; single sqlite txn. From org-roam#1752 on GH.
 (advice-add 'org-roam-db-update-file :around
-              (defun +org-roam-db-update-file (fn &rest args)
-                  (emacsql-with-transaction (org-roam-db)
-                    (apply fn args))))
+            (defun +org-roam-db-update-file (fn &rest args)
+              (emacsql-with-transaction (org-roam-db)
+                (apply fn args))))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -123,10 +123,121 @@
 
 (setq typescript-indent-level 2)
 (setq js-indent-level 2)
-(setq rustic-indent-offset 4)
 (setq gud-gdb-command-name "rust-gdb -i=mi")
 (setq gud-gud-gdb-command-name "rust-gdb --fullname")
 (setq tab-width 4)
+
+(after! rustic
+  ;; four space indentation
+  (setq rustic-indent-offset 4)
+
+  ;; default to running all cargo commands in the workspace root, rather than
+  ;; the crate root.
+  (setq rustic-compile-directory-method #'rustic-buffer-workspace)
+
+  ;; display-buffer-alist is used to set up pre-defined window arragmenents for
+  ;; named buffers. Rustic by default sets it up so that its default compilation
+  ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom
+  ;; of the screen. By deleting that association, we let it use default behavior,
+  ;; which is to display the buffer in a current window. You can add custom
+  ;; display options for other named rustic buffers using the `display-buffer-alist',
+  ;; or you can customize the `rustic-compile-display-method' variable, which is
+  ;; the function rustic uses to set up a buffer for any of its calls.
+  (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))
+
+  (defun mp/rustic-get-crate-name ()
+    "Retrieve the crate name for the currently active buffer, or nil"
+    (let ((base-dir (rustic-buffer-crate)))
+      (when (not (eq base-dir nil))
+        (let* ((cargo
+                (file-name-concat base-dir "Cargo.toml"))
+               (name
+                (when (file-exists-p cargo)
+                  (string-trim
+                   (shell-command-to-string
+                    (format "rg -m 1 '^ *name *=' %s | awk '{print $NF}' | jq -r"
+                            cargo))))))
+          (if (string-empty-p name) nil name)))))
+
+  ;; Replace rustic's cargo check, build, and run, which open in a minibuffer
+  ;; popup, so that they open in dedicated buffers
+  (map! (:after rustic
+         :map rustic-mode-map
+         :localleader
+         (
+          ;; test prefix
+          :prefix "t"
+          ;; do what I mean (current test, current test module, all tests)
+          (:desc "dwim"
+           :nv "d"
+           #'rustic-cargo-test-dwim
+
+           ;; rerun last test command
+           :desc "rerun test"
+           :nv "r"
+           #'rustic-cargo-test-rerun)
+
+          ;; package prefix... everything under here should operate on the current
+          ;; create via the -p (--package) argument.
+          :prefix ("p" . "package")
+          (
+           ;; run cargo build for the current package
+           :desc "build"
+           :nv "b"
+           #'(lambda () (interactive)
+               (let ((rustic-cargo-build-arguments
+                      (format "%s -p %s" rustic-cargo-build-arguments (mp/rustic-get-crate-name))))
+                 (call-interactively #'rustic-cargo-build)))
+
+           ;; run cargo check for the current package
+           :desc "check"
+           :nv "c"
+           #'(lambda () (interactive)
+               (let ((rustic-cargo-check-arguments
+                      (format "%s -p %s" rustic-cargo-check-arguments (mp/rustic-get-crate-name))))
+                 (call-interactively #'rustic-cargo-check)))
+
+           ;; run cargo clippy for the current package
+           :desc "clippy"
+           :nv "C"
+           #'(lambda () (interactive)
+               (let ((rustic-default-clippy-arguments
+                      (format "%s -p %s" rustic-default-clippy-arguments (mp/rustic-get-crate-name))))
+                 (call-interactively #'rustic-cargo-clippy)))
+
+           ;; run cargo doc for the current package
+           :desc "doc"
+           :nv "d"
+           #'(lambda () (interactive)
+               (rustic-cargo-run-command (format "cargo doc --open -p %s" (mp/rustic-get-crate-name))))
+
+           ;; test prefix, where all sub-mappings run tests on the current package
+           :desc "test"
+           :prefix ("t" . "test")
+           (
+            ;; run all tests for the current package
+            :desc "all"
+            :nv "a"
+            #'(lambda () (interactive)
+                (let ((rustic-default-test-arguments
+                       (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-test)))
+
+            ;; run the test under the cursor
+            :desc "current"
+            :nv "t"
+            #'(lambda () (interactive)
+                (let ((rustic-default-test-arguments
+                       (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-current-test)))
+
+            ;; do what I mean: run test under the cursor, current test module, or all tests
+            :desc "dwim"
+            :nv "d"
+            #'(lambda () (interactive)
+                (let ((rustic-default-test-arguments
+                       (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-test-dwim)))))))))
 
 (setq ispell-dictionary "en_US")
 
@@ -285,7 +396,7 @@
   (add-to-list 'company-global-modes 'org-mode t)
   (add-to-list 'company-global-modes 'gfm-mode t)
   (add-to-list 'company-global-modes 'git-commit-mode t))
-  ;; -------------------------------------------
+;; -------------------------------------------
 
 ;; don't try to smooth scroll on mac
 (setq mac-mouse-wheel-smooth-scroll nil)
@@ -405,10 +516,8 @@
              `(,'rustic-mode . ,(alist-get 'rust-mode rmsbolt-languages))
              rmsbolt-languages))))
 
-(after! rustic
-  :config
-  ;; why would I ever not want this
-  (setq rustic-format-on-save t))
+(setq mp/cargo-clippy-default-args "--tests --all-features")
+
 
 ;; SQL
 (after!
@@ -508,9 +617,27 @@
 (use-package! magit
   :config
   ;; Show local branches in magit status buffer
-  (unless
-      (member 'magit-insert-local-branches magit-status-sections-hook)
-    (setq magit-status-sections-hook (append magit-status-sections-hook '(magit-insert-local-branches))))
+  (setq magit-status-sections-hook
+        '(magit-insert-status-headers
+          magit-insert-merge-log
+          magit-insert-rebase-sequence
+          magit-insert-am-sequence
+          magit-insert-sequencer-sequence
+          magit-insert-bisect-output
+          magit-insert-bisect-rest
+          magit-insert-bisect-log
+          magit-insert-untracked-files
+          magit-insert-unstaged-changes
+          magit-insert-staged-changes
+          magit-insert-stashes
+          magit-insert-unpushed-to-pushremote
+          magit-insert-unpushed-to-upstream-or-recent
+          magit-insert-unpulled-from-pushremote
+          magit-insert-unpulled-from-upstream
+          forge-insert-assigned-pullreqs
+          forge-insert-pullreqs
+          forge-insert-issues
+          magit-insert-local-branches))
   ;; Copy abbreviated revisions instead of the whole thing
   (setq magit-copy-revision-abbreviated t))
 
@@ -594,60 +721,6 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-;; Replace rustic's cargo check, build, and run, which open in a minibuffer
-;; popup, so that they open in dedicated buffers
-(map! (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "b"
-       :desc "cargo check"
-       :nv "c"
-       #'(lambda ()
-           (interactive)
-           (rustic-run-cargo-command "cargo check --tests --all-features" '(:buffer "*cargo-check*"))))
-      (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "b"
-       :desc "cargo build"
-       :nv "b"
-       #'(lambda ()
-           (interactive)
-           (rustic-run-cargo-command "cargo build" '(:buffer "*cargo-build*"))))
-      (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "b"
-       :desc "cargo doc"
-       :nv "d"
-       #'(lambda ()
-           (interactive)
-           (rustic-run-cargo-command "cargo doc" '(:buffer "*cargo-doc*"))))
-      (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "b"
-       :desc "cargo doc"
-       :nv "D"
-       #'(lambda ()
-           (interactive)
-           (rustic-run-cargo-command "cargo doc --open" '(:buffer "*cargo-doc*"))))
-      (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "b"
-       :desc "cargo run"
-       :nv "r"
-       #'(lambda ()
-           (interactive)
-           (rustic-run-cargo-command "cargo run" '(:buffer "*cargo-run*"))))
-      (:after rustic
-       :map rustic-mode-map
-       :localleader
-       :prefix "t"
-       :desc "rerun test"
-       :nv "r"
-       #'rustic-cargo-test-rerun))
 
 (map! (:after org
        :map org-mode-map
@@ -920,9 +993,9 @@
 ;; **********************************************************************
 
 (defun my/dired-kill-full-path ()
-    "Copy the absolute path to a file in dired"
-    (interactive)
-    (dired-copy-filename-as-kill 0))
+  "Copy the absolute path to a file in dired"
+  (interactive)
+  (dired-copy-filename-as-kill 0))
 
 ;; toggle from absolute to visual relative numbers
 (defun my/toggle-relative-line-numbers ()
@@ -1169,9 +1242,9 @@ shell exits, the buffer is killed."
         ("go_statement")
         ("multithread")
         ("multiprocess")
-          (:startgrouptag) ("tokio")
-          (:grouptags) ("tokio_axum")
-          (:endgrouptag)
+        (:startgrouptag) ("tokio")
+        (:grouptags) ("tokio_axum")
+        (:endgrouptag)
         (:endgrouptag)
 
         (:startgrouptag) ("database")
@@ -1342,8 +1415,8 @@ shell exits, the buffer is killed."
 
 ;; refresh the modeline display for unread emails every 5 minuts
 (add-hook! 'after-init-hook
-  #'(lambda ()
-    (run-with-timer 0 300 #'mu4e-alert-enable-mode-line-display)))
+           #'(lambda ()
+               (run-with-timer 0 300 #'mu4e-alert-enable-mode-line-display)))
 
 (setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
 AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
@@ -1375,8 +1448,8 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
    mu4e-split-view 'vertical
    mu4e-headers-visible-columns 160
    ;; make indexing faster
-   ; mu4e-index-cleanup nil
-   ; mu4e-index-lazy-check t
+                                        ; mu4e-index-cleanup nil
+                                        ; mu4e-index-lazy-check t
    ;; update mail every 5 minutes
    ;; mu4e-split-view 'vertical
    ;; used to display an unread count
@@ -1409,7 +1482,7 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
 
   (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
   (add-hook! 'mu4e-headers-mode-hook
-    #'(lambda () (set-face-background 'mu4e-header-highlight-face "gray18")))
+             #'(lambda () (set-face-background 'mu4e-header-highlight-face "gray18")))
 
   (add-to-list 'mu4e-bookmarks
                '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
