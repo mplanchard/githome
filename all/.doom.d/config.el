@@ -167,8 +167,9 @@
          (
           ;; test prefix
           :prefix "t"
-          ;; do what I mean (current test, current test module, all tests)
-          (:desc "dwim"
+          (
+           ;; do what I mean (current test, current test module, all tests)
+           :desc "dwim"
            :nv "d"
            #'rustic-cargo-test-dwim
 
