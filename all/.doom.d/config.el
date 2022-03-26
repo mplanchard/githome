@@ -198,7 +198,7 @@
           ;; test prefix
           :prefix "t"
           (
-           ;; do what I mean (current test, current test module, all tests)
+           ;; do what I mean (test for current fn, tests for current mod, all tests)
            :desc "dwim"
            :nv "d"
            #'rustic-cargo-test-dwim
@@ -264,7 +264,7 @@
                        (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
                   (call-interactively #'rustic-cargo-current-test)))
 
-            ;; do what I mean: run test under the cursor, current test module, or all tests
+           ;; do what I mean (test for current fn, tests for current mod, all tests)
             :desc "dwim"
             :nv "d"
             #'(lambda () (interactive)
