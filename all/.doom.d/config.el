@@ -135,6 +135,16 @@
   ;; the crate root.
   (setq rustic-compile-directory-method #'rustic-buffer-workspace)
 
+  ;; remove --benches from default test args, because I don't want to run
+  ;; benchmarks every time I run tests.
+  (setq rustic-default-test-arguments
+        ;; ensure we remove it and replace it with an empty string whether it's
+        ;; at the beginning or in the middle of arguments. Use the rest of
+        ;; whatever is in rustic-default-test-arguments as-is.
+        (replace-regexp-in-string
+         " --benches" ""
+         (replace-regexp-in-string "^--benches " "" rustic-default-test-arguments)))
+
   ;; display-buffer-alist is used to set up pre-defined window arragmenents for
   ;; named buffers. Rustic by default sets it up so that its default compilation
   ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom
@@ -168,7 +178,7 @@
   (defun mp/rustic-get-crate-name ()
     "Retrieve the crate name for the currently active buffer, or nil"
     (let ((base-dir (rustic-buffer-crate)))
-      (when (not (eq base-dir nil))
+      (when base-dir
         (let* ((cargo
                 (file-name-concat base-dir "Cargo.toml"))
                (name
