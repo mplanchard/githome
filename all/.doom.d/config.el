@@ -182,35 +182,37 @@
           ;; create via the -p (--package) argument.
           :prefix ("p" . "package")
           (
-           ;; run cargo build for the current package
-           :desc "build"
-           :nv "b"
-           #'(lambda () (interactive)
-               (let ((rustic-cargo-build-arguments
-                      (format "%s -p %s" rustic-cargo-build-arguments (mp/rustic-get-crate-name))))
-                 (call-interactively #'rustic-cargo-build)))
+           :prefix ("b" . "build")
+           (
+            ;; run cargo build for the current package
+            :desc "build"
+            :nv "b"
+            #'(lambda () (interactive)
+                (let ((rustic-cargo-build-arguments
+                       (format "%s -p %s" rustic-cargo-build-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-build)))
 
-           ;; run cargo check for the current package
-           :desc "check"
-           :nv "c"
-           #'(lambda () (interactive)
-               (let ((rustic-cargo-check-arguments
-                      (format "%s -p %s" rustic-cargo-check-arguments (mp/rustic-get-crate-name))))
-                 (call-interactively #'rustic-cargo-check)))
+            ;; run cargo check for the current package
+            :desc "check"
+            :nv "c"
+            #'(lambda () (interactive)
+                (let ((rustic-cargo-check-arguments
+                       (format "%s -p %s" rustic-cargo-check-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-check)))
 
-           ;; run cargo clippy for the current package
-           :desc "clippy"
-           :nv "C"
-           #'(lambda () (interactive)
-               (let ((rustic-default-clippy-arguments
-                      (format "%s -p %s" rustic-default-clippy-arguments (mp/rustic-get-crate-name))))
-                 (call-interactively #'rustic-cargo-clippy)))
+            ;; run cargo clippy for the current package
+            :desc "clippy"
+            :nv "C"
+            #'(lambda () (interactive)
+                (let ((rustic-default-clippy-arguments
+                       (format "%s -p %s" rustic-default-clippy-arguments (mp/rustic-get-crate-name))))
+                  (call-interactively #'rustic-cargo-clippy)))
 
-           ;; run cargo doc for the current package
-           :desc "doc"
-           :nv "d"
-           #'(lambda () (interactive)
-               (rustic-cargo-run-command (format "cargo doc --open -p %s" (mp/rustic-get-crate-name))))
+            ;; run cargo doc for the current package
+            :desc "doc"
+            :nv "d"
+            #'(lambda () (interactive)
+                (rustic-cargo-run-command (format "cargo doc --open -p %s" (mp/rustic-get-crate-name)))))
 
            ;; test prefix, where all sub-mappings run tests on the current package
            :desc "test"
