@@ -132,7 +132,13 @@
   (setq rustic-indent-offset 4)
 
   ;; default to running all cargo commands in the workspace root, rather than
-  ;; the crate root.
+  ;; the crate root. This ensures everything will be built and tested with
+  ;; full feature resolution and so on. The only negative here is that
+  ;; `cargo check' can wind up taking a fair bit longer when run on-save.
+  ;; If you switch this to `rustic-buffer-crate', all commands will run in
+  ;; the crate context, rather than the workspace context. This will speed up
+  ;; the individual crate runs, but if you run e.g. `cargo build' or `cargo test'
+  ;; from the workspace root, everything will need to recompile.
   (setq rustic-compile-directory-method #'rustic-buffer-workspace)
 
   ;; remove --benches from default test args, because I don't want to run
@@ -147,12 +153,15 @@
 
   ;; display-buffer-alist is used to set up pre-defined window arragmenents for
   ;; named buffers. Rustic by default sets it up so that its default compilation
-  ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom
-  ;; of the screen. By deleting that association, we let it use default behavior,
-  ;; which is to display the buffer in a current window. You can add custom
-  ;; display options for other named rustic buffers using the `display-buffer-alist',
-  ;; or you can customize the `rustic-compile-display-method' variable, which is
-  ;; the function rustic uses to set up a buffer for any of its calls.
+  ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom of
+  ;; the screen. By deleting that association, we let it use default behavior,
+  ;; which is to display the buffer in either a new split window (if only one
+  ;; window is visible) or in a previous window. You can add custom display
+  ;; options for other named rustic buffers using the `display-buffer-alist', or
+  ;; you can customize the `rustic-compile-display-method' variable, which is
+  ;; the function rustic uses to set up a buffer for any of its calls. See
+  ;; the Info node `(emacs)Window Choice' for more details, along with the
+  ;; builtin help for `display-buffer'.
   (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))
 
   ;; Ensure that `rustic-cargo-run-test' is run with the default test arguments.
@@ -161,7 +170,7 @@
   (define-advice rustic-cargo-run-test
       ;; Completely replace the original function with a new one taking the
       ;; same args (a single arg of the test name)
-      (:override (test) current-test-with-args)
+      (:override (test) run-test-with-default-args)
     ;; everything other than adding the default arguments into the `test' var
     ;; is taken directly from the original function. Couldn't figure out a
     ;; better way to override other than replacing the whole function.
@@ -172,8 +181,9 @@
              (mode 'rustic-cargo-test-mode))
         (rustic-compilation c (list :buffer buf :process proc :mode mode)))))
 
-  ;; used to remove the above advice for testing
-  ;; (advice-remove 'rustic-cargo-run-test 'rustic-cargo-run-test@current-test-with-args)
+  ;; Eval this (M-x `eval-last-sexp' or `eval-region') to remove the above
+  ;; advice, for debugging/testing when making changes.
+  ;; (advice-remove 'rustic-cargo-run-test 'rustic-cargo-run-test@run-test-with-default-args)
 
   (defun mp/rustic-get-crate-name ()
     "Retrieve the crate name for the currently active buffer, or nil"
