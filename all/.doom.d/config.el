@@ -127,6 +127,17 @@
 (setq gud-gud-gdb-command-name "rust-gdb --fullname")
 (setq tab-width 4)
 
+;; Ensure that showing LSP diagnostics via `+default/diagnostics', which calls
+;; `consult-lsp-diagnostics', shows errors in order of descending severity
+;; rather than ascending severity.
+(after! consult-lsp
+  (define-advice consult-lsp--diagnostics--flatten-diagnostics
+      (:filter-return (candidates) reverse-diagnostics)
+    (reverse candidates)))
+
+;; Evaluate this to remove the above advice when debugging/iterating.
+;; (advice-remove 'consult-lsp--diagnostics--flatten-diagnostics 'consult-lsp--diagnostics--flatten-diagnostics@reverse-diagnostics)
+
 (after! rustic
   ;; four space indentation
   (setq rustic-indent-offset 4)
@@ -142,14 +153,9 @@
   (setq rustic-compile-directory-method #'rustic-buffer-workspace)
 
   ;; remove --benches from default test args, because I don't want to run
-  ;; benchmarks every time I run tests.
-  (setq rustic-default-test-arguments
-        ;; ensure we remove it and replace it with an empty string whether it's
-        ;; at the beginning or in the middle of arguments. Use the rest of
-        ;; whatever is in rustic-default-test-arguments as-is.
-        (replace-regexp-in-string
-         " --benches" ""
-         (replace-regexp-in-string "^--benches " "" rustic-default-test-arguments)))
+  ;; benchmarks every time I run tests, and remove --tests because I also
+  ;; want to run doctests.
+  (setq rustic-default-test-arguments "--all-features")
 
   ;; display-buffer-alist is used to set up pre-defined window arragmenents for
   ;; named buffers. Rustic by default sets it up so that its default compilation
@@ -252,7 +258,7 @@
             :desc "doc"
             :nv "d"
             #'(lambda () (interactive)
-                (rustic-cargo-run-command (format "cargo doc --open -p %s" (mp/rustic-get-crate-name)))))
+                (rustic-run-cargo-command (format "cargo doc --open -p %s" (mp/rustic-get-crate-name)))))
 
            ;; test prefix, where all sub-mappings run tests on the current package
            :desc "test"
@@ -571,6 +577,10 @@
 (after!
   direnv
   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
+
+(after!
+  vterm
+  (setq vterm-timer-delay 0))
 
 ;; **********************************************************************
 ;; Packages
