@@ -138,6 +138,22 @@
 ;; Evaluate this to remove the above advice when debugging/iterating.
 ;; (advice-remove 'consult-lsp--diagnostics--flatten-diagnostics 'consult-lsp--diagnostics--flatten-diagnostics@reverse-diagnostics)
 
+(add-hook!
+ rustic-mode
+ #'(lambda ()
+     ;; display-buffer-alist is used to set up pre-defined window arragmenents for
+     ;; named buffers. Rustic by default sets it up so that its default compilation
+     ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom of
+     ;; the screen. By deleting that association, we let it use default behavior,
+     ;; which is to display the buffer in either a new split window (if only one
+     ;; window is visible) or in a previous window. You can add custom display
+     ;; options for other named rustic buffers using the `display-buffer-alist', or
+     ;; you can customize the `rustic-compile-display-method' variable, which is
+     ;; the function rustic uses to set up a buffer for any of its calls. See
+     ;; the Info node `(emacs)Window Choice' for more details, along with the
+     ;; builtin help for `display-buffer'.
+     (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))))
+
 (after! rustic
   ;; four space indentation
   (setq rustic-indent-offset 4)
@@ -156,19 +172,6 @@
   ;; benchmarks every time I run tests, and remove --tests because I also
   ;; want to run doctests.
   (setq rustic-default-test-arguments "--all-features")
-
-  ;; display-buffer-alist is used to set up pre-defined window arragmenents for
-  ;; named buffers. Rustic by default sets it up so that its default compilation
-  ;; buffer, named `*rustic-compilation*', is in a popup window at the bottom of
-  ;; the screen. By deleting that association, we let it use default behavior,
-  ;; which is to display the buffer in either a new split window (if only one
-  ;; window is visible) or in a previous window. You can add custom display
-  ;; options for other named rustic buffers using the `display-buffer-alist', or
-  ;; you can customize the `rustic-compile-display-method' variable, which is
-  ;; the function rustic uses to set up a buffer for any of its calls. See
-  ;; the Info node `(emacs)Window Choice' for more details, along with the
-  ;; builtin help for `display-buffer'.
-  (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))
 
   ;; Ensure that `rustic-cargo-run-test' is run with the default test arguments.
   ;; This enables running on a per-package basis and ensures any other standard
@@ -280,7 +283,7 @@
                        (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
                   (call-interactively #'rustic-cargo-current-test)))
 
-           ;; do what I mean (test for current fn, tests for current mod, all tests)
+            ;; do what I mean (test for current fn, tests for current mod, all tests)
             :desc "dwim"
             :nv "d"
             #'(lambda () (interactive)
@@ -368,7 +371,10 @@
   (setq lsp-rust-analyzer-server-display-inlay-hints t)
   (setq lsp-rust-analyzer-display-chaining-hints t)
   (setq lsp-rust-analyzer-display-parameter-hints t)
-  (setq lsp-rust-analyzer-experimental-proc-attr-macros t))
+  ;; get the best macro support we can get
+  (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
+  ;; run cargo clippy rather than cargo check to get diagnostics
+  (setq lsp-rust-analyzer-cargo-watch-command "clippy"))
 
 (use-package! lsp-ui
   :config
@@ -688,6 +694,7 @@
           magit-insert-unpulled-from-pushremote
           magit-insert-unpulled-from-upstream
           forge-insert-assigned-pullreqs
+          forge-insert-requested-reviews
           forge-insert-pullreqs
           forge-insert-issues
           magit-insert-local-branches))
