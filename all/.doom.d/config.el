@@ -33,10 +33,22 @@
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
-(setq doom-font "Hack-11")
+;; (when (member "Hack Nerd Font Mono" (font-family-list))
+;;   (setq doom-font (font-spec :family "Hack Nerd Font Mono" :size 15)))
+(when (member "CodeNewRoman Nerd Font Mono" (font-family-list))
+  (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 17)))
+;; (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 15))
+;; (setq doom-font (font-spec :family "FiraMono Nerd Font Mono" :size 15))
+;; (setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 15))
+;; (setq doom-font (font-spec :family "DejaVuSansMono Nerd Font Mono" :size 15))
+;; (setq doom-font (font-spec :family "Inconsolata Nerd Font" :size 15))
+;; (setq doom-font (font-spec :family "SauceCodePro Nerd Font" :size 15))
+;; (setq doom-font (font-spec :family "CodeNewRoman Nerd Font" :size 17))
+;; (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 17))
 (setq doom-serif-font "DejaVu Serif-11")
 (setq doom-variable-pitch-font "DejaVu Serif-11")
 ;; (setq doom-font "Fira Code-12")
+
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -50,6 +62,26 @@
 ;; (setq +org-roam-open-buffer-on-find-file nil)
 ;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
 ;; (setq org-journal-dir (file-name-concat org-directory "journal"))
+
+
+(defun my/lock-agenda ()
+  "Lock the agenda buffer if it is open, preventing it from being killed."
+  (interactive)
+  (when (get-buffer "*Org Agenda*")
+    (set-buffer "*Org Agenda*")
+    (emacs-lock-mode 'kill)))
+
+(defun my/unlock-agenda ()
+  "Unlock the agenda buffer if it is open and locked, allowing it to be killed."
+  (interactive)
+  (when (get-buffer "*Org Agenda*")
+    (set-buffer "*Org Agenda*")
+    (when emacs-lock-mode
+      (setq emacs-lock-mode nil))))
+
+;; Automatically lock the agenda buffer when it is opened, preventing it from
+;; being killed (since it takes a second to populate)
+(add-hook! org-agenda-mode #'my/lock-agenda)
 
 (setq org-roam-capture-templates
       (list
