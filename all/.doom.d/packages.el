@@ -30,6 +30,7 @@
 ;; (package! geiser-guile) ;; guile
 (package! gh-notify ;; nicer github notifications
   :recipe (:host github :repo "anticomputer/gh-notify"))
+(package! ghub)
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! hackernews)  ;; elitest tech news and commentary
 (package! ijanet  ;; support for interactive janet lang
@@ -67,6 +68,7 @@
 (unpin! lsp-mode)
 (unpin! lsp-treemacs)
 (unpin! lsp-ui)
+(unpin! magit)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:

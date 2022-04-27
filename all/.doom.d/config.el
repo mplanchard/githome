@@ -20,6 +20,8 @@
 (setq user-full-name "Matthew Planchard"
       user-mail-address "msplanchard@gmail.com")
 
+(setq auth-sources '("~/.authinfo.gpg"))
+
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
 ;;
@@ -35,8 +37,8 @@
 
 ;; (when (member "Hack Nerd Font Mono" (font-family-list))
 ;;   (setq doom-font (font-spec :family "Hack Nerd Font Mono" :size 15)))
-(when (member "CodeNewRoman Nerd Font Mono" (font-family-list))
-  (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 17)))
+(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 18))
+  ;;(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 22))
 ;; (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 15))
 ;; (setq doom-font (font-spec :family "FiraMono Nerd Font Mono" :size 15))
 ;; (setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 15))
@@ -49,6 +51,7 @@
 (setq doom-variable-pitch-font "DejaVu Serif-11")
 ;; (setq doom-font "Fira Code-12")
 
+(add-hook! emacs-startup-hook #'(lambda () (doom/reload-font)))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -63,6 +66,7 @@
 ;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
 ;; (setq org-journal-dir (file-name-concat org-directory "journal"))
 
+(setq org-clock-idle-time 5)
 
 (defun my/lock-agenda ()
   "Lock the agenda buffer if it is open, preventing it from being killed."
@@ -170,6 +174,12 @@
 ;; Evaluate this to remove the above advice when debugging/iterating.
 ;; (advice-remove 'consult-lsp--diagnostics--flatten-diagnostics 'consult-lsp--diagnostics--flatten-diagnostics@reverse-diagnostics)
 
+(after! markdown-mode
+  (setq markdown-nested-imenu-heading-index t))
+
+(after! markdown-toc
+  (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
+
 (add-hook!
  rustic-mode
  #'(lambda ()
@@ -184,7 +194,9 @@
      ;; the function rustic uses to set up a buffer for any of its calls. See
      ;; the Info node `(emacs)Window Choice' for more details, along with the
      ;; builtin help for `display-buffer'.
-     (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))))
+     (setq display-buffer-alist (assoc-delete-all "^\\*rustic-compilation" display-buffer-alist))
+     ;; turn on rainbow delimiters
+     (rainbow-delimiters-mode)))
 
 (after! rustic
   ;; four space indentation
@@ -240,8 +252,6 @@
                             cargo))))))
           (if (string-empty-p name) nil name)))))
 
-  ;; Replace rustic's cargo check, build, and run, which open in a minibuffer
-  ;; popup, so that they open in dedicated buffers
   (map! (:after rustic
          :map rustic-mode-map
          :localleader
@@ -526,6 +536,16 @@
 
 ;; org-mode settings
 (after! org
+  ;; org-mode keybindings
+  (map! ( :map org-mode-map
+          :localleader
+          ( :desc "org-insert-structure-template" "T" #'org-insert-structure-template
+            :desc "emphasize" "!" #'org-emphasize
+            ;; clock bindings
+            ( :prefix "c"
+              ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
+              :nv "c" nil))))
+
   ;; set up associations for org-file-open
   ;; - set the system opener
   ;; -- for linux, use xdg-open
@@ -543,6 +563,8 @@
   (setq org-export-with-sub-superscripts '{})
   ;; don't automatically add a ToC to exports
   (setq org-export-with-toc nil)
+  ;; show longer times as hours rather than days
+  (setq org-duration-format (quote h:mm))
   ;; Allow executing JS code blocks in org
   (use-package! ob-js)
   ;; Allow executing TS code blocks in org
@@ -759,15 +781,6 @@
       (:map embark-file-map
        :desc "h-split"
        "H" (lambda (file) (+evil/window-split-and-follow) (find-file file))))
-
-(map! (:map org-mode-map
-       :localleader
-       :desc "org-insert-structure-template" "T" #'org-insert-structure-template)
-      (:map org-mode-map
-       :localleader
-       :desc "emphasize"
-       "!"
-       #'org-emphasize))
 
 (map! (:leader
        :prefix "w"
