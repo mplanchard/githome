@@ -219,7 +219,7 @@
 
   ;; Ensure that `rustic-cargo-run-test' is run with the default test arguments.
   ;; This enables running on a per-package basis and ensures any other standard
-  ;; argumetns are included.
+  ;; arguments are included.
   (define-advice rustic-cargo-run-test
       ;; Completely replace the original function with a new one taking the
       ;; same args (a single arg of the test name)
@@ -259,11 +259,6 @@
           ;; test prefix
           :prefix "t"
           (
-           ;; do what I mean (test for current fn, tests for current mod, all tests)
-           :desc "dwim"
-           :nv "d"
-           #'rustic-cargo-test-dwim
-
            ;; rerun last test command
            :desc "rerun test"
            :nv "r"
@@ -323,15 +318,7 @@
             #'(lambda () (interactive)
                 (let ((rustic-default-test-arguments
                        (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
-                  (call-interactively #'rustic-cargo-current-test)))
-
-            ;; do what I mean (test for current fn, tests for current mod, all tests)
-            :desc "dwim"
-            :nv "d"
-            #'(lambda () (interactive)
-                (let ((rustic-default-test-arguments
-                       (format "%s -p %s" rustic-default-test-arguments (mp/rustic-get-crate-name))))
-                  (call-interactively #'rustic-cargo-test-dwim)))))))))
+                  (call-interactively #'rustic-cargo-current-test)))))))))
 
 (setq ispell-dictionary "en_US")
 
