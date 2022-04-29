@@ -56,6 +56,9 @@
           unstable-overlay = self: super: {
             _1password = unstable._1password;
             _1password-gui = unstable._1password-gui;
+            gnomeExtensions = super.gnomeExtensions // {
+              weather = unstable.gnomeExtensions.weather;
+            };
             zoom-us = unstable.zoom-us;
           };
         in
@@ -134,6 +137,7 @@
       nixosConfigurations = {
         mp-st-nix = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          pkgs = pkgs.x86_64-linux;
           modules = [
             ./configuration.nix
             ({ pkgs, ... }: {

@@ -9,18 +9,22 @@
     alacritty = {
       enable = true;
       settings = {
-        scrolling = {
-          history = 10000;
-          multiplier = 3;
-        };
+        draw_bold_text_with_bright_colors = true;
         font = {
           normal.family = "Fira Code";
           use_thin_strokes = true;
         };
-        draw_bold_text_with_bright_colors = true;
+        scrolling = {
+          history = 100000;
+          multiplier = 3;
+        };
         shell = {
           program = "tmux";
           args = [ "-l" ];
+        };
+        window = {
+          decorations = "full";
+          gtk_theme_variant = "dark";
         };
       };
     };
@@ -66,7 +70,7 @@
       enable = true;
       enableBashIntegration = true;
       nix-direnv.enable = true;
-      # nix-direnv.enableFlakes = true;
+      nix-direnv.enableFlakes = true;
     };
 
     # Always want emacs, this assumes the emacs overlay is present on pkgs
@@ -144,7 +148,7 @@
   ];
 
   home.sessionVariables = {
-    # MOZ_ENABLE_WAYLAND = 1;
+    MOZ_ENABLE_WAYLAND = 1;
     MOZ_DBUS_REMOTE = 1;
     GITLAB_USER = "mplanchard";
     EDITOR = "emacsclient";
@@ -183,6 +187,7 @@
     lsof
     neofetch
     neovim
+    nerdfonts
     nodejs
     nodePackages.npm
     openssh

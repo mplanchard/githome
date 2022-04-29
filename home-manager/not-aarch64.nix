@@ -18,9 +18,11 @@ hmConfig // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
       _1password
       _1password-gui
+      appimage-run
       dmidecode
       dropbox
       niv
+      xdg-utils
     ];
   };
 

@@ -5,6 +5,7 @@ hmConfig // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
         kdeconnect
         korganizer
+        obs-studio
         yakuake
         plasma5Packages.accounts-qt
         plasma5Packages.akonadi

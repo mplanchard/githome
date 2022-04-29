@@ -38,7 +38,7 @@
 ;; (when (member "Hack Nerd Font Mono" (font-family-list))
 ;;   (setq doom-font (font-spec :family "Hack Nerd Font Mono" :size 15)))
 (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 18))
-  ;;(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 22))
+;;(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 22))
 ;; (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 15))
 ;; (setq doom-font (font-spec :family "FiraMono Nerd Font Mono" :size 15))
 ;; (setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 15))
@@ -389,7 +389,7 @@
   ;; Enable proc-macro expansion
   (setq lsp-rust-analyzer-proc-macro-enable t)
   ;; Use build scripts in the analyzer context
-  (setq lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+  (setq lsp-rust-analyzer-cargo-run-build-scripts t)
   ;; Build with --all-features
   (setq lsp-rust-all-features t)
   ;; enable clippy by default
@@ -403,7 +403,10 @@
   ;; get the best macro support we can get
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
-  (setq lsp-rust-analyzer-cargo-watch-command "clippy"))
+  (setq lsp-rust-analyzer-cargo-watch-command "clippy")
+  ;; run clippy on test code too
+  ;; TODO turn this on once we've fixed more clippies in tests
+  (setq lsp-rust-analyzer-cargo-watch-args []))
 
 (use-package! lsp-ui
   :config
@@ -533,6 +536,7 @@
               ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
               :nv "c" nil))))
 
+  (setf (alist-get 'file org-link-frame-setup) #'find-file-other-window)
   ;; set up associations for org-file-open
   ;; - set the system opener
   ;; -- for linux, use xdg-open
@@ -813,7 +817,6 @@
 (map! :prefix "g"
       :desc "show-hover-doc" :nv "h" #'lsp-ui-doc-glance)
 
-
 (map! (:after org
        :map org-mode-map
        :localleader
@@ -960,7 +963,6 @@
 ;; I haven't been able to find any info on. Error message is
 ;; "The default fontset can't be used for a frame font".
 (setq default-frame-alist (assq-delete-all 'font default-frame-alist))
-
 
 ;; Somehow recently this started overriding TAB in the magit status buffer.
 ;; Revisit later to see if it's fixed.

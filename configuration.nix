@@ -4,7 +4,7 @@
 
 { config, lib, pkgs, ... }:
 
-{
+rec {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
@@ -98,27 +98,22 @@
 
 
   # Enable the Plasma 5 Desktop Environment.
-  # services.xserver.displayManager.sddm.enable = true;
+  services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
-  nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
+  # nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
 
+  # services.xserver.displayManager.gdm.enable = true;
   # services.xserver.desktopManager.gnome.enable = true;
-  # environment.gnome.excludePackages = [
-  #   pkgs.gnome.cheese
-  #   pkgs.gnome-photos
-  #   pkgs.gnome.gnome-music
-  #   pkgs.gnome.gnome-terminal
-  #   pkgs.gnome.gedit
-  #   pkgs.epiphany
-  #   pkgs.evince
-  #   pkgs.gnome.totem
-  #   pkgs.gnome.tali
-  #   pkgs.gnome.iagno
-  #   pkgs.gnome.hitori
-  #   pkgs.gnome.atomix
-  #   pkgs.gnome-tour
-  # ];
-  
+  # programs.dconf.enable = true;
+  # services.gnome = {
+  #   games.enable = false;
+  #   gnome-settings-daemon.enable = true;
+  #   gnome-online-accounts.enable = true;
+  #   sushi.enable = true;
+  #   tracker.enable = true;
+  #   tracker-miners.enable = true;
+  # };
+
   # Configure keymap in X11
   # services.xserver.layout = "us";
   # services.xserver.xkbOptions = "eurosign:e";
@@ -137,9 +132,18 @@
 
   services.fwupd.enable = true;
 
+  services.udev.extraRules = ''
+  # Ultimate Hacking Keyboard rules
+  # These are the udev rules for accessing the USB interfaces of the UHK as non-root users.
+  # Copy this file to /etc/udev/rules.d and physically reconnect the UHK afterwards.
+  SUBSYSTEM=="input", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", GROUP="input", MODE="0660"
+  SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+  KERNEL=="hidraw*", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+  '';
+
   # Enable sound.
-  # sound.enable = true;
-  # hardware.pulseaudio.enable = true;
+  sound.enable = true;
+  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -155,6 +159,16 @@
   services.xserver.libinput.touchpad = {
    naturalScrolling = true;
   };
+
+  systemd.sleep.extraConfig = ''
+    # Doesn't work on gnome, so we set suspend mode to disk below to enable hybrid sleep
+    suspend=suspend-then-hibernate
+    HibernateDelaySec=3600
+    AllowHibernation=yes
+    AllowSuspendThenHibernate=yes
+    SuspendMode=disk
+    SuspendMode=suspend
+  '';
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.matthew = {
@@ -173,6 +187,21 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     firefox
+
+    # for gnome
+    # gnome.gnome-shell-extensions
+    # gnome.gnome-tweaks
+    # gnome.adwaita-icon-theme
+    # gnome.gnome-settings-daemon
+    # gnomeExtensions.appindicator
+    # gnomeExtensions.clipboard-indicator
+    # gnomeExtensions.espresso
+    # gnomeExtensions.hide-activities-button
+    # gnomeExtensions.openweather
+    # gnomeExtensions.sound-output-device-chooser
+    # gnomeExtensions.undecorate
+    # gnomeExtensions.undecorate-window-for-wayland
+    # gnomeExtensions.vitals
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
