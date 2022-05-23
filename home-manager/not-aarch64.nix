@@ -23,6 +23,7 @@ hmConfig // {
       dropbox
       niv
       xdg-utils
+      xlibs.xev
     ];
   };
 

@@ -184,7 +184,9 @@
     ispell
     janet
     jq
+    krita
     lsof
+    mitscheme
     neofetch
     neovim
     nerdfonts
@@ -199,6 +201,7 @@
     python3Packages.grip
     ripgrep
     rnix-lsp
+    scheme-manpages
     shellcheck
     slack
     signal-desktop
@@ -233,11 +236,10 @@
     emacs = { enable = true; };
     gpg-agent = {
       enable = true;
-      # make it last all day
-      defaultCacheTtl = 28800;
-      defaultCacheTtlSsh = 28800;
-      maxCacheTtl = 28800;
-      maxCacheTtlSsh = 28800;
+      defaultCacheTtl = 43200;  # 12 hours
+      defaultCacheTtlSsh = 43200;
+      maxCacheTtl = 43200;
+      maxCacheTtlSsh = 43200;
       enableSshSupport = true;
       extraConfig = ''
         allow-emacs-pinentry

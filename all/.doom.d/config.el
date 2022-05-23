@@ -404,6 +404,7 @@
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
+  (setq lsp-rust-analyzer-cargo-watch-args ["--benches" "--tests"])
   ;; run clippy on test code too
   ;; TODO turn this on once we've fixed more clippies in tests
   (setq lsp-rust-analyzer-cargo-watch-args []))
@@ -622,7 +623,8 @@
 ;; SQL
 (after!
   sql
-  (setq sql-postgres-login-params (append sql-postgres-login-params '(port))))
+  (setq sql-postgres-login-params (append sql-postgres-login-params '(port)))
+  (add-hook! sql-interactive #'(lambda () (add-to-list 'company-backends '(company-dabbrev)))))
 
 ;; direnv
 (after!
@@ -773,31 +775,31 @@
        :desc "h-split"
        "H" (lambda (file) (+evil/window-split-and-follow) (find-file file))))
 
-(map! (:leader
-       :prefix "w"
-       :desc "go-to-window" :nv "g" #'ace-window)
-      (:leader
-       :prefix "w"
-       :desc "swap-window" :nv "/" #'ace-swap-window))
+(map!
+ ;; bindings for default visual line behavior
+ (:nv "j" #'evil-next-visual-line
+  :nv "g j" #'evil-next-line
+  :nv "k" #'evil-previous-visual-line
+  :nv "g k" #'evil-previous-line
+  :nv "V" #'evil-visual-screen-line
+  :nv "g V" #'evil-visual-line
+  :nv "0" #'evil-beginning-of-visual-line
+  :nv "g 0" #'evil-beginning-of-line
+  :nv "$" #'evil-end-of-visual-line
+  :nv "g $" #'evil-end-of-line)
+ (:leader
+  :prefix "w"
+  (:desc "go-to-window" :nv "g" #'ace-window
+   :desc "switch to buffer in other window" :nv "B" #'switch-to-buffer-other-window
+   :desc "swap-window" :nv "/" #'ace-swap-window)))
 
 (after! avy
   (map!
    (:prefix "g s"
-    :desc "select and delete region"
-    :nv "D"
-    #'avy-kill-region)
-   (:prefix "g s"
-    :desc "select and delete line"
-    :nv "d"
-    #'avy-kill-whole-line)
-   (:prefix "g s"
-    :desc "select and copy region"
-    :nv "Y"
-    #'avy-kill-ring-save-region)
-   (:prefix "g s"
-    :desc "select and copy line"
-    :nv "y"
-    #'avy-kill-ring-save-whole-line)))
+    (:desc "select and delete region" :nv "D" #'avy-kill-region
+     :desc "select and delete line" :nv "d" #'avy-kill-whole-line
+     :desc "select and copy region" :nv "Y" #'avy-kill-ring-save-region
+     :desc "select and copy line" :nv "y" #'avy-kill-ring-save-whole-line))))
 
 ;; syntax aware text objects for evil motion
 (after! evil-text-object-change-visual-type
@@ -878,6 +880,12 @@
   :desc "send up in insert mode" :i "C-j" #'comint-next-input))
 
 (after! magit
+  ;; do not merge the current branch into WIP refs when a commit is made,
+  ;; instead recreating WIP refs from point of commit (meaning they are
+  ;; only retrievable via the reflog)
+  (setq magit-wip-merge-branch nil)
+  ;; commit work-in-progress in dedicated refs automatically
+  (magit-wip-mode)
   (map!
    :map magit-status-mode-map
    :desc "jump to stashes"

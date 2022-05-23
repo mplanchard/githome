@@ -153,9 +153,13 @@ rec {
     # jack.enable = true
   };
 
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
+
   # Enable touchpad support (enabled default in most desktopManager).
   services.xserver.libinput.enable = true;
-  services.xserver.xkbOptions = "ctrl:nocaps,altwin:swap_lalt_lwin,compose:ralt";
+  # services.xserver.xkbOptions = "ctrl:nocaps,altwin:swap_lalt_lwin,compose:ralt";
   services.xserver.libinput.touchpad = {
    naturalScrolling = true;
   };
