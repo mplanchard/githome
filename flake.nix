@@ -110,6 +110,32 @@
             })).activationPackage;
         };
 
+      mp-mininix =
+        let
+          system = "x86_64-linux";
+          systemPkgs = pkgs.x86_64-linux;
+        in
+        rec {
+          homeManagerConfig = combineHomeManagerModules systemPkgs [
+            (import ./home-manager/base.nix)
+            (import ./home-manager/not-aarch64.nix)
+            (import ./home-manager/email.nix)
+            (import ./home-manager/kde.nix)
+          ];
+          homeManager = (home-manager.lib.homeManagerConfiguration (
+            {
+              inherit system;
+              pkgs = systemPkgs;
+              homeDirectory = "/home/matthew";
+              username = "matthew";
+              # This is the home manager config. The attrset should be the same format
+              # as what you find in home-manager's documentation for what you'd put in
+              # a home.nix file.
+              # configuration = homeManagerConfig;
+              configuration = homeManagerConfig;
+            })).activationPackage;
+        };
+
       mp-st-m1 =
         let
           system = "aarch64-darwin";
@@ -139,13 +165,26 @@
           system = "x86_64-linux";
           pkgs = pkgs.x86_64-linux;
           modules = [
-            ./configuration.nix
+            ./nixos/configuration-mp-st-nix.nix
             ({ pkgs, ... }: {
               services.clamav = {
                 daemon.enable = true;
                 updater.enable = true;
               };
             })
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.matthew = mp-st-nix.homeManagerConfig;
+            }
+          ];
+        };
+        mininix = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          pkgs = pkgs.x86_64-linux;
+          modules = [
+            ./nixos/configuration-mininix.nix
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
