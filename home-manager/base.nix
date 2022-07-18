@@ -70,7 +70,6 @@
       enable = true;
       enableBashIntegration = true;
       nix-direnv.enable = true;
-      nix-direnv.enableFlakes = true;
     };
 
     # Always want emacs, this assumes the emacs overlay is present on pkgs
@@ -152,6 +151,7 @@
     MOZ_DBUS_REMOTE = 1;
     GITLAB_USER = "mplanchard";
     EDITOR = "emacsclient";
+    SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
   };
 
   # Enable XDG env vars for config locations and such
@@ -185,6 +185,7 @@
     janet
     jq
     krita
+    libreoffice
     lsof
     mitscheme
     neofetch
@@ -224,8 +225,7 @@
       comment = "Org protocol";
       desktopName = "org-protocol";
       type = "Application";
-      mimeType = "x-scheme-handler/org-protocol";
-      # mimeTypes = [ "x-scheme-handler/org-protocol" ];
+      mimeTypes = [ "x-scheme-handler/org-protocol" ];
       icon = "emacs";
       terminal = false;
       categories = [ "System" ];

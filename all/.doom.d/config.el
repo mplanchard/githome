@@ -61,8 +61,6 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
-(setq org-roam-directory (file-truename org-directory))
-;; (setq +org-roam-open-buffer-on-find-file nil)
 ;; (setq org-agenda-files (list org-directory (file-name-concat org-directory "contacts")))
 ;; (setq org-journal-dir (file-name-concat org-directory "journal"))
 
@@ -137,7 +135,8 @@
 
 ;; 15 is the original setting, but it seems like it's down to 0.5 via doom or
 ;; something, so try setting it back up to avoid GC pauses
-(setq gcmh-idle-delay 10)
+(setq gcmh-idle-delay 5)
+(setq gcmh-high-cons-threshold 6400000)
 
 ;; doom's `persp-mode' activation disables uniquify, b/c it says it breaks it.
 ;; It doesn't cause big enough problems for me to worry about it, so we override
@@ -323,7 +322,7 @@
 (setq ispell-dictionary "en_US")
 
 (setq +format-on-save-enabled-modes
-      '(not web-mode))
+      '(not web-mode typescript-mode))
 
 ;; Autosave when losing focus
 ;; (add-hook! 'doom-switch-buffer-hook #'(lambda () (when buffer-file-name (save-buffer))))
@@ -404,10 +403,7 @@
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
-  (setq lsp-rust-analyzer-cargo-watch-args ["--benches" "--tests"])
-  ;; run clippy on test code too
-  ;; TODO turn this on once we've fixed more clippies in tests
-  (setq lsp-rust-analyzer-cargo-watch-args []))
+  (setq lsp-rust-analyzer-cargo-watch-args ["--benches" "--tests"]))
 
 (use-package! lsp-ui
   :config
@@ -537,6 +533,9 @@
               ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
               :nv "c" nil))))
 
+  ;; the org directory is the agenda
+  (setq org-agenda-files (list org-directory))
+  ;; open file links in a new window
   (setf (alist-get 'file org-link-frame-setup) #'find-file-other-window)
   ;; set up associations for org-file-open
   ;; - set the system opener
@@ -565,6 +564,7 @@
     (org-babel-do-load-languages
      'org-babel-load-languages
      '((typescript . t))))
+  (setq org-roam-directory (file-truename org-directory))
   ;; enable auto-fill in org-mode by default
   (add-hook! org-mode #'(lambda () (auto-fill-mode)))
   ;; prevent killing the agenda buffer, since it takes a while to load
@@ -633,7 +633,24 @@
 
 (after!
   vterm
-  (setq vterm-timer-delay 0))
+  (setq vterm-timer-delay 0)
+  (setq vterm-max-scrollback 100000))
+
+(define-hostmode poly-typescript-hostmode
+  :mode 'typescript-mode)
+
+(define-innermode poly-markdown-graphql-template-string-innermode
+  :mode 'graphql-mode
+  :head-matcher "[^[a-zA-Z]gql`"
+  :tail-matcher "`"
+  :head-mode 'host
+  :tail-mode 'host)
+
+(define-polymode poly-typescript-mode
+  :hostmode 'poly-typescript-hostmode
+  :innermodes '(poly-markdown-graphql-template-string-innermode))
+
+(add-to-list 'auto-mode-alist '("\\.ts" . poly-typescript-mode))
 
 ;; **********************************************************************
 ;; Packages
@@ -1000,9 +1017,9 @@
 (add-hook 'typescript-mode-hook #'add-node-modules-path)
 
 ;; autoformat with prettier on save
-(add-hook 'js-mode-hook #'prettier-js-mode)
-(add-hook 'js2-mode-hook #'prettier-js-mode)
-(add-hook 'typescript-mode-hook #'prettier-js-mode)
+;; (add-hook 'js-mode-hook #'prettier-js-mode)
+;; (add-hook 'js2-mode-hook #'prettier-js-mode)
+;; (add-hook 'typescript-mode-hook #'prettier-js-mode)
 
 ;; fancy testing
 (use-package! jest

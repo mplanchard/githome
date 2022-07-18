@@ -6,6 +6,7 @@ hmConfig // {
         kdeconnect
         korganizer
         obs-studio
+        obs-studio-plugins.wlrobs
         yakuake
         plasma5Packages.accounts-qt
         plasma5Packages.akonadi

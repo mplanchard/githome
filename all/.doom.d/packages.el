@@ -32,6 +32,7 @@
   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! ghub)
 (package! git-link) ;; generate github links to files, regions, etc.
+(package! graphql-mode)
 (package! hackernews)  ;; elitest tech news and commentary
 (package! ijanet  ;; support for interactive janet lang
   :recipe (:host github :repo "serialdev/ijanet-mode"))
@@ -45,12 +46,14 @@
 (package! magit-delta) ;; nice diff highlighting
 (package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
+(package! mmm-mode) ;; allow multiple major modes (e.g. for graphql templates)
 (package! modus-themes) ;; for pre-emacs 28
 (package! mu4e-views) ;; html emails in xwidgets view
 (package! nginx-mode)
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! org-remark) ;; keep highlights and margin notes on any document
 (package! org-transclusion) ;; copy content by link and keep it up to date
+(package! polymode)
 (package! prettier-js)  ;; use prettier for formatting JS/TS
 (package! pandoc-mode) ;; convert ALL the things
 (package! protobuf-mode) ;; support for editing protos

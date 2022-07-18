@@ -2,12 +2,12 @@
   description = "System config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/release-21.11";
+    nixpkgs.url = "nixpkgs/release-22.05";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-21.11";
+    home-manager.url = "github:nix-community/home-manager/release-22.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # GL support on non nixOS systems

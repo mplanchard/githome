@@ -21,9 +21,10 @@ hmConfig // {
       appimage-run
       dmidecode
       dropbox
+      libinput-gestures
       niv
       xdg-utils
-      xlibs.xev
+      xorg.xev
     ];
   };
 
