@@ -47,8 +47,16 @@ rec {
     libvdpau-va-gl
     intel-media-driver
   ];
+  # for steam
+  hardware.opengl.driSupport32Bit = true;
 
   hardware.nvidia.powerManagement.enable = true;
+
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  };
 
   networking.networkmanager.enable = true;
   networking.hostName = "mp-st-nix"; # Define your hostname.
@@ -56,6 +64,8 @@ rec {
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
+  # time.timeZone = "America/Los_Angeles";
+  # time.timeZone = "America/New_York";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config

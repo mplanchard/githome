@@ -58,6 +58,9 @@
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'modus-vivendi)
 
+;; Use a small fringe (left-pixels . right-pixels)
+(fringe-mode '(2 . 4))
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
@@ -136,7 +139,7 @@
 ;; 15 is the original setting, but it seems like it's down to 0.5 via doom or
 ;; something, so try setting it back up to avoid GC pauses
 (setq gcmh-idle-delay 5)
-(setq gcmh-high-cons-threshold 6400000)
+(setq gcmh-high-cons-threshold 12800000)
 
 ;; doom's `persp-mode' activation disables uniquify, b/c it says it breaks it.
 ;; It doesn't cause big enough problems for me to worry about it, so we override
@@ -293,6 +296,12 @@
                        (format "%s -p %s" rustic-default-clippy-arguments (mp/rustic-get-crate-name))))
                   (call-interactively #'rustic-cargo-clippy)))
 
+            ;; run cargo run for the current package
+            :desc "run"
+            :nv "r"
+            #'(lambda () (interactive)
+                (rustic-run-cargo-command (format "cargo run -p %s" (mp/rustic-get-crate-name))))
+
             ;; run cargo doc for the current package
             :desc "doc"
             :nv "d"
@@ -322,7 +331,7 @@
 (setq ispell-dictionary "en_US")
 
 (setq +format-on-save-enabled-modes
-      '(not web-mode typescript-mode))
+      '(not web-mode))
 
 ;; Autosave when losing focus
 ;; (add-hook! 'doom-switch-buffer-hook #'(lambda () (when buffer-file-name (save-buffer))))
@@ -331,11 +340,7 @@
 
 ;; Search the GH directory for projects by default
 (setq projectile-project-search-path
-      '("~/s/gh"
-        "~/s/gh/spectrust"
-        "~/s/gl"
-        "~s/gl/spectrust"
-        "~/s/gh/mplanchard"))
+      '("~/s/spec"))
 
 (after! company
   ;; faster autocomplete suggestions
@@ -1026,14 +1031,14 @@
   :after (js2-mode typescript-mode)
   :hook (js2-mode . jest-minor-mode) (typescript-mode . jest-minor-mode))
 
-(defun mp-flycheck-update-js-lsp-checkers ()
-  "Update JS checkers for LSP mode"
-  (when (bound-and-true-p lsp-mode) (flycheck-add-next-checker 'lsp 'javascript-eslint)))
+;; (defun mp-flycheck-update-js-lsp-checkers ()
+;;   "Update JS checkers for LSP mode"
+;;   (when (bound-and-true-p lsp-mode) (flycheck-add-next-checker 'lsp 'javascript-eslint)))
 
-;; Run the eslint langserv in addition to the major one
-(add-hook 'typescript-mode-hook #'mp-flycheck-update-js-lsp-checkers)
-(add-hook 'js-mode-hook #'mp-flycheck-update-js-lsp-checkers)
-(add-hook 'js2-mode-hook #'mp-flycheck-update-js-lsp-checkers)
+;; ;; Run the eslint langserv in addition to the major one
+;; (add-hook 'typescript-mode-hook #'mp-flycheck-update-js-lsp-checkers)
+;; (add-hook 'js-mode-hook #'mp-flycheck-update-js-lsp-checkers)
+;; (add-hook 'js2-mode-hook #'mp-flycheck-update-js-lsp-checkers)
 
 ;; **********************************************************************
 ;; Python
@@ -1115,6 +1120,33 @@
   "Copy the absolute path to a file in dired"
   (interactive)
   (dired-copy-filename-as-kill 0))
+
+(defun my/rustdoc ()
+  "Open the Rust stdlib docs in the browser"
+  (interactive)
+    (browse-url (my/get-rustdoc-stdlib-entrypoint)))
+
+(defun my/rustdoc-search (query)
+  "Open the rust stdlib docs with a search for QUERY"
+  (interactive "sQuery: ")
+  (browse-url
+   (concat
+    (my/get-rustdoc-stdlib-entrypoint)
+    "?search="
+    (string-replace " " "" query))))
+
+(defun my/get-rustdoc-stdlib-entrypoint ()
+  (let* ((rustc-path
+          (or (executable-find "rustc")
+              (error "Could not find rustc on path")))
+         (rustc-dir (f-dirname rustc-path))
+         (docs-entrypoint
+          (expand-file-name
+           (file-name-concat
+            rustc-dir
+            ".."
+            "share/doc/rust/html/std/index.html"))))
+    (concat "file://" docs-entrypoint)))
 
 ;; toggle from absolute to visual relative numbers
 (defun my/toggle-relative-line-numbers ()
@@ -1564,13 +1596,11 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
    ;; mu4e-headers-thread-last-child-prefix '("| " . "| ")
    ;; mu4e-headers-thread-orphan-prefix '("" . "")
    mu4e-headers-show-threads t
-   mu4e-split-view 'vertical
+   mu4e-split-view 'horizontal
    mu4e-headers-visible-columns 160
    ;; make indexing faster
                                         ; mu4e-index-cleanup nil
                                         ; mu4e-index-lazy-check t
-   ;; update mail every 5 minutes
-   ;; mu4e-split-view 'vertical
    ;; used to display an unread count
    mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query)
 
@@ -1589,7 +1619,7 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                         (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
                         (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
   (set-email-account! "spectrust"
-                      '((user-email-address . "matthew@spec-trust.com")
+                      '((user-email-address . "matthew@specprotected.com")
                         (smtpmail-smtp-user . "matthew@spec-trust.com")
                         (smtpmail-local-domain . "gmail.com")
                         (smtpmail-smtp-server . "smtp.gmail.com")

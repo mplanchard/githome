@@ -44,6 +44,8 @@
           fi
         }
 
+        alias rdoc='xdg-open $(dirname $(which rustc))/../share/doc/rust/html/std/index.html'
+
         vterm_prompt_end(){
             vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
         }
@@ -75,9 +77,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = (pkgs.emacsPgtkGcc.override {
-        withXwidgets = true;
-      });
+      package = pkgs.emacsPgtkNativeComp;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
