@@ -165,6 +165,7 @@
     coreutils
     curl
     delta
+    digikam
     discord
     direnv
     emacs-all-the-icons-fonts
