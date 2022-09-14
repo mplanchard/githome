@@ -54,9 +54,13 @@
             config.allowUnfree = true;
           };
           unstable-overlay = self: super: {
+            _1password = unstable._1password;
+            _1password-gui = unstable._1password-gui;
             gnomeExtensions = super.gnomeExtensions // {
               weather = unstable.gnomeExtensions.weather;
             };
+            iosevka-comfy = unstable.iosevka-comfy.comfy;
+            iosevka-comfy-motion = unstable.iosevka-comfy.comfy-motion;
             zoom-us = unstable.zoom-us;
           };
         in

@@ -37,7 +37,8 @@
 
 ;; (when (member "Hack Nerd Font Mono" (font-family-list))
 ;;   (setq doom-font (font-spec :family "Hack Nerd Font Mono" :size 15)))
-(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 18))
+(setq doom-font (font-spec :family "Iosevka Comfy Motion" :size 18))
+;; (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 18))
 ;;(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 22))
 ;; (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 15))
 ;; (setq doom-font (font-spec :family "FiraMono Nerd Font Mono" :size 15))

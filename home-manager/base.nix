@@ -77,7 +77,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacsPgtkNativeComp;
+      package = pkgs.emacsNativeComp;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
@@ -182,6 +182,8 @@
     hack-font
     html-tidy
     htop
+    iosevka-comfy
+    iosevka-comfy-motion
     ispell
     janet
     jq
