@@ -56,6 +56,7 @@
           unstable-overlay = self: super: {
             _1password = unstable._1password;
             _1password-gui = unstable._1password-gui;
+            discord = unstable.discord;
             gnomeExtensions = super.gnomeExtensions // {
               weather = unstable.gnomeExtensions.weather;
             };

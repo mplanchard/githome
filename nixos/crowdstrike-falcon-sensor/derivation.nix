@@ -3,6 +3,7 @@
 , file
 , gcc-unwrapped
 , glibc
+, lib
 , libnl
 , openssl
 , zlib

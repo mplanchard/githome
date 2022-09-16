@@ -60,7 +60,7 @@
 (setq doom-theme 'modus-vivendi)
 
 ;; Use a small fringe (left-pixels . right-pixels)
-(fringe-mode '(2 . 4))
+(fringe-mode '(4 . 4))
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
