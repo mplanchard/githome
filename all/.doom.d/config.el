@@ -783,7 +783,8 @@
 
 (use-package! vterm-extra
   :config
-  (map! :map vterm-mode-map :g "C-c C-e" #'vterm-extra-edit-command-in-new-buffer))
+  (map! (:map vterm-mode-map :g "C-c C-e" #'vterm-extra-edit-command-in-new-buffer)
+        (:leader :prefix "o" :desc "select vterm" :nv "/" #'vterm-extra-dispatcher)))
 
 ;; **********************************************************************
 ;; Keybindings
