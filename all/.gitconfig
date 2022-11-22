@@ -32,3 +32,5 @@
 	user = mplanchard
 [gitlab "gitlab.com/api"]
 	user = mplanchard
+[maintenance]
+	repo = /home/matthew/s/spec/spec-protect

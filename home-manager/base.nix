@@ -77,7 +77,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacsNativeComp;
+      package = pkgs.emacsLsp;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
@@ -123,7 +123,7 @@
     };
 
     # Install latex packages
-    texlive.enable = true;
+    # texlive.enable = true;
 
   };
 
@@ -184,6 +184,7 @@
     htop
     iosevka-comfy
     iosevka-comfy-motion
+    iosevka-comfy-motion-fixed
     ispell
     janet
     jq
@@ -209,9 +210,11 @@
     shellcheck
     slack
     signal-desktop
+    spot
     spotify
     sqlite
     stow
+    texlive.combined.scheme-full
     tmux
     tokei
     unzip

@@ -62,6 +62,8 @@
             };
             iosevka-comfy = unstable.iosevka-comfy.comfy;
             iosevka-comfy-motion = unstable.iosevka-comfy.comfy-motion;
+            iosevka-comfy-motion-fixed = unstable.iosevka-comfy.comfy-motion-fixed;
+            mu = unstable.mu;
             zoom-us = unstable.zoom-us;
           };
         in

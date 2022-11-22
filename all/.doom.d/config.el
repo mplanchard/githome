@@ -37,7 +37,7 @@
 
 ;; (when (member "Hack Nerd Font Mono" (font-family-list))
 ;;   (setq doom-font (font-spec :family "Hack Nerd Font Mono" :size 15)))
-(setq doom-font (font-spec :family "Iosevka Comfy Motion" :size 18))
+(setq doom-font (font-spec :family "Iosevka Comfy Motion Fixed" :size 18))
 ;; (setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 18))
 ;;(setq doom-font (font-spec :family "CodeNewRoman Nerd Font Mono" :size 22))
 ;; (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 15))
@@ -652,11 +652,11 @@
   :head-mode 'host
   :tail-mode 'host)
 
-(define-polymode poly-typescript-mode
-  :hostmode 'poly-typescript-hostmode
-  :innermodes '(poly-markdown-graphql-template-string-innermode))
+;; (define-polymode poly-typescript-mode
+;;   :hostmode 'poly-typescript-hostmode
+;;   :innermodes '(poly-markdown-graphql-template-string-innermode))
 
-(add-to-list 'auto-mode-alist '("\\.ts" . poly-typescript-mode))
+;; (add-to-list 'auto-mode-alist '("\\.ts" . poly-typescript-mode))
 
 ;; **********************************************************************
 ;; Packages
@@ -775,13 +775,15 @@
   :config
   (org-remark-global-tracking-mode +1))
 
-(use-package! tree-sitter-langs)
-
 ;; Better local syntax highlighting and language analysis
 (use-package! tree-sitter
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package! vterm-extra
+  :config
+  (map! :map vterm-mode-map :g "C-c C-e" #'vterm-extra-edit-command-in-new-buffer))
 
 ;; **********************************************************************
 ;; Keybindings
@@ -824,17 +826,18 @@
      :desc "select and copy region" :nv "Y" #'avy-kill-ring-save-region
      :desc "select and copy line" :nv "y" #'avy-kill-ring-save-whole-line))))
 
+;; now handled by doom tree-sitter module, via init.el
 ;; syntax aware text objects for evil motion
-(after! evil-text-object-change-visual-type
-  (map! (:textobj "f"
-         (evil-textobj-tree-sitter-get-textobj "function.inner")
-         (evil-textobj-tree-sitter-get-textobj "function.outer"))
-        (:textobj "/"
-         (evil-textobj-tree-sitter-get-textobj "comment.outer")
-         (evil-textobj-tree-sitter-get-textobj "comment.outer"))
-        (:textobj "c"
-         (evil-textobj-tree-sitter-get-textobj "class.inner")
-         (evil-textobj-tree-sitter-get-textobj "class.outer"))))
+;; (after! evil-text-object-change-visual-type
+;;   (map! (:textobj "f"
+;;          (evil-textobj-tree-sitter-get-textobj "function.inner")
+;;          (evil-textobj-tree-sitter-get-textobj "function.outer"))
+;;         (:textobj "/"
+;;          (evil-textobj-tree-sitter-get-textobj "comment.outer")
+;;          (evil-textobj-tree-sitter-get-textobj "comment.outer"))
+;;         (:textobj "c"
+;;          (evil-textobj-tree-sitter-get-textobj "class.inner")
+;;          (evil-textobj-tree-sitter-get-textobj "class.outer"))))
 
 (map! :leader
       :desc "paste from kill ring" :nv "P" #'+default/yank-pop)
@@ -1596,9 +1599,10 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
    ;; mu4e-headers-thread-child-prefix '("| " . "| ")
    ;; mu4e-headers-thread-last-child-prefix '("| " . "| ")
    ;; mu4e-headers-thread-orphan-prefix '("" . "")
-   mu4e-headers-show-threads t
+   mu4e-search-threads t
    mu4e-split-view 'horizontal
    mu4e-headers-visible-columns 160
+   mu4e-headers-buffer-name "*mu4e-headers*"
    ;; make indexing faster
                                         ; mu4e-index-cleanup nil
                                         ; mu4e-index-lazy-check t

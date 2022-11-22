@@ -62,15 +62,18 @@
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML
 (package! string-inflection)  ;; modify string cases
-(package! tree-sitter)  ;; better syntax highlighting and language analysis
-(package! tree-sitter-langs)
+;; now handled by doom in init.el
+;; (package! tree-sitter)  ;; better syntax highlighting and language analysis
+;; (package! tree-sitter-langs)
 (package! unfill) ;; opposite of fill paragraph
+(package! vterm-extra  ;; support for interactive janet lang
+  :recipe (:host github :repo "Sbozzolo/vterm-extra"))
 
 ;; more up-to-date versions of these fix memory issues that were causing
 ;; lag due to excessive GC for very large rust projects
-(unpin! lsp-mode)
-(unpin! lsp-treemacs)
-(unpin! lsp-ui)
+;; (unpin! lsp-mode)
+;; (unpin! lsp-treemacs)
+;; (unpin! lsp-ui)
 (unpin! magit)
 (unpin! forge)
 
