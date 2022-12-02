@@ -539,8 +539,8 @@
               ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
               :nv "c" nil))))
 
-  ;; the org directory is the agenda
-  (setq org-agenda-files (list org-directory))
+  ;; limit agenda to a few files for collecting stuff so that it loads snappy
+  (setq org-agenda-files (list "~/org/projects.org" "~/org/todo.org" "~/org/contacts.org" "~/org/inbox.org"))
   ;; open file links in a new window
   (setf (alist-get 'file org-link-frame-setup) #'find-file-other-window)
   ;; set up associations for org-file-open
@@ -719,9 +719,9 @@
   :after kubernetes)
 
 ;; Use mermaid-mode for mermaid files
-(use-package! mermaid-mode
-  :config
-  (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
+;; (use-package! mermaid-mode
+;;   :config
+;;   (add-to-list 'auto-mode-alist '("\\.mmd\\'" . mermaid-mode)))
 
 ;; use dockerfile-mode for files with .dockerfile extension
 (use-package! docker

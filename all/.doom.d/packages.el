@@ -44,7 +44,6 @@
 (package! kubernetes-evil) ;; kubernetes evil support
 (package! lsp-pyright) ;; add support for the pyright lsp
 (package! magit-delta) ;; nice diff highlighting
-(package! mermaid-mode)  ;; support for mermaid diagrams
 (package! mixed-pitch) ;; allow mixed monospace and proportional fonts
 (package! mmm-mode) ;; allow multiple major modes (e.g. for graphql templates)
 (package! modus-themes) ;; for pre-emacs 28
