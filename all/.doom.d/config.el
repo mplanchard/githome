@@ -790,6 +790,10 @@
 ;; Keybindings
 ;; **********************************************************************
 
+(map! :map cider-repl-mode-map
+      (:i "C-k" #'cider-repl-backward-input)
+      (:i "C-j" #'cider-repl-forward-input))
+
 (map! :map dired-mode-map
       :nv "y y"
       #'my/dired-kill-full-path)
@@ -800,6 +804,10 @@
       (:map embark-file-map
        :desc "h-split"
        "H" (lambda (file) (+evil/window-split-and-follow) (find-file file))))
+
+(map! (:map sql-interactive-mode-map
+            (:i "C-k" #'comint-previous-input)
+            (:i "C-j" #'comint-next-input)))
 
 (map!
  ;; bindings for default visual line behavior
