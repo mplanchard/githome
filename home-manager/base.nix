@@ -2,6 +2,7 @@
 { pkgs, ... }:
 
 {
+  home.stateVersion = "22.11";
   # The general thing seems to be that if you want home-manager to manage
   # a program's config, use it as`programs.whatever` or `services.whatever`.
   # If you just want it available, stick it in packages.
@@ -43,12 +44,12 @@
               printf "\e]%s\e\\" "$1"
           fi
         }
-
-        alias rdoc='xdg-open $(dirname $(which rustc))/../share/doc/rust/html/std/index.html'
-
         vterm_prompt_end(){
             vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
         }
+        starship_precmd_user_func="vterm_prompt_end"
+
+        alias rdoc='xdg-open $(dirname $(which rustc))/../share/doc/rust/html/std/index.html'
 
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
         export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab.com\/api login mplanchard/ { print $NF }')
@@ -116,10 +117,6 @@
       enable = true;
       # Enable once bash is configured by home manager
       enableBashIntegration = true;
-      settings = {
-        # Allow emacs-libvterm to jump between prompts
-        format = "$all\\$\\(vterm_prompt_end\\)";
-      };
     };
 
     # Install latex packages
