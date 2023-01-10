@@ -10,6 +10,8 @@ rec {
       ./hardware-mp-st-nix.nix
     ];
 
+  # HACK: use latest kernel to avoid audio issues. see https://discourse.nixos.org/t/sound-works-for-a-bit-then-stops-22-11/24580/4
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   # for ssd optimization
   boot.kernel.sysctl = {
     "vm.swappiness" = lib.mkDefault 1;
@@ -63,9 +65,9 @@ rec {
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Set your time zone.
-  time.timeZone = "America/Chicago";
+  # time.timeZone = "America/Chicago";
   # time.timeZone = "America/Los_Angeles";
-  # time.timeZone = "America/New_York";
+  time.timeZone = "America/New_York";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
@@ -152,7 +154,9 @@ rec {
   '';
 
   # Enable sound.
-  sound.enable = true;
+  # sound.enable = false;
+  # hardware.pulseaudio.support32Bit = true;
+
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -187,7 +191,7 @@ rec {
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.matthew = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "audio" "wheel" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
   };
 
   nix.settings.trusted-users = [ "root" "matthew" ];

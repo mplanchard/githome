@@ -3,6 +3,8 @@
 ;; native comp
 (when (fboundp 'native-compile-async)
   (setq comp-deferred-compilation t))
+
+(add-to-list 'native-comp-deferred-compilation-deny-list "/markdown-mode\\.el\\'")
 ;; comp-deferred-compilation-black-list '("/mu4e.*\\.el$")))
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
@@ -177,8 +179,8 @@
 ;; Evaluate this to remove the above advice when debugging/iterating.
 ;; (advice-remove 'consult-lsp--diagnostics--flatten-diagnostics 'consult-lsp--diagnostics--flatten-diagnostics@reverse-diagnostics)
 
-(after! markdown-mode
-  (setq markdown-nested-imenu-heading-index t))
+;; (after! markdown-mode
+;;   (setq markdown-nested-imenu-heading-index t))
 
 (after! markdown-toc
   (setq markdown-toc-header-toc-start "<!-- markdown-toc start -->"))
@@ -330,6 +332,7 @@
                   (call-interactively #'rustic-cargo-current-test)))))))))
 
 (setq ispell-dictionary "en_US")
+(setq ispell-personal-dictionary (expand-file-name "~/Documents/etc/ispell/en_US.pws"))
 
 (setq +format-on-save-enabled-modes
       '(not web-mode))

@@ -170,12 +170,7 @@
           system = "x86_64-linux";
           pkgs = pkgs.x86_64-linux;
           modules = [
-            ./nixos/configuration-mp-st-nix.nix ({ pkgs, ... }: {
-              services.clamav = {
-                daemon.enable = true;
-                updater.enable = true;
-              };
-            })
+            ./nixos/configuration-mp-st-nix.nix
             ./nixos/crowdstrike-falcon-sensor/module.nix
             home-manager.nixosModules.home-manager {
               home-manager.useGlobalPkgs = true;
