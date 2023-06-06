@@ -57,6 +57,7 @@
             _1password = unstable._1password;
             _1password-gui = unstable._1password-gui;
             discord = unstable.discord;
+            fd = unstable.fd;
             gnomeExtensions = super.gnomeExtensions // {
               weather = unstable.gnomeExtensions.weather;
             };
@@ -100,6 +101,7 @@
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
             (import ./home-manager/kde.nix)
+            (import ./home-manager/gnome.nix)
           ];
           homeManager = (home-manager.lib.homeManagerConfiguration (
             {

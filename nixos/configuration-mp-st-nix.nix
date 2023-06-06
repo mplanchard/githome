@@ -11,7 +11,8 @@ rec {
     ];
 
   # HACK: use latest kernel to avoid audio issues. see https://discourse.nixos.org/t/sound-works-for-a-bit-then-stops-22-11/24580/4
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
+
   # for ssd optimization
   boot.kernel.sysctl = {
     "vm.swappiness" = lib.mkDefault 1;
@@ -98,10 +99,10 @@ rec {
   # };
 
   # unlock wallet on login
-  security.pam.services.kwallet = {
-    name = "kwallet";
-    enableKwallet = true;
-  };
+  # security.pam.services.kwallet = {
+  #   name = "kwallet";
+  #   enableKwallet = true;
+  # };
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
@@ -110,21 +111,19 @@ rec {
 
 
   # Enable the Plasma 5 Desktop Environment.
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  # services.xserver.displayManager.sddm.enable = true;
+  # services.xserver.desktopManager.plasma5.enable = true;
   # nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
 
-  # services.xserver.displayManager.gdm.enable = true;
-  # services.xserver.desktopManager.gnome.enable = true;
-  # programs.dconf.enable = true;
-  # services.gnome = {
-  #   games.enable = false;
-  #   gnome-settings-daemon.enable = true;
-  #   gnome-online-accounts.enable = true;
-  #   sushi.enable = true;
-  #   tracker.enable = true;
-  #   tracker-miners.enable = true;
-  # };
+  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
+  services.udev.packages = [ pkgs.gnome.gnome-settings-daemon ];
+  programs.dconf.enable = true;
+  services.gnome = {
+    gnome-settings-daemon.enable = true;
+    gnome-online-accounts.enable = true;
+    sushi.enable = true;
+  };
 
   # Configure keymap in X11
   # services.xserver.layout = "us";
@@ -244,12 +243,12 @@ rec {
   # Or disable the firewall altogether.
   
   # For KDE Connect
-  networking.firewall.allowedTCPPortRanges = [
-    {from=1714; to=1764;}
-  ];
-  networking.firewall.allowedUDPPortRanges = [
-    {from=1714; to=1764;}
-  ];
+  # networking.firewall.allowedTCPPortRanges = [
+  #   {from=1714; to=1764;}
+  # ];
+  # networking.firewall.allowedUDPPortRanges = [
+  #   {from=1714; to=1764;}
+  # ];
   networking.firewall.enable = true;
 
   virtualisation.docker.enable = true;

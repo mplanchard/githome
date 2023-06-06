@@ -33,6 +33,9 @@
     bash = {
       enable = true;
       initExtra = ''
+        # HACK: for some reason this, unlike hte other sessionVariables, is getting
+        # overridden in my shells. Set it manually.
+        export EDITOR=emacsclient
         vterm_printf(){
           if [ -n "$TMUX" ] && ([ "''${TERM%%-*}" = "tmux" ] || [ "''${TERM%%-*}" = "screen" ] ); then
               # Tell tmux to pass the escape sequences through
@@ -78,7 +81,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacsLsp;
+      package = pkgs.emacsGit;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
@@ -99,6 +102,7 @@
     # Always install ssh
     ssh = {
       enable = true;
+      serverAliveInterval = 60;
       matchBlocks = {
         "aws-ssm" = {
           host = "i-* mi-*";
@@ -110,6 +114,9 @@
             StrictHostKeyChecking = "no";
           };
         };
+        # "*" = {
+        #   serverAliveInterval = 60;
+        # };
       };
     };
 
@@ -117,6 +124,9 @@
       enable = true;
       # Enable once bash is configured by home manager
       enableBashIntegration = true;
+      settings = {
+        kubernetes.disabled = false;
+      };
     };
 
     # Install latex packages
@@ -149,10 +159,35 @@
     GITLAB_USER = "mplanchard";
     EDITOR = "emacsclient";
     SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
+    GSM_SKIP_SSH_AGENT_WORKAROUND = 1;
   };
 
   # Enable XDG env vars for config locations and such
   xdg.enable = true;
+
+  # Customize desktop entries
+  xdg.desktopEntries = {
+    # Add the pipewire argument to slack for full wayland screenshare suppoort
+    slack = {
+      name = "Slack";
+      exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
+      comment = "Slack Desktop";
+      genericName = "Slack Client for Linux";
+      icon = "${pkgs.slack}/share/pixmaps/slack.png";
+      type = "Application";
+      startupNotify = true;
+      categories = ["GNOME" "GTK" "Network" "InstantMessaging"];
+      mimeType = ["x-scheme-handler/slack"];
+      settings = {
+        StartupWMClass = "Slack";
+      };
+    };
+  };
+
+  xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
+      ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
+      Hidden=true
+    '';
 
   home.packages = with pkgs; [
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
@@ -162,7 +197,6 @@
     coreutils
     curl
     delta
-    digikam
     discord
     direnv
     emacs-all-the-icons-fonts
@@ -196,8 +230,10 @@
     nodePackages.npm
     openssh
     pandoc
+    pass
     pinentry
     pinentry-curses
+    powertop
     procps
     python3Full
     python3Packages.grip
@@ -212,6 +248,7 @@
     sqlite
     stow
     texlive.combined.scheme-full
+    tlp # power management
     tmux
     tokei
     unzip

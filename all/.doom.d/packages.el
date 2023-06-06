@@ -15,6 +15,8 @@
 (package! cargo-mode
   :recipe (:host github :repo "ayrat555/cargo-mode"))
 (package! code-review) ;; better code review
+(package! chatgpt-shell
+  :recipe (:host github :repo "xenodium/chatgpt-shell"))
 (package! csv-mode)  ;; some support for CSVs
 (package! dap-mode)  ;; debugger
 (package! dhall-mode)  ;; support for dhall config language
@@ -28,8 +30,8 @@
 ;; (package! exwm) ;; emacs window manager
 ;; (package! geiser) ;; all the schemes
 ;; (package! geiser-guile) ;; guile
-(package! gh-notify ;; nicer github notifications
-  :recipe (:host github :repo "anticomputer/gh-notify"))
+;; (package! gh-notify ;; nicer github notifications
+;;   :recipe (:host github :repo "anticomputer/gh-notify"))
 (package! ghub)
 (package! git-link) ;; generate github links to files, regions, etc.
 (package! graphql-mode)
@@ -38,8 +40,9 @@
   :recipe (:host github :repo "serialdev/ijanet-mode"))
 (package! janet-mode) ;; support for janet lang
 (package! jest) ;; javascript testing
+(package! jq-mode)
 (package! json-par) ;; structural editing of JSON
-(package! kaolin-themes) ;; some themes
+;; (package! kaolin-themes) ;; some themes
 (package! kubernetes) ;; kubernetes overview
 (package! kubernetes-evil) ;; kubernetes evil support
 (package! lsp-pyright) ;; add support for the pyright lsp
@@ -52,6 +55,7 @@
 (package! ob-typescript)  ;; org-bable support for typescript
 (package! org-remark) ;; keep highlights and margin notes on any document
 (package! org-transclusion) ;; copy content by link and keep it up to date
+(package! password-store)
 (package! polymode)
 (package! prettier-js)  ;; use prettier for formatting JS/TS
 (package! pandoc-mode) ;; convert ALL the things
@@ -70,11 +74,12 @@
 
 ;; more up-to-date versions of these fix memory issues that were causing
 ;; lag due to excessive GC for very large rust projects
-;; (unpin! lsp-mode)
+(unpin! lsp-mode)
 ;; (unpin! lsp-treemacs)
 ;; (unpin! lsp-ui)
-(unpin! magit)
-(unpin! forge)
+;; (unpin! magit)
+;; (unpin! forge)
+(unpin! evil-collection)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:

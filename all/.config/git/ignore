@@ -1,0 +1,8 @@
+.DS_Store
+.idea
+*.log
+
+# In any git repo, ignore todo.org and notes.org
+notes.org
+todo.org
+**scratch/

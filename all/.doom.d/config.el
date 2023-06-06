@@ -56,8 +56,7 @@
 
 (add-hook! emacs-startup-hook #'(lambda () (doom/reload-font)))
 
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
+;; There are two ways to load a theme. Both assume the theme i You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'modus-vivendi)
 
@@ -412,7 +411,7 @@
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
-  (setq lsp-rust-analyzer-cargo-watch-args ["--benches" "--tests"]))
+  (setq lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"]))
 
 (use-package! lsp-ui
   :config
@@ -461,7 +460,7 @@
  #'(lambda () (lsp-headerline-breadcrumb-mode -1)))
 
 ;; treat camelCase words as two words for spellcheck
-(setq ispell-extra-args (append '("--camel-case") ispell-extra-args))
+;; (setq ispell-extra-args (append '("--camel-case") ispell-extra-args))
 
 ;; Try to improve syntax hihglighting performance for really large files
 (after! jit-lock
@@ -543,7 +542,7 @@
               :nv "c" nil))))
 
   ;; limit agenda to a few files for collecting stuff so that it loads snappy
-  (setq org-agenda-files (list "~/org/projects.org" "~/org/todo.org" "~/org/contacts.org" "~/org/inbox.org"))
+  (setq org-agenda-files (list "~/org/projects.org" "~/org/todo.org" "~/org/contacts.org" "~/org/inbox.org" "~/s/spec/spec-protect/todo.org"))
   ;; open file links in a new window
   (setf (alist-get 'file org-link-frame-setup) #'find-file-other-window)
   ;; set up associations for org-file-open
@@ -685,7 +684,7 @@
   (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
   (emms-history-load))
 
-(use-package! gh-notify)
+;; (use-package! gh-notify)
 
 ;; visual debugger
 (use-package! dap-cpptools
@@ -966,33 +965,33 @@
        #'ijanet-eval-buffer))
 
 
-(map! (:map code-review-mode-map
-       :desc "Add or edit comment"
-       "C-c C-c"
-       #'code-review-comment-add-or-edit)
-      (:map code-review-mode-map
-       :desc "Add or edit comment"
-       :localleader
-       "c"
-       #'code-review-comment-add-or-edit)
-      (:map code-review-mode-map
-       :desc "Show transient api"
-       :localleader
-       "m"
-       #'code-review-transient-api)
-      (:map code-review-mode-map
-       :desc "Next comment"
-       "] ]"
-       #'code-review-comment-jump-next)
-      (:map code-review-mode-map
-       :desc "Previous comment"
-       "[ ["
-       #'code-review-comment-jump-previous)
-      (:map code-review-comment-mode-map
-       :desc "Show transient API"
-       :localleader
-       "m"
-       #'code-review-transient-api))
+;; (map! (:map code-review-mode-map
+;;        :desc "Add or edit comment"
+;;        "C-c C-c"
+;;        #'code-review-comment-add-or-edit)
+;;       (:map code-review-mode-map
+;;        :desc "Add or edit comment"
+;;        :localleader
+;;        "c"
+;;        #'code-review-comment-add-or-edit)
+;;       (:map code-review-mode-map
+;;        :desc "Show transient api"
+;;        :localleader
+;;        "m"
+;;        #'code-review-transient-api)
+;;       (:map code-review-mode-map
+;;        :desc "Next comment"
+;;        "] ]"
+;;        #'code-review-comment-jump-next)
+;;       (:map code-review-mode-map
+;;        :desc "Previous comment"
+;;        "[ ["
+;;        #'code-review-comment-jump-previous)
+;;       (:map code-review-comment-mode-map
+;;        :desc "Show transient API"
+;;        :localleader
+;;        "m"
+;;        #'code-review-transient-api))
 
 ;; Evil bindings for xwidget webkit browsers
 (map! :map xwidget-webkit-mode-map
@@ -1012,8 +1011,8 @@
 
 ;; Somehow recently this started overriding TAB in the magit status buffer.
 ;; Revisit later to see if it's fixed.
-(after! evil
-  (define-key evil-motion-state-map (kbd "<tab>") nil))
+;; (after! evil
+;;   (define-key evil-motion-state-map (kbd "<tab>") nil))
 
 (after! markdown-mode
   (setq markdown-header-scaling t)
@@ -1033,9 +1032,21 @@
 ;; **********************************************************************
 
 ;; add node-modules to exec path
-(add-hook 'js-mode-hook #'add-node-modules-path)
-(add-hook 'js2-mode-hook #'add-node-modules-path)
-(add-hook 'typescript-mode-hook #'add-node-modules-path)
+; (add-hook 'js-mode-hook #'add-node-modules-path)
+; (add-hook 'js2-mode-hook #'add-node-modules-path)
+; (add-hook 'typescript-mode-hook #'add-node-modules-path)
+
+(setq-hook! 'typescript-mode-hook +format-with-lsp nil)
+(add-hook! 'typescript-mode-hook #'prettier-js-mode)
+
+(use-package! chatgpt-shell
+  :config
+  (setq chatgpt-shell-openai-key
+        (auth-source-pick-first-password :host "api.openai.com")))
+
+(use-package! emojify
+  :config
+  (setq emojify-display-style 'unicode))
 
 ;; autoformat with prettier on save
 ;; (add-hook 'js-mode-hook #'prettier-js-mode)
@@ -1272,7 +1283,7 @@ If not currently in a Projectile project, does not copy anything.
   "Convert VALUE-STRING to the target UNIT-STRING.
 
 This simple function is just here to make non-interactive unit conversion easier.
-For interactive conversion, use `(calc-convert-units)'."
+For interactive conversion, use `calc-convert-units'."
   (calc-eval
    (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
 
@@ -1292,13 +1303,13 @@ For interactive conversion, use `(calc-convert-units)'."
 (defun my/run-in-vterm (command)
   "Execute string COMMAND in a new vterm.
 
-Interactively, prompt for COMMAND with the current buffer's file
-name supplied. When called from Dired, supply the name of the
+Interactively, prompt for COMMAND with the file name of the current buffer
+supplied. When called from Dired, supply the name of the
 file at point.
 
-Like `async-shell-command`, but run in a vterm for full terminal features.
+Like `async-shell-command', but run in a vterm for full terminal features.
 
-The new vterm buffer is named in the form `*foo bar.baz*`, the
+The new vterm buffer is named in the form `*foo bar.baz*', the
 command and its arguments in earmuffs.
 
 When the command terminates, the shell remains open, but when the
@@ -1619,7 +1630,8 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                                         ; mu4e-index-cleanup nil
                                         ; mu4e-index-lazy-check t
    ;; used to display an unread count
-   mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query)
+   ;; mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query
+   )
 
   (map! (:map mu4e-headers-mode-map
          :desc "mark thread"
@@ -1654,8 +1666,8 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
   (add-to-list 'mu4e-bookmarks
                '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
-  (add-to-list 'mu4e-bookmarks
-               '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
+  ;; (add-to-list 'mu4e-bookmarks
+  ;;              '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
   (setq mu4e-headers-fields '((:human-date . 12)
                               ;; (:mailing-list . 15)
                               (:flags . 8)
