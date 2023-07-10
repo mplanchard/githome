@@ -644,6 +644,10 @@
   (setq vterm-timer-delay 0)
   (setq vterm-max-scrollback 100000))
 
+;; (define-derived-mode deno-mode typescript-mode "Deno"
+;;   "A major mode for Deno files")
+;; (add-to-list 'auto-mode-alist '("\\.deno\\.ts\\'" . deno-mode))
+
 (define-hostmode poly-typescript-hostmode
   :mode 'typescript-mode)
 
@@ -1040,7 +1044,7 @@
 (add-hook! 'typescript-mode-hook #'prettier-js-mode)
 
 (use-package! chatgpt-shell
-  :config
+  :init
   (setq chatgpt-shell-openai-key
         (auth-source-pick-first-password :host "api.openai.com")))
 
@@ -1673,3 +1677,11 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                               (:flags . 8)
                               (:from . 30)
                               (:subject . nil))))
+
+;; See https://www.reddit.com/r/emacs/comments/14dej62/please_help_collecting_statistics_to_optimize/
+(require 'emacs-gc-stats)
+;; Optionally set reminder to upload the stats after 3 weeks.
+(setq emacs-gc-stats-remind t) ; can also be a number of days
+;; Optionally disable logging the command names
+(setq emacs-gc-stats-inhibit-command-name-logging t)
+(emacs-gc-stats-mode +1)

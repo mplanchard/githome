@@ -193,6 +193,7 @@
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
+    cargo
     cmake
     coreutils
     curl
@@ -239,6 +240,8 @@
     python3Packages.grip
     ripgrep
     rnix-lsp
+    rustc
+    rust-analyzer
     scheme-manpages
     shellcheck
     slack
