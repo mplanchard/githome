@@ -1293,6 +1293,10 @@ For interactive conversion, use `calc-convert-units'."
 
 (defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
 
+(defun my/copy-git-branch ()
+  (interactive)
+  (kill-new (magit-local-branch-at-point)))
+
 ;; **********************************************************************
 ;; Externally Sourced Functions
 ;; **********************************************************************
