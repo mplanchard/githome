@@ -65,6 +65,14 @@
       };
     };
 
+    fish = {
+      enable = true;
+      functions = {};
+      shellAliases = {
+        iam = "set_profile";
+      };
+    };
+
     bat.enable = true;
 
     exa = {
@@ -75,6 +83,7 @@
     direnv = {
       enable = true;
       enableBashIntegration = true;
+      # enableFishIntegration = true;
       nix-direnv.enable = true;
     };
 
@@ -124,6 +133,7 @@
       enable = true;
       # Enable once bash is configured by home manager
       enableBashIntegration = true;
+      enableFishIntegration = true;
       settings = {
         kubernetes.disabled = false;
       };
