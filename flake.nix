@@ -100,8 +100,9 @@
             (import ./home-manager/base.nix)
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
-            (import ./home-manager/kde.nix)
+            # (import ./home-manager/kde.nix)
             (import ./home-manager/gnome.nix)
+            (import ./home-manager/sway.nix)
           ];
           homeManager = (home-manager.lib.homeManagerConfiguration (
             {
