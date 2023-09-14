@@ -87,7 +87,7 @@
         end
 
         function vterm_finish --on-event fish_preexec
-          if test 'vterm' = "$INSIDE_EMACS"; and test -z "$STARSHIP_SESSION_KEY"
+          if test 'vterm' = "$INSIDE_EMACS"; and test -n "$STARSHIP_SESSION_KEY"
             vterm_prompt_end
           end
         end
