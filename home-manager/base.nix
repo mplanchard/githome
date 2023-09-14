@@ -55,7 +55,8 @@
         alias rdoc='xdg-open $(dirname $(which rustc))/../share/doc/rust/html/std/index.html'
 
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
-        export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab.com\/api login mplanchard/ { print $NF }')
+        export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
+        export GITHUB_TOKEN=$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
         set_profile() {
             export AWS_PROFILE="$1"
         }
@@ -71,6 +72,14 @@
       shellAliases = {
         iam = "set_profile";
       };
+      loginShellInit = "";
+      shellInit = ''
+        function set_aws_profile
+          set -gx AWS_PROFILE $argv[1]
+        end
+
+        abbr iam set_aws_profile
+      '';
     };
 
     bat.enable = true;

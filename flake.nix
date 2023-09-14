@@ -102,7 +102,7 @@
             (import ./home-manager/email.nix)
             # (import ./home-manager/kde.nix)
             (import ./home-manager/gnome.nix)
-            (import ./home-manager/sway.nix)
+            # (import ./home-manager/sway.nix)
           ];
           homeManager = (home-manager.lib.homeManagerConfiguration (
             {

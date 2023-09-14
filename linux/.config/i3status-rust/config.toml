@@ -1,5 +1,5 @@
-theme = "space-villain"
-icons = "awesome"
+# theme = "space-villain"
+# icons = "awesome"
 
 [[block]]
 block = "maildir"
@@ -43,13 +43,17 @@ alert = 10.0
 # block = "net"
 # interval = 5
 
+# [[block]]
+# block = "networkmanager"
+# primary_only = true
+# # on_click = "x-terminal-emulator -e nmtui"
+# on_click = "emacsclient --create-frame --eval '(my/run-in-vterm \"nmtui\")'"
+# ap_format = "{ssid^5}"
+# device_format = "{icon}"
+
 [[block]]
-block = "networkmanager"
-primary_only = true
-# on_click = "x-terminal-emulator -e nmtui"
-on_click = "emacsclient --create-frame --eval '(my/run-in-vterm \"nmtui\")'"
-ap_format = "{ssid^5}"
-device_format = "{icon}"
+block = "net"
+format = " $icon {$signal_strength $ssid $frequency|Wired connection} via $device "
 
 [[block]]
 block = "sound"

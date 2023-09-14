@@ -331,7 +331,9 @@
                   (call-interactively #'rustic-cargo-current-test)))))))))
 
 (setq ispell-dictionary "en_US")
+(setq ispell-aspell-dict-dir "/etc/profiles/per-user/matthew/lib/aspell")
 (setq ispell-personal-dictionary (expand-file-name "~/Documents/etc/ispell/en_US.pws"))
+(add-hook! 'prog-mode-hook 'flyspell-prog-mode)
 
 (setq +format-on-save-enabled-modes
       '(not web-mode))
@@ -642,7 +644,8 @@
 (after!
   vterm
   (setq vterm-timer-delay 0)
-  (setq vterm-max-scrollback 100000))
+  (setq vterm-max-scrollback 100000)
+  (setq vterm-shell "fish"))
 
 ;; (define-derived-mode deno-mode typescript-mode "Deno"
 ;;   "A major mode for Deno files")
@@ -912,13 +915,17 @@
 (map!
  (:after vterm
   (:map vterm-mode-map
-   :desc "send up in insert mode" :i "C-k" #'vterm-send-up)
+   :desc "send up in insert mode" :i "C-k" #'(lambda () (interactive) (vterm-send-key "<up>")))
   (:map vterm-mode-map
-   :desc "send down in insert mode" :i "C-j" #'vterm-send-down))
+   :desc "send down in insert mode" :i "C-j" #'(lambda () (interactive) (vterm-send-key "<down>")))
+  (:map vterm-mode-map
+   :desc "send right in insert mode" :i "C-l" #'(lambda () (interactive) (vterm-send-key "<right>")))
+  (:map vterm-mode-map
+   :desc "send left in insert mode" :i "C-h" #'(lambda () (interactive) (vterm-send-key "<right>")))
  (:map shell-mode-map
   :desc "send up in insert mode" :i "C-k" #'comint-previous-input)
  (:map shell-mode-map
-  :desc "send up in insert mode" :i "C-j" #'comint-next-input))
+  :desc "send up in insert mode" :i "C-j" #'comint-next-input)))
 
 (after! magit
   ;; do not merge the current branch into WIP refs when a commit is made,
@@ -1681,11 +1688,3 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                               (:flags . 8)
                               (:from . 30)
                               (:subject . nil))))
-
-;; See https://www.reddit.com/r/emacs/comments/14dej62/please_help_collecting_statistics_to_optimize/
-(require 'emacs-gc-stats)
-;; Optionally set reminder to upload the stats after 3 weeks.
-(setq emacs-gc-stats-remind t) ; can also be a number of days
-;; Optionally disable logging the command names
-(setq emacs-gc-stats-inhibit-command-name-logging t)
-(emacs-gc-stats-mode +1)

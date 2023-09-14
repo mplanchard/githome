@@ -157,6 +157,7 @@ rec {
   # hardware.pulseaudio.support32Bit = true;
 
   hardware.pulseaudio.enable = false;
+  # security.polkit.enable = true;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -187,10 +188,12 @@ rec {
     SuspendMode=suspend
   '';
 
+  programs.fish.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.matthew = {
     isNormalUser = true;
     extraGroups = [ "audio" "wheel" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
+    shell = pkgs.fish;
   };
 
   nix.settings.trusted-users = [ "root" "matthew" ];
@@ -229,6 +232,17 @@ rec {
     enableSSHSupport = true;
   };
 
+  # SwayWM
+  # programs.sway = {
+  #   enable = true;
+  #   wrapperFeatures.gtk = true;
+  # };
+  # services.dbus.enable = true;
+  # xdg.portal = {
+  #   enable = true;
+  #   wlr.enable = true;
+  #   # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  # };
   # potentially for screensharing from sway
   # xdg.portal.wlr.enable = true;
 
