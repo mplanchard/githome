@@ -72,10 +72,24 @@
       shellAliases = {
         iam = "set_profile";
       };
-      loginShellInit = "";
       shellInit = ''
+        set PWS $(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
+        set -gx GITLAB_TOKEN $(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
+        set -gx GITHUB_TOKEN $(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
+        set -gx EDITOR emacsclient
+
         function set_aws_profile
           set -gx AWS_PROFILE $argv[1]
+        end
+
+        if test 'vterm' = "$INSIDE_EMACS"
+          source "$EMACS_VTERM_PATH/etc/emacs-vterm.fish"
+        end
+
+        function vterm_finish --on-event fish_preexec
+          if test 'vterm' = "$INSIDE_EMACS"; and test -z "$STARSHIP_SESSION_KEY"
+            vterm_prompt_end
+          end
         end
 
         abbr iam set_aws_profile
@@ -92,6 +106,7 @@
     direnv = {
       enable = true;
       enableBashIntegration = true;
+      # Being set elsewhere.
       # enableFishIntegration = true;
       nix-direnv.enable = true;
     };
