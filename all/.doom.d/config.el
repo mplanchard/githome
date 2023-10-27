@@ -219,7 +219,10 @@
   ;; remove --benches from default test args, because I don't want to run
   ;; benchmarks every time I run tests, and remove --tests because I also
   ;; want to run doctests.
-  (setq rustic-default-test-arguments "--all-features")
+  (setq rustic-default-test-arguments "--all-targets --all-features --workspace")
+  ;; Explicitly run in workspace ctx, include tests & all features, don't include
+  (setq rustic-cargo-check-arguments "--workspace --benches --tests --all-features --all-targets")
+  (setq rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
 
   ;; Ensure that `rustic-cargo-run-test' is run with the default test arguments.
   ;; This enables running on a per-package basis and ensures any other standard
@@ -409,6 +412,8 @@
   (setq lsp-rust-analyzer-server-display-inlay-hints t)
   (setq lsp-rust-analyzer-display-chaining-hints t)
   (setq lsp-rust-analyzer-display-parameter-hints t)
+  (setq lsp-rust-all-targets t)
+  (setq lsp-rust-analyzer-cargo-run-build-scripts nil)
   ;; get the best macro support we can get
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics

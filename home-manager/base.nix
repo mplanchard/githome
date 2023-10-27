@@ -57,6 +57,7 @@
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
         export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
         export GITHUB_TOKEN=$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
+        export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         set_profile() {
             export AWS_PROFILE="$1"
         }
@@ -73,9 +74,10 @@
         iam = "set_profile";
       };
       shellInit = ''
-        set PWS $(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
-        set -gx GITLAB_TOKEN $(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
-        set -gx GITHUB_TOKEN $(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
+        set PWS "$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")"
+        set -gx GITLAB_TOKEN "$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')"
+        set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
+        set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         set -gx EDITOR emacsclient
 
         function set_aws_profile
@@ -86,7 +88,7 @@
           source "$EMACS_VTERM_PATH/etc/emacs-vterm.fish"
         end
 
-        function vterm_finish --on-event fish_preexec
+        function vterm_finish --on-event fish_prompt
           if test 'vterm' = "$INSIDE_EMACS"; and test -n "$STARSHIP_SESSION_KEY"
             vterm_prompt_end
           end
@@ -137,6 +139,12 @@
       enable = true;
       serverAliveInterval = 60;
       matchBlocks = {
+        "gitlab" = {
+          host = "gitlab.com";
+          hostname = "altssh.gitlab.com";
+          user = "git";
+          port = 443;
+        };
         "aws-ssm" = {
           host = "i-* mi-*";
           user = "admin";
