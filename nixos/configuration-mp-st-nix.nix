@@ -55,11 +55,11 @@ rec {
 
   hardware.nvidia.powerManagement.enable = true;
 
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-  };
+  # programs.steam = {
+  #   enable = true;
+  #   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+  #   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  # };
 
   networking.networkmanager.enable = true;
   networking.hostName = "mp-st-nix"; # Define your hostname.
@@ -107,7 +107,7 @@ rec {
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.videoDrivers = [ "nvidia" ];
 
 
   # Enable the Plasma 5 Desktop Environment.
@@ -153,7 +153,7 @@ rec {
   '';
 
   # Enable sound.
-  # sound.enable = false;
+  sound.enable = true;
   # hardware.pulseaudio.support32Bit = true;
 
   hardware.pulseaudio.enable = false;
@@ -162,9 +162,11 @@ rec {
   services.pipewire = {
     enable = true;
     alsa.enable = true;
-    alsa.support32Bit = true;
+    # alsa.support32Bit = true;
     pulse.enable = true;
-    # jack.enable = true
+    jack.enable = true;
+    wireplumber.enable = true;
+    # media-session.enable = true;
   };
 
   hardware.bluetooth.enable = true;
@@ -238,11 +240,15 @@ rec {
   #   wrapperFeatures.gtk = true;
   # };
   # services.dbus.enable = true;
-  # xdg.portal = {
-  #   enable = true;
-  #   wlr.enable = true;
-  #   # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  # };
+  xdg.portal = {
+    enable = true;
+    # wlr.enable = true;
+    # extraPortals = [
+    #   # pkgs.xdg-desktop-portal-gtk
+    #   # pkgs.xdg-desktop-portal-gnome
+    #   # pkgs.xdg-desktop-portal-wlr
+    # ];
+  };
   # potentially for screensharing from sway
   # xdg.portal.wlr.enable = true;
 

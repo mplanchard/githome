@@ -1,5 +1,5 @@
 # standard home-manager config that's the same on all machines
-{ pkgs, ... }:
+{ pkgs, unstable, ... }:
 
 {
   home.stateVersion = "22.11";
@@ -116,7 +116,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacsGit;
+      package = pkgs.emacs-git;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: [ epkgs.vterm ];
     };
@@ -242,6 +242,7 @@
     delta
     discord
     direnv
+    unstable.element-desktop
     emacs-all-the-icons-fonts
     fd
     findutils
@@ -265,8 +266,7 @@
     krita
     libreoffice
     lsof
-    mitscheme
-    neofetch
+    mu.mu4e
     neovim
     nerdfonts
     nodejs
@@ -279,14 +279,13 @@
     powertop
     procps
     python3Full
-    python3Packages.grip
     ripgrep
     rnix-lsp
     rustc
     rust-analyzer
     scheme-manpages
     shellcheck
-    slack
+    unstable.slack
     signal-desktop
     spot
     spotify
@@ -301,7 +300,7 @@
     which
     yarn
     zip
-    zoom-us
+    unstable.zoom-us
     zulip
 
     (makeDesktopItem {

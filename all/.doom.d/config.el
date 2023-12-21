@@ -219,7 +219,8 @@
   ;; remove --benches from default test args, because I don't want to run
   ;; benchmarks every time I run tests, and remove --tests because I also
   ;; want to run doctests.
-  (setq rustic-default-test-arguments "--all-targets --all-features --workspace")
+  (setq rustic-default-test-arguments "--lib --bins --tests --all-features")
+  (setq rustic-workspace-test-arguments (concat rustic-default-test-arguments " --workspace"))
   ;; Explicitly run in workspace ctx, include tests & all features, don't include
   (setq rustic-cargo-check-arguments "--workspace --benches --tests --all-features --all-targets")
   (setq rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
@@ -540,14 +541,19 @@
 (after! org
   ;; org-mode keybindings
   (map! ( :map org-mode-map
-          :localleader
-          ( :desc "org-insert-structure-template" "T" #'org-insert-structure-template
-            :desc "emphasize" "!" #'org-emphasize
-            ;; clock bindings
-            ( :prefix "c"
-              ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
-              :nv "c" nil))))
+               :localleader
+               ( :desc "org-insert-structure-template" "T" #'org-insert-structure-template
+                       :desc "emphasize" "!" #'org-emphasize
+                       ;; clock bindings
+                       ( :prefix "c"
+                                 ;; remove doom's keybinding to cancel a clock timer, b/c I hate doing it by accident
+                                 :nv "c" nil))))
 
+  (setq org-agenda-sorting-strategy
+        '((agenda habit-down time-up urgency-down category-keep)
+          (todo todo-state-up urgency-down category-keep)
+          (tags urgency-down category-keep)
+          (search category-keep)))
   ;; limit agenda to a few files for collecting stuff so that it loads snappy
   (setq org-agenda-files (list "~/org/projects.org" "~/org/todo.org" "~/org/contacts.org" "~/org/inbox.org" "~/s/spec/spec-protect/todo.org"))
   ;; open file links in a new window
@@ -844,10 +850,10 @@
 (after! avy
   (map!
    (:prefix "g s"
-    (:desc "select and delete region" :nv "D" #'avy-kill-region
-     :desc "select and delete line" :nv "d" #'avy-kill-whole-line
-     :desc "select and copy region" :nv "Y" #'avy-kill-ring-save-region
-     :desc "select and copy line" :nv "y" #'avy-kill-ring-save-whole-line))))
+            (:desc "select and delete region" :nv "D" #'avy-kill-region
+             :desc "select and delete line" :nv "d" #'avy-kill-whole-line
+             :desc "select and copy region" :nv "Y" #'avy-kill-ring-save-region
+             :desc "select and copy line" :nv "y" #'avy-kill-ring-save-whole-line))))
 
 ;; now handled by doom tree-sitter module, via init.el
 ;; syntax aware text objects for evil motion
@@ -919,18 +925,18 @@
 
 (map!
  (:after vterm
-  (:map vterm-mode-map
-   :desc "send up in insert mode" :i "C-k" #'(lambda () (interactive) (vterm-send-key "<up>")))
-  (:map vterm-mode-map
-   :desc "send down in insert mode" :i "C-j" #'(lambda () (interactive) (vterm-send-key "<down>")))
-  (:map vterm-mode-map
-   :desc "send right in insert mode" :i "C-l" #'(lambda () (interactive) (vterm-send-key "<right>")))
-  (:map vterm-mode-map
-   :desc "send left in insert mode" :i "C-h" #'(lambda () (interactive) (vterm-send-key "<right>")))
- (:map shell-mode-map
-  :desc "send up in insert mode" :i "C-k" #'comint-previous-input)
- (:map shell-mode-map
-  :desc "send up in insert mode" :i "C-j" #'comint-next-input)))
+         (:map vterm-mode-map
+          :desc "send up in insert mode" :i "C-k" #'(lambda () (interactive) (vterm-send-key "<up>")))
+         (:map vterm-mode-map
+          :desc "send down in insert mode" :i "C-j" #'(lambda () (interactive) (vterm-send-key "<down>")))
+         (:map vterm-mode-map
+          :desc "send right in insert mode" :i "C-l" #'(lambda () (interactive) (vterm-send-key "<right>")))
+         (:map vterm-mode-map
+          :desc "send left in insert mode" :i "C-h" #'(lambda () (interactive) (vterm-send-key "<right>")))
+         (:map shell-mode-map
+          :desc "send up in insert mode" :i "C-k" #'comint-previous-input)
+         (:map shell-mode-map
+          :desc "send up in insert mode" :i "C-j" #'comint-next-input)))
 
 (after! magit
   ;; do not merge the current branch into WIP refs when a commit is made,
@@ -1048,9 +1054,9 @@
 ;; **********************************************************************
 
 ;; add node-modules to exec path
-; (add-hook 'js-mode-hook #'add-node-modules-path)
-; (add-hook 'js2-mode-hook #'add-node-modules-path)
-; (add-hook 'typescript-mode-hook #'add-node-modules-path)
+                                        ; (add-hook 'js-mode-hook #'add-node-modules-path)
+                                        ; (add-hook 'js2-mode-hook #'add-node-modules-path)
+                                        ; (add-hook 'typescript-mode-hook #'add-node-modules-path)
 
 (setq-hook! 'typescript-mode-hook +format-with-lsp nil)
 (add-hook! 'typescript-mode-hook #'prettier-js-mode)
@@ -1156,84 +1162,140 @@
          (sql-database "spec_protected_test"))))
 
 ;; **********************************************************************
-;; Custom Functions
+;; Org-Jira
 ;; **********************************************************************
 
-(defun my/dired-kill-full-path ()
-  "Copy the absolute path to a file in dired"
-  (interactive)
-  (dired-copy-filename-as-kill 0))
+(use-package! ejira
+  :init
+  (auth-source-forget-all-cached)
+  (setq ejira-org-directory (concat (file-name-as-directory org-directory) "jira")
+        ejira-projects '("EN")
+        ejira-scrum-project "EN"
 
-(defun my/rustdoc ()
-  "Open the Rust stdlib docs in the browser"
-  (interactive)
-    (browse-url (my/get-rustdoc-stdlib-entrypoint)))
+        jiralib2-auth 'token
+        jiralib2-url "https://spectrust.atlassian.net"
+        ejira-todo-states-alist   '(("To Do"       . 1)
+                                    ("In Progress" . 4)
+                                    ("In Review"   . 5)
+                                    ("Done"        . 8)))
+  (let* ((mp-jira-host (car (last (string-split jiralib2-url "//"))))
+         (mp-jira-creds (first (auth-source-search :host mp-jira-host))))
+    (setq jiralib2-user-login-name (plist-get mp-jira-creds :user)
+          jiralib2-token (auth-info-password mp-jira-creds)))
+  (defun mp/ejira-custom-unresolved-tickets (project-id)
+    (let ((base-query (format "project = '%s' and resolution = unresolved" project-id)))
+      (if (equal project-id "EN")
+          (format "%s and (createdDate > 2023-10-19 or updatedDate > 2023-10-19)" base-query)
+        base-query)))
+  (make-directory ejira-org-directory 'parents)
+  :config
+  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+  (require 'ejira-agenda)
+  (add-to-list 'org-agenda-files ejira-org-directory)
+  (setq ejira-update-jql-unresolved-fn #'mp/ejira-custom-unresolved-tickets)
+  (let* ((todos-minus-jira
+          '((alltodo
+             ""
+             ((org-agenda-files (remove ejira-org-directory org-agenda-files))
+              (org-agenda-overriding-header "Other TODOs")))))
+         (jira-view
+          (lambda (x)
+            (append (list '(agenda) x) todos-minus-jira))))
+    (org-add-agenda-custom-command
+     '("ja" "My JIRA issues"
+       (jira-view (ejira-jql
+                   "resolution = unresolved and assignee = currentUser()"
+                   ((org-agenda-overriding-header "Assigned JIRA"))))
+       (org-add-agenda-custom-command
+        '("js" "Current JIRA sprint"
+          (jira-view
+           (ejira-jql (concat "project in (" ejira-scrum-project ") and sprint in openSprints()")
+                      ((org-agenda-overriding-header "Current Sprint"))))))
+       (org-add-agenda-custom-command
+        '("jp" "EN project"
+          (jira-view
+           (ejira-jql (mp/ejira-custom-unresolved-tickets "EN")
+                      ((org-agenda-overriding-header "EN Project (Recent Only)")))))))
 
-(defun my/rustdoc-search (query)
-  "Open the rust stdlib docs with a search for QUERY"
-  (interactive "sQuery: ")
-  (browse-url
-   (concat
-    (my/get-rustdoc-stdlib-entrypoint)
-    "?search="
-    (string-replace " " "" query))))
+     ;; **********************************************************************
+     ;; Custom Functions
+     ;; **********************************************************************
 
-(defun my/get-rustdoc-stdlib-entrypoint ()
-  (let* ((rustc-path
-          (or (executable-find "rustc")
-              (error "Could not find rustc on path")))
-         (rustc-dir (f-dirname rustc-path))
-         (docs-entrypoint
-          (expand-file-name
-           (file-name-concat
-            rustc-dir
-            ".."
-            "share/doc/rust/html/std/index.html"))))
-    (concat "file://" docs-entrypoint)))
+     (defun my/dired-kill-full-path ()
+       "Copy the absolute path to a file in dired"
+       (interactive)
+       (dired-copy-filename-as-kill 0))
 
-;; toggle from absolute to visual relative numbers
-(defun my/toggle-relative-line-numbers ()
-  (interactive)
-  (if (eq display-line-numbers t)
-      (setq display-line-numbers 'visual)
-    (setq display-line-numbers t)))
+     (defun my/rustdoc ()
+       "Open the Rust stdlib docs in the browser"
+       (interactive)
+       (browse-url (my/get-rustdoc-stdlib-entrypoint)))
 
-(defun mp-parse-github-pr-target (target)
-  "Parse the given GitHub PR TARGET into a URL
+     (defun my/rustdoc-search (query)
+       "Open the rust stdlib docs with a search for QUERY"
+       (interactive "sQuery: ")
+       (browse-url
+        (concat
+         (my/get-rustdoc-stdlib-entrypoint)
+         "?search="
+         (string-replace " " "" query))))
+
+     (defun my/get-rustdoc-stdlib-entrypoint ()
+       (let* ((rustc-path
+               (or (executable-find "rustc")
+                   (error "Could not find rustc on path")))
+              (rustc-dir (f-dirname rustc-path))
+              (docs-entrypoint
+               (expand-file-name
+                (file-name-concat
+                 rustc-dir
+                 ".."
+                 "share/doc/rust/html/std/index.html"))))
+         (concat "file://" docs-entrypoint)))
+
+     ;; toggle from absolute to visual relative numbers
+     (defun my/toggle-relative-line-numbers ()
+       (interactive)
+       (if (eq display-line-numbers t)
+           (setq display-line-numbers 'visual)
+         (setq display-line-numbers t)))
+
+     (defun mp-parse-github-pr-target (target)
+       "Parse the given GitHub PR TARGET into a URL
 
 A TARGET is something that GitHub would automatically recognize as a GitHub
 link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
 
 If the TARGET does not contain an org name, the value of `mp/default-github-org'
 will be used as the org name."
-  ;; let*, as opposed to let, ensures that the variables are bound sequentially,
-  ;; so that each bound variable is available in the context of the next
-  ;; variable being bound
-  (let* ((split-url (split-string target "[#/]" t "[[:space:]]+"))
-         (split-len (length split-url)))
-    (cl-multiple-value-bind
-        (org repo id)
-        (cond
-         ((eq split-len 3) (list (pop split-url) (pop split-url) (pop split-url)))
-         ((eq split-len 2) (list mp/default-github-org (pop split-url) (pop split-url)))
-         ((eq split-len 1) (list mp/default-github-org mp/default-github-repo (pop split-url)))
-         (t (error! "Couldn't parse target: %s" target)))
-      (list
-       (concat "https://github.com/" org "/" repo "/pull/" id)
-       target))))
+       ;; let*, as opposed to let, ensures that the variables are bound sequentially,
+       ;; so that each bound variable is available in the context of the next
+       ;; variable being bound
+       (let* ((split-url (split-string target "[#/]" t "[[:space:]]+"))
+              (split-len (length split-url)))
+         (cl-multiple-value-bind
+             (org repo id)
+             (cond
+              ((eq split-len 3) (list (pop split-url) (pop split-url) (pop split-url)))
+              ((eq split-len 2) (list mp/default-github-org (pop split-url) (pop split-url)))
+              ((eq split-len 1) (list mp/default-github-org mp/default-github-repo (pop split-url)))
+              (t (error! "Couldn't parse target: %s" target)))
+           (list
+            (concat "https://github.com/" org "/" repo "/pull/" id)
+            target))))
 
-(defun mp-make-github-pr-link (target)
-  "Construct an org link from the PR TARGET text
+     (defun mp-make-github-pr-link (target)
+       "Construct an org link from the PR TARGET text
 
 A TARGET is something that GitHub would automatically recognize as a GitHub
 link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
 
 Prompt for the TARGET when called interactively."
-  (interactive "sGithub Target: ")
-  (apply 'org-insert-link nil (mp-parse-github-pr-target target)))
+       (interactive "sGithub Target: ")
+       (apply 'org-insert-link nil (mp-parse-github-pr-target target)))
 
-(defun mp-insert-github-pr-link (start end)
-  "Insert an org link for the selected PR target
+     (defun mp-insert-github-pr-link (start end)
+       "Insert an org link for the selected PR target
 
 A TARGET is something that GitHub would automatically recognize as a GitHub
 link when writing an issue or PR, such as myrepo#23 or someorg/myrepo#23.
@@ -1242,86 +1304,86 @@ When a TARGET is selected, replace it with an org-mode link. If there is no
 active selection, prompt for a TARGET and insert the org-mode link at the
 cursor.
 "
-  (interactive "r")
-  ;; check whether the region is actively selected
-  (if (use-region-p)
-      ;; If so, use the start and end to make the link
-      (mp-make-github-pr-link (buffer-substring start end))
-    ;; Otherwise, call the function interactively
-    (call-interactively 'mp-make-github-pr-link)))
+       (interactive "r")
+       ;; check whether the region is actively selected
+       (if (use-region-p)
+           ;; If so, use the start and end to make the link
+           (mp-make-github-pr-link (buffer-substring start end))
+         ;; Otherwise, call the function interactively
+         (call-interactively 'mp-make-github-pr-link)))
 
 
-(defun mp-parse-jira-ticket-link (target)
-  (let ((trimmed (car (split-string target nil t))))
-    (list
-     (concat "https://bestowinc.atlassian.net/browse/" trimmed)
-     target)))
+     (defun mp-parse-jira-ticket-link (target)
+       (let ((trimmed (car (split-string target nil t))))
+         (list
+          (concat "https://bestowinc.atlassian.net/browse/" trimmed)
+          target)))
 
 
-(defun mp-insert-org-jira-ticket-link (target)
-  "Insert an org link for a Jira ticket from a ticket identifier."
-  (interactive "sJira Target: ")
-  (apply 'org-insert-link nil (mp-parse-jira-ticket-link target)))
+     (defun mp-insert-org-jira-ticket-link (target)
+       "Insert an org link for a Jira ticket from a ticket identifier."
+       (interactive "sJira Target: ")
+       (apply 'org-insert-link nil (mp-parse-jira-ticket-link target)))
 
 
-(defun mp-insert-jira-ticket-link (start end)
-  "Insert an org link for a Jira ticket, either interactively or from a region."
-  (interactive "r")
-  (if (use-region-p)
-      (mp-insert-org-jira-ticket-link (buffer-substring start end))
-    (call-interactively 'mp-insert-org-jira-ticket-link)))
+     (defun mp-insert-jira-ticket-link (start end)
+       "Insert an org link for a Jira ticket, either interactively or from a region."
+       (interactive "r")
+       (if (use-region-p)
+           (mp-insert-org-jira-ticket-link (buffer-substring start end))
+         (call-interactively 'mp-insert-org-jira-ticket-link)))
 
 
-(defun mp-get-relative-path ()
-  "Get the path relative to the project root, or nil if not in a project."
-  (let
-      ((root-dir (projectile-project-root))
-       (local-dir (or load-file-name buffer-file-name)))
-    (cond
-     ((not root-dir) nil)
-     (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
+     (defun mp-get-relative-path ()
+       "Get the path relative to the project root, or nil if not in a project."
+       (let
+           ((root-dir (projectile-project-root))
+            (local-dir (or load-file-name buffer-file-name)))
+         (cond
+          ((not root-dir) nil)
+          (t (concat "./" (substring local-dir (string-width root-dir) nil))))))
 
 
-(defun mp-copy-relative-path ()
-  "Copy the path to the current file, relative to the project root.
+     (defun mp-copy-relative-path ()
+       "Copy the path to the current file, relative to the project root.
 
 If not currently in a Projectile project, does not copy anything.
 "
-  (interactive)
-  (kill-new (mp-get-relative-path)))
+       (interactive)
+       (kill-new (mp-get-relative-path)))
 
-(defun mp/echo-async-run-shell-command (command)
-  "Echo the shell command to the *Async Shell Command* buffer, then run it, opening the buffer."
-  (async-shell-command (format "echo '%s' && %s" command command))
-  (get-buffer "*Async Shell Command*"))
+     (defun mp/echo-async-run-shell-command (command)
+       "Echo the shell command to the *Async Shell Command* buffer, then run it, opening the buffer."
+       (async-shell-command (format "echo '%s' && %s" command command))
+       (get-buffer "*Async Shell Command*"))
 
-(defun my/convert (value-string unit-string)
-  "Convert VALUE-STRING to the target UNIT-STRING.
+     (defun my/convert (value-string unit-string)
+       "Convert VALUE-STRING to the target UNIT-STRING.
 
 This simple function is just here to make non-interactive unit conversion easier.
 For interactive conversion, use `calc-convert-units'."
-  (calc-eval
-   (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
+       (calc-eval
+        (math-convert-units (calc-eval value-string 'raw) (calc-eval unit-string 'raw))))
 
-(defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
+     (defun my/enhance (count) (interactive "p") (doom/increase-font-size count))
 
-(defun my/copy-git-branch ()
-  (interactive)
-  (kill-new (magit-local-branch-at-point)))
+     (defun my/copy-git-branch ()
+       (interactive)
+       (kill-new (magit-local-branch-at-point)))
 
-;; **********************************************************************
-;; Externally Sourced Functions
-;; **********************************************************************
+     ;; **********************************************************************
+     ;; Externally Sourced Functions
+     ;; **********************************************************************
 
-;; Source: https://www.reddit.com/r/emacs/comments/ft84xy/run_shell_command_in_new_vterm/
-(defun my/run-in-vterm-kill (process event)
-  "A process sentinel. Kills PROCESS's buffer if it is live."
-  (let ((b (process-buffer process)))
-    (and (buffer-live-p b)
-         (kill-buffer b))))
+     ;; Source: https://www.reddit.com/r/emacs/comments/ft84xy/run_shell_command_in_new_vterm/
+     (defun my/run-in-vterm-kill (process event)
+       "A process sentinel. Kills PROCESS's buffer if it is live."
+       (let ((b (process-buffer process)))
+         (and (buffer-live-p b)
+              (kill-buffer b))))
 
-(defun my/run-in-vterm (command)
-  "Execute string COMMAND in a new vterm.
+     (defun my/run-in-vterm (command)
+       "Execute string COMMAND in a new vterm.
 
 Interactively, prompt for COMMAND with the file name of the current buffer
 supplied. When called from Dired, supply the name of the
@@ -1334,362 +1396,363 @@ command and its arguments in earmuffs.
 
 When the command terminates, the shell remains open, but when the
 shell exits, the buffer is killed."
-  (interactive
-   (list
-    (let* ((f (cond (buffer-file-name)
-                    ((eq major-mode 'dired-mode)
-                     (dired-get-filename nil t))))
-           (filename (concat " " (shell-quote-argument (and f (file-relative-name f))))))
-      (read-shell-command "Terminal command: "
-                          (cons filename 0)
-                          (cons 'shell-command-history 1)
-                          (list filename)))))
-  (with-current-buffer (vterm (concat "*" command "*"))
-    (set-process-sentinel vterm--process #'my/run-in-vterm-kill)
-    (vterm-send-string command)
-    (vterm-send-return)))
+       (interactive
+        (list
+         (let* ((f (cond (buffer-file-name)
+                         ((eq major-mode 'dired-mode)
+                          (dired-get-filename nil t))))
+                (filename (concat " " (shell-quote-argument (and f (file-relative-name f))))))
+           (read-shell-command "Terminal command: "
+                               (cons filename 0)
+                               (cons 'shell-command-history 1)
+                               (list filename)))))
+       (with-current-buffer (vterm (concat "*" command "*"))
+         (set-process-sentinel vterm--process #'my/run-in-vterm-kill)
+         (vterm-send-string command)
+         (vterm-send-return)))
 
-(defun my/aws-mfa (mfa-code)
-  (interactive "sMFA Code: ")
-  ;; For whatever reason, AWS won't log you in if you already have any
-  ;; of these set.
-  (setenv "AWS_ACCESS_KEY_ID")
-  (setenv "AWs_SECRET_ACCESS_KEY")
-  (setenv "AWS_SESSION_TOKEN")
-  (let* ((iam-user
-          ;; substring to remove the final newline
-          (substring
-           ;; get username, e.g. mplanchard
-           (shell-command-to-string
-            "aws sts get-caller-identity \
+     (defun my/aws-mfa (mfa-code)
+       (interactive "sMFA Code: ")
+       ;; For whatever reason, AWS won't log you in if you already have any
+       ;; of these set.
+       (setenv "AWS_ACCESS_KEY_ID")
+       (setenv "AWs_SECRET_ACCESS_KEY")
+       (setenv "AWS_SESSION_TOKEN")
+       (let* ((iam-user
+               ;; substring to remove the final newline
+               (substring
+                ;; get username, e.g. mplanchard
+                (shell-command-to-string
+                 "aws sts get-caller-identity \
              --output json \
              | jq -r '.Arn' \
              | awk -F '/' '{print $2}'") 0 -1))
-         (mfa-arn
-          (substring
-           ;; get the MFA device identifier
-           (shell-command-to-string
-            (format "aws iam list-mfa-devices \
+              (mfa-arn
+               (substring
+                ;; get the MFA device identifier
+                (shell-command-to-string
+                 (format "aws iam list-mfa-devices \
                     --user-name %s \
                     --output json \
                     | jq -r '.MFADevices[0].SerialNumber'"
-                    iam-user)) 0 -1))
-         (credentials
-          ;; get the credentials, which are space-separated, and
-          ;; split them into a list
-          (split-string
-           (shell-command-to-string
-            (format "aws sts get-session-token \
+                         iam-user)) 0 -1))
+              (credentials
+               ;; get the credentials, which are space-separated, and
+               ;; split them into a list
+               (split-string
+                (shell-command-to-string
+                 (format "aws sts get-session-token \
                      --serial-number %s \
                      --token %s \
                      --output text \
                      --duration-seconds 21600 \
                      | awk '{print $2, $4, $5}'"
-                    mfa-arn
-                    mfa-code))))
-         ;; pull individual items out of the credentials list
-         (access-key-id (nth 0 credentials))
-         (secret-access-key (nth 1 credentials))
-         (session-token (nth 2 credentials)))
-    (unless (seq-every-p #'identity (list access-key-id secret-access-key session-token))
-      (error "Problem getting AWS info"))
-    (setenv "AWS_ACCESS_KEY_ID" access-key-id)
-    (setenv "AWS_SECRET_ACCESS_KEY" secret-access-key)
-    (setenv "AWS_SESSION_TOKEN" session-token)))
+                         mfa-arn
+                         mfa-code))))
+              ;; pull individual items out of the credentials list
+              (access-key-id (nth 0 credentials))
+              (secret-access-key (nth 1 credentials))
+              (session-token (nth 2 credentials)))
+         (unless (seq-every-p #'identity (list access-key-id secret-access-key session-token))
+           (error "Problem getting AWS info"))
+         (setenv "AWS_ACCESS_KEY_ID" access-key-id)
+         (setenv "AWS_SECRET_ACCESS_KEY" secret-access-key)
+         (setenv "AWS_SESSION_TOKEN" session-token)))
 
-;; **********************************************************************
-;; Org Tags
-;; **********************************************************************
+     ;; **********************************************************************
+     ;; Org Tags
+     ;; **********************************************************************
 
-(setq org-tag-persistent-alist
-      (quote
-       ((:startgrouptag)
-        ("software")
-        (:grouptags)
-        ("api")
-        ("database")
-        ("emacs")
-        ("encryption")
-        ("javascript")
-        ("lisp")
-        ("rust")
-        ("software_architecture")
-        ("software_culture")
-        ("software_optimization")
-        ("software_research")
-        ("software_security")
-        ("software_people")
-        ("software_tools")
-        ("unix")
-        (:endgrouptag)
+     (setq org-tag-persistent-alist
+           (quote
+            ((:startgrouptag)
+             ("software")
+             (:grouptags)
+             ("api")
+             ("database")
+             ("emacs")
+             ("encryption")
+             ("javascript")
+             ("lisp")
+             ("rust")
+             ("software_architecture")
+             ("software_culture")
+             ("software_optimization")
+             ("software_research")
+             ("software_security")
+             ("software_people")
+             ("software_tools")
+             ("unix")
+             (:endgrouptag)
 
-        (:startgrouptag) ("api")
-        (:grouptags) ("rest") ("graphql")
-        (:endgrouptag)
+             (:startgrouptag) ("api")
+             (:grouptags) ("rest") ("graphql")
+             (:endgrouptag)
 
-        (:startgrouptag) ("authorization")
-        (:grouptags) ("rbac")
-        (:endgrouptag)
+             (:startgrouptag) ("authorization")
+             (:grouptags) ("rbac")
+             (:endgrouptag)
 
-        ("camping")
-        ("coffee")
+             ("camping")
+             ("coffee")
 
-        (:startgrouptag) ("concurrency")
-        (:grouptags)
-        ("async_await")
-        ("go_statement")
-        ("multithread")
-        ("multiprocess")
-        (:startgrouptag) ("tokio")
-        (:grouptags) ("tokio_axum")
-        (:endgrouptag)
-        (:endgrouptag)
+             (:startgrouptag) ("concurrency")
+             (:grouptags)
+             ("async_await")
+             ("go_statement")
+             ("multithread")
+             ("multiprocess")
+             (:startgrouptag) ("tokio")
+             (:grouptags) ("tokio_axum")
+             (:endgrouptag)
+             (:endgrouptag)
 
-        (:startgrouptag) ("database")
-        (:grouptags) ("postgres") ("sqlite") ("mysql")
-        (:endgrouptag)
+             (:startgrouptag) ("database")
+             (:grouptags) ("postgres") ("sqlite") ("mysql")
+             (:endgrouptag)
 
-        ("debugging")
+             ("debugging")
 
-        (:startgrouptag) ("emacs")
-        (:grouptags)
-        ("elisp")
-        ("emacs_config")
-        ("emacs_packages")
-        ("emacs_themes")
-        ("mu4e")
-        ("org_mode")
-        (:endgrouptag)
+             (:startgrouptag) ("emacs")
+             (:grouptags)
+             ("elisp")
+             ("emacs_config")
+             ("emacs_packages")
+             ("emacs_themes")
+             ("mu4e")
+             ("org_mode")
+             (:endgrouptag)
 
-        (:startgrouptag) ("encryption")
-        (:grouptags) ("gpg") ("ssh")
-        (:endgrouptag)
+             (:startgrouptag) ("encryption")
+             (:grouptags) ("gpg") ("ssh")
+             (:endgrouptag)
 
-        ("fun")
+             ("house")
+             ("fun")
 
-        (:startgrouptag) ("javascript")
-        (:grouptags) ("react") ("typescript") ("vuejs")
-        (:endgrouptag)
+             (:startgrouptag) ("javascript")
+             (:grouptags) ("react") ("typescript") ("vuejs")
+             (:endgrouptag)
 
-        (:startgrouptag) ("linux")
-        (:grouptags)
-        ("coreutils")
-        ("systemd")
-        ("virtual_memory")
-        (:endgrouptag)
+             (:startgrouptag) ("linux")
+             (:grouptags)
+             ("coreutils")
+             ("systemd")
+             ("virtual_memory")
+             (:endgrouptag)
 
-        (:startgrouptag) ("lisp")
-        (:grouptags) ("clojure") ("elisp") ("racket") ("scheme")
-        (:endgrouptag)
+             (:startgrouptag) ("lisp")
+             (:grouptags) ("clojure") ("elisp") ("racket") ("scheme")
+             (:endgrouptag)
 
-        ("low_level")
-        ("machine_learning")
+             ("low_level")
+             ("machine_learning")
 
-        (:startgrouptag) ("math")
-        (:grouptags)
-        ("statistics")
-        (:endgrouptag)
+             (:startgrouptag) ("math")
+             (:grouptags)
+             ("statistics")
+             (:endgrouptag)
 
-        ("model") ;; a standard or ideal way to do something
-        ("nix")
+             ("model") ;; a standard or ideal way to do something
+             ("nix")
 
-        (:startgrouptag) ("org_mode")
-        (:grouptags) ("org_roam")
-        (:endgrouptag)
+             (:startgrouptag) ("org_mode")
+             (:grouptags) ("org_roam")
+             (:endgrouptag)
 
-        (:startgrouptag) ("people_management")
-        (:grouptags) ("relationships") ("team_dynamics")
-        (:endgrouptag)
+             (:startgrouptag) ("people_management")
+             (:grouptags) ("relationships") ("team_dynamics")
+             (:endgrouptag)
 
-        ("possible_purchases")
-        ("possible_gifts")
-        ("project_management")
+             ("possible_purchases")
+             ("possible_gifts")
+             ("project_management")
 
-        (:startgrouptag) ("rust")
-        (:grouptags)
-        ("actix")
-        ("warp")
-        ("rust_analyzer")
-        ("rust_async")
-        ("rust_features")
-        ("rust_web")
-        (:endgrouptag)
+             (:startgrouptag) ("rust")
+             (:grouptags)
+             ("actix")
+             ("warp")
+             ("rust_analyzer")
+             ("rust_async")
+             ("rust_features")
+             ("rust_web")
+             (:endgrouptag)
 
-        (:startgrouptag) ("rust_web")
-        (:grouptags) ("actix") ("tokio_axum") ("rust_frontend")
-        (:endgrouptag)
+             (:startgrouptag) ("rust_web")
+             (:grouptags) ("actix") ("tokio_axum") ("rust_frontend")
+             (:endgrouptag)
 
-        (:startgrouptag) ("rust_async")
-        (:grouptags) ("async_std") ("tokio")
-        (:endgrouptag)
+             (:startgrouptag) ("rust_async")
+             (:grouptags) ("async_std") ("tokio")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_architecture")
-        (:grouptags)
-        ("complexity")
-        ("concurrency")
-        ("design_patterns")
-        ("dynamic_linking")
-        ("file_system_architecture")
-        ("no_silver_bullet")
-        ("software_patterns")
-        (:endgrouptag)
+             (:startgrouptag) ("software_architecture")
+             (:grouptags)
+             ("complexity")
+             ("concurrency")
+             ("design_patterns")
+             ("dynamic_linking")
+             ("file_system_architecture")
+             ("no_silver_bullet")
+             ("software_patterns")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_patterns")
-        (:grouptags)
-        ("pubsub")
-        ("type_driven_development")
-        (:endgrouptag)
+             (:startgrouptag) ("software_patterns")
+             (:grouptags)
+             ("pubsub")
+             ("type_driven_development")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_security")
-        (:grouptags) ("authentication") ("authorization") ("credentials")
-        (:endgrouptag)
+             (:startgrouptag) ("software_security")
+             (:grouptags) ("authentication") ("authorization") ("credentials")
+             (:endgrouptag)
 
-        (:startgrouptag) ("type_driven_development")
-        (:grouptags)
-        ("parse_dont_validate")
-        (:endgrouptag)
+             (:startgrouptag) ("type_driven_development")
+             (:grouptags)
+             ("parse_dont_validate")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_optimization")
-        (:grouptags)
-        ("cache_utilization")
-        ("software_performance")
-        ("software_speed")
-        (:endgrouptag)
+             (:startgrouptag) ("software_optimization")
+             (:grouptags)
+             ("cache_utilization")
+             ("software_performance")
+             ("software_speed")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_people")
-        (:grouptags)
-        ("andrew_gallant")
-        ("brian_kernighan")
-        ("dan_luu")
-        ("fred_brooks")
-        ("gary_bernhradt")
-        ("paul_graham")
-        ("rich_hickey")
-        ("ulrich_drepper")
-        (:endgrouptag)
+             (:startgrouptag) ("software_people")
+             (:grouptags)
+             ("andrew_gallant")
+             ("brian_kernighan")
+             ("dan_luu")
+             ("fred_brooks")
+             ("gary_bernhradt")
+             ("paul_graham")
+             ("rich_hickey")
+             ("ulrich_drepper")
+             (:endgrouptag)
 
-        (:startgrouptag) ("software_tools")
-        (:grouptags)
-        ("awk")
-        ("git")
-        ("graphical_applications")
-        ("gui_frameworks")
-        ("parsers")
-        ("shell_applications")
-        (:endgrouptag)
+             (:startgrouptag) ("software_tools")
+             (:grouptags)
+             ("awk")
+             ("git")
+             ("graphical_applications")
+             ("gui_frameworks")
+             ("parsers")
+             ("shell_applications")
+             (:endgrouptag)
 
-        (:startgrouptag) ("spectrust")
-        (:grouptags)
-        ("workflow_engine")
-        ("integration_station")
-        ("spec_proxy")
-        ("hub_server")
-        ("hub_client")
-        (:endgrouptag)
+             (:startgrouptag) ("spectrust")
+             (:grouptags)
+             ("workflow_engine")
+             ("integration_station")
+             ("spec_proxy")
+             ("hub_server")
+             ("hub_client")
+             (:endgrouptag)
 
-        ("spotify")
-        ("talk")
-        ("quotes"))))
+             ("spotify")
+             ("talk")
+             ("quotes"))))
 
-;; **********************************************************************
-;; Email
-;; **********************************************************************
+     ;; **********************************************************************
+     ;; Email
+     ;; **********************************************************************
 
-;; Find the mu4e directory relative to the mu directory
-(let*
-    ((user (getenv "USER"))
-     (d0 (format "/etc/profiles/per-user/%s/share/emacs/site-lisp/mu4e" user))
-     (d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
-     (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
-     (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
-     (d4 "~/.nix-profile/share/emacs/site-lisp/mu4e") ;; install from nix on not NixOS
-     (mu4e-dir (cond
-                ((file-directory-p d0) d0)
-                ((file-directory-p d1) d1)
-                ((file-directory-p d2) d2)
-                ((file-directory-p d3) d3)
-                ((file-directory-p d4) d4))))
-  (add-to-list 'load-path mu4e-dir))
+     ;; Find the mu4e directory relative to the mu directory
+     (let*
+         ((user (getenv "USER"))
+          (d0 (format "/etc/profiles/per-user/%s/share/emacs/site-lisp/mu4e" user))
+          (d1 "/usr/local/share/emacs/site-lisp/mu4e") ;; local install
+          (d2 "/usr/local/share/emacs/site-lisp/mu/mu4e") ;; macos maybe
+          (d3 "/usr/share/emacs/site-lisp/mu4e") ;; install from pkg manager
+          (d4 "~/.nix-profile/share/emacs/site-lisp/mu4e") ;; install from nix on not NixOS
+          (mu4e-dir (cond
+                     ((file-directory-p d0) d0)
+                     ((file-directory-p d1) d1)
+                     ((file-directory-p d2) d2)
+                     ((file-directory-p d3) d3)
+                     ((file-directory-p d4) d4))))
+       (add-to-list 'load-path mu4e-dir))
 
-;; refresh the modeline display for unread emails every 5 minuts
-(add-hook! 'after-init-hook
-           #'(lambda ()
-               (run-with-timer 0 300 #'mu4e-alert-enable-mode-line-display)))
+     ;; refresh the modeline display for unread emails every 5 minuts
+     (add-hook! 'after-init-hook
+                #'(lambda ()
+                    (run-with-timer 0 300 #'mu4e-alert-enable-mode-line-display)))
 
-(setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
+     (setq my/mu4e-interesting-mail-query "flag:unread AND NOT flag:trashed \
 AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
 
-(use-package! mu4e-views
-  :after mu4e
-  :bind (:map mu4e-headers-mode-map
-         ("X" . mu4e-views-view-current-msg-with-method))
-  :config
-  (setq mu4e-views-default-view-method "html")
-  (mu4e-views-mu4e-use-view-msg-method "html"))
+     (use-package! mu4e-views
+       :after mu4e
+       :bind (:map mu4e-headers-mode-map
+                   ("X" . mu4e-views-view-current-msg-with-method))
+       :config
+       (setq mu4e-views-default-view-method "html")
+       (mu4e-views-mu4e-use-view-msg-method "html"))
 
-(use-package! mu4e
-  :config
-  (setq
-   ;; Don't pull in the entire thread from the archive when it gets a new message
-   mu4e-headers-include-related nil
-   ;; More space for the headers
-   mu4e-headers-visible-lines 20
-   ;; systemd mbsync job handles this for us
-   mu4e-index-update-in-background nil
-   ;; mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
-   ;; mu4e-root-maildir "~/.mail"
-   ;; Simpler threading indicators
-   ;; mu4e-headers-thread-child-prefix '("| " . "| ")
-   ;; mu4e-headers-thread-last-child-prefix '("| " . "| ")
-   ;; mu4e-headers-thread-orphan-prefix '("" . "")
-   mu4e-search-threads t
-   mu4e-split-view 'horizontal
-   mu4e-headers-visible-columns 160
-   mu4e-headers-buffer-name "*mu4e-headers*"
-   ;; make indexing faster
+     (use-package! mu4e
+       :config
+       (setq
+        ;; Don't pull in the entire thread from the archive when it gets a new message
+        mu4e-headers-include-related nil
+        ;; More space for the headers
+        mu4e-headers-visible-lines 20
+        ;; systemd mbsync job handles this for us
+        mu4e-index-update-in-background nil
+        ;; mu4e-maildir "~/.mail"  ;; deprecated, but keeping around for now
+        ;; mu4e-root-maildir "~/.mail"
+        ;; Simpler threading indicators
+        ;; mu4e-headers-thread-child-prefix '("| " . "| ")
+        ;; mu4e-headers-thread-last-child-prefix '("| " . "| ")
+        ;; mu4e-headers-thread-orphan-prefix '("" . "")
+        mu4e-search-threads t
+        mu4e-split-view 'horizontal
+        mu4e-headers-visible-columns 160
+        mu4e-headers-buffer-name "*mu4e-headers*"
+        ;; make indexing faster
                                         ; mu4e-index-cleanup nil
                                         ; mu4e-index-lazy-check t
-   ;; used to display an unread count
-   ;; mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query
-   )
+        ;; used to display an unread count
+        ;; mu4e-alert-interesting-mail-query my/mu4e-interesting-mail-query
+        )
 
-  (map! (:map mu4e-headers-mode-map
-         :desc "mark thread"
-         :nv "T"
-         #'mu4e-headers-mark-thread))
-  (set-email-account! "gmail"
-                      '((user-email-address . "msplanchard@gmail.com")
-                        (smtpmail-smtp-user . "msplanchard")
-                        (smtpmail-local-domain . "gmail.com")
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-default-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
-                        (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
-                        (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
-  (set-email-account! "spectrust"
-                      '((user-email-address . "matthew@specprotected.com")
-                        (smtpmail-smtp-user . "matthew@spec-trust.com")
-                        (smtpmail-local-domain . "gmail.com")
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-default-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
-                        (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
-                        (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
+       (map! (:map mu4e-headers-mode-map
+              :desc "mark thread"
+              :nv "T"
+              #'mu4e-headers-mark-thread))
+       (set-email-account! "gmail"
+                           '((user-email-address . "msplanchard@gmail.com")
+                             (smtpmail-smtp-user . "msplanchard")
+                             (smtpmail-local-domain . "gmail.com")
+                             (smtpmail-smtp-server . "smtp.gmail.com")
+                             (smtpmail-default-smtp-server . "smtp.gmail.com")
+                             (smtpmail-smtp-service . 587)
+                             (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
+                             (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
+                             (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")))
+       (set-email-account! "spectrust"
+                           '((user-email-address . "matthew@specprotected.com")
+                             (smtpmail-smtp-user . "matthew@spec-trust.com")
+                             (smtpmail-local-domain . "gmail.com")
+                             (smtpmail-smtp-server . "smtp.gmail.com")
+                             (smtpmail-default-smtp-server . "smtp.gmail.com")
+                             (smtpmail-smtp-service . 587)
+                             (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
+                             (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
+                             (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")))
 
-  (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
-  (add-hook! 'mu4e-headers-mode-hook
-             #'(lambda () (set-face-background 'mu4e-header-highlight-face "gray18")))
+       (add-hook! 'mu4e-view-mode-hook #'mp/disable-fill-column-indicator-mode)
+       (add-hook! 'mu4e-headers-mode-hook
+                  #'(lambda () (set-face-background 'mu4e-header-highlight-face "gray18")))
 
-  (add-to-list 'mu4e-bookmarks
-               '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
-  (add-to-list 'mu4e-bookmarks
-               '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
-  ;; (add-to-list 'mu4e-bookmarks
-  ;;              '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
-  (setq mu4e-headers-fields '((:human-date . 12)
-                              ;; (:mailing-list . 15)
-                              (:flags . 8)
-                              (:from . 30)
-                              (:subject . nil))))
+       (add-to-list 'mu4e-bookmarks
+                    '(:name "Gmail Inbox" :query "maildir:/gmail/Inbox" :key ?g))
+       (add-to-list 'mu4e-bookmarks
+                    '(:name "SpecTrust Inbox" :query "maildir:/spectrust/Inbox" :key ?s))
+       ;; (add-to-list 'mu4e-bookmarks
+       ;;              '(:name "Recent Unread" :query my/mu4e-interesting-mail-query :key ?U))
+       (setq mu4e-headers-fields '((:human-date . 12)
+                                   ;; (:mailing-list . 15)
+                                   (:flags . 8)
+                                   (:from . 30)
+                                   (:subject . nil))))

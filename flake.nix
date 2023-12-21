@@ -58,9 +58,7 @@
             _1password-gui = unstable._1password-gui;
             discord = unstable.discord;
             fd = unstable.fd;
-            gnomeExtensions = super.gnomeExtensions // {
-              weather = unstable.gnomeExtensions.weather;
-            };
+            signal-desktop = unstable.signal-desktop;
             iosevka-comfy = unstable.iosevka-comfy.comfy;
             iosevka-comfy-motion = unstable.iosevka-comfy.comfy-motion;
             iosevka-comfy-motion-fixed = unstable.iosevka-comfy.comfy-motion-fixed;
@@ -82,10 +80,10 @@
         }
       );
 
-      combineHomeManagerModules = pkgs: modules:
+      combineHomeManagerModules = pkgs: unstable: modules:
         pkgs.lib.foldl
-          (config: module: module { inherit pkgs; hmConfig = config; })
-          ((pkgs.lib.head modules) { inherit pkgs; })
+          (config: module: module { inherit pkgs unstable; hmConfig = config; })
+          ((pkgs.lib.head modules) { inherit pkgs unstable; })
           (pkgs.lib.tail modules);
 
     in
@@ -94,9 +92,10 @@
         let
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
+          systemUnstable = unstable.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
             (import ./home-manager/base.nix)
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
@@ -122,9 +121,10 @@
         let
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
+          systemUnstable = unstable.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
             (import ./home-manager/base.nix)
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
@@ -148,9 +148,10 @@
         let
           system = "aarch64-darwin";
           systemPkgs = pkgs.x86_64-darwin;
+          systemUnstable = unstable.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
             (import ./home-manager/base.nix)
             (import ./home-manager/email.nix)
           ];
