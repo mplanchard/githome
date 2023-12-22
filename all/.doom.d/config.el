@@ -1198,24 +1198,22 @@
              ""
              ((org-agenda-files (remove ejira-org-directory org-agenda-files))
               (org-agenda-overriding-header "Other TODOs")))))
+         ;; little function to build a jira view
          (jira-view
-          (lambda (x)
-            (append (list '(agenda) x) todos-minus-jira))))
+          (lambda (alias name jql)
+            `(,alias
+              ,name
+              ,(append
+                `((agenda)
+                  (ejira-jql ,jql
+                             ((org-agenda-overriding-header ,name))))
+                todos-minus-jira)))))
     (org-add-agenda-custom-command
-     '("ja" "My JIRA issues"
-       (jira-view (ejira-jql
-                   "resolution = unresolved and assignee = currentUser()"
-                   ((org-agenda-overriding-header "Assigned JIRA"))))
-       (org-add-agenda-custom-command
-        '("js" "Current JIRA sprint"
-          (jira-view
-           (ejira-jql (concat "project in (" ejira-scrum-project ") and sprint in openSprints()")
-                      ((org-agenda-overriding-header "Current Sprint"))))))
-       (org-add-agenda-custom-command
-        '("jp" "EN project"
-          (jira-view
-           (ejira-jql (mp/ejira-custom-unresolved-tickets "EN")
-                      ((org-agenda-overriding-header "EN Project (Recent Only)"))))))))))
+     (funcall jira-view "ja" "Assigned Issues" "resolution = unresolved and assignee = currentUser()"))
+    (org-add-agenda-custom-command
+     (funcall jira-view "js" "Current Sprint" (concat "project in (" ejira-scrum-project ") and sprint in openSprints()")))
+    (org-add-agenda-custom-command
+     (funcall jira-view "jp" "EN project" (mp/ejira-custom-unresolved-tickets "EN")))))
 
 ;; **********************************************************************
 ;; Custom Functions
