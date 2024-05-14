@@ -6,6 +6,7 @@ hmConfig // {
       gnomeExtensions.appindicator
       gnome.gnome-shell-extensions
       gnome.gnome-tweaks
+      pavucontrol
     ];
   };
 }

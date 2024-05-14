@@ -1,4 +1,4 @@
-{ hmConfig, pkgs, ... }:
+{ hmConfig, pkgs, unstable, ... }:
 
 hmConfig // {
   programs = hmConfig . programs or {} // {
@@ -16,8 +16,8 @@ hmConfig // {
 
   home = hmConfig . home or {} // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
-      _1password
-      _1password-gui
+      unstable._1password
+      unstable._1password-gui
       appimage-run
       dmidecode
       dropbox

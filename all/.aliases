@@ -1,5 +1,5 @@
 alias githome='git --git-dir $HOME/.dotfiles --work-tree=$HOME'
-alias ls='exa -F --group-directories-first'
+alias ls='eza -F --group-directories-first'
 alias ll='ls -lga@hF --group-directories-first'
 alias rm='rm -i'
 alias vim='nvim'

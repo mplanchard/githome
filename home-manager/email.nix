@@ -1,4 +1,4 @@
-{ hmConfig, pkgs, ... }:
+{ hmConfig, pkgs, unstable, ... }:
 
 with pkgs.lib.debug;
 # Email configuration.

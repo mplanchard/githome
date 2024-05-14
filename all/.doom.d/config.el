@@ -58,7 +58,7 @@
 
 ;; There are two ways to load a theme. Both assume the theme i You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'modus-vivendi)
+(setq doom-theme 'modus-vivendi-deuteranopia)
 
 ;; Use a small fringe (left-pixels . right-pixels)
 (fringe-mode '(4 . 4))
@@ -337,10 +337,9 @@
 (setq ispell-dictionary "en_US")
 (setq ispell-aspell-dict-dir "/etc/profiles/per-user/matthew/lib/aspell")
 (setq ispell-personal-dictionary (expand-file-name "~/Documents/etc/ispell/en_US.pws"))
-(add-hook! 'prog-mode-hook 'flyspell-prog-mode)
+;; (add-hook! 'prog-mode-hook 'flyspell-prog-mode)
 
-(setq +format-on-save-enabled-modes
-      '(not web-mode))
+(setq-hook! 'sh-mode-hook +format-with 'shfmt)
 
 ;; Autosave when losing focus
 ;; (add-hook! 'doom-switch-buffer-hook #'(lambda () (when buffer-file-name (save-buffer))))
@@ -879,11 +878,11 @@
        :localleader
        :prefix "l"
        :desc "github-link" :nv "g" #'mp-insert-github-pr-link)
-      (:after org
-       :map org-mode-map
-       :localleader
-       :prefix "l"
-       :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link)
+      ;; (:after org
+      ;;  :map org-mode-map
+      ;;  :localleader
+      ;;  :prefix "l"
+      ;;  :desc "jira-link" :nv "j" #'mp-insert-jira-ticket-link)
       (:after org
        :prefix "g"
        :desc "open at point"
@@ -1058,8 +1057,8 @@
                                         ; (add-hook 'js2-mode-hook #'add-node-modules-path)
                                         ; (add-hook 'typescript-mode-hook #'add-node-modules-path)
 
-(setq-hook! 'typescript-mode-hook +format-with-lsp nil)
-(add-hook! 'typescript-mode-hook #'prettier-js-mode)
+;; (setq-hook! 'typescript-mode-hook +format-with-lsp nil)
+;; (setq-hook! 'typescript-mode-hook +format-with #'prettier-js)
 
 (use-package! chatgpt-shell
   :init
@@ -1165,55 +1164,55 @@
 ;; Org-Jira
 ;; **********************************************************************
 
-(use-package! ejira
-  :init
-  (auth-source-forget-all-cached)
-  (setq ejira-org-directory (concat (file-name-as-directory org-directory) "jira")
-        ejira-projects '("EN")
-        ejira-scrum-project "EN"
+;; (use-package! ejira
+;;   :init
+;;   (auth-source-forget-all-cached)
+;;   (setq ejira-org-directory (concat (file-name-as-directory org-directory) "jira")
+;;         ejira-projects '("EN")
+;;         ejira-scrum-project "EN"
 
-        jiralib2-auth 'token
-        jiralib2-url "https://spectrust.atlassian.net"
-        ejira-todo-states-alist   '(("To Do"       . 1)
-                                    ("In Progress" . 4)
-                                    ("In Review"   . 5)
-                                    ("Done"        . 8)))
-  (let* ((mp-jira-host (car (last (string-split jiralib2-url "//"))))
-         (mp-jira-creds (first (auth-source-search :host mp-jira-host))))
-    (setq jiralib2-user-login-name (plist-get mp-jira-creds :user)
-          jiralib2-token (auth-info-password mp-jira-creds)))
-  (defun mp/ejira-custom-unresolved-tickets (project-id)
-    (let ((base-query (format "project = '%s' and resolution = unresolved" project-id)))
-      (if (equal project-id "EN")
-          (format "%s and (createdDate > 2023-10-19 or updatedDate > 2023-10-19)" base-query)
-        base-query)))
-  (make-directory ejira-org-directory 'parents)
-  :config
-  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
-  (require 'ejira-agenda)
-  (add-to-list 'org-agenda-files ejira-org-directory)
-  (setq ejira-update-jql-unresolved-fn #'mp/ejira-custom-unresolved-tickets)
-  (let* ((todos-minus-jira
-          '((alltodo
-             ""
-             ((org-agenda-files (remove ejira-org-directory org-agenda-files))
-              (org-agenda-overriding-header "Other TODOs")))))
-         ;; little function to build a jira view
-         (jira-view
-          (lambda (alias name jql)
-            `(,alias
-              ,name
-              ,(append
-                `((agenda)
-                  (ejira-jql ,jql
-                             ((org-agenda-overriding-header ,name))))
-                todos-minus-jira)))))
-    (org-add-agenda-custom-command
-     (funcall jira-view "ja" "Assigned Issues" "resolution = unresolved and assignee = currentUser()"))
-    (org-add-agenda-custom-command
-     (funcall jira-view "js" "Current Sprint" (concat "project in (" ejira-scrum-project ") and sprint in openSprints()")))
-    (org-add-agenda-custom-command
-     (funcall jira-view "jp" "EN project" (mp/ejira-custom-unresolved-tickets "EN")))))
+;;         jiralib2-auth 'token
+;;         jiralib2-url "https://spectrust.atlassian.net"
+;;         ejira-todo-states-alist   '(("To Do"       . 1)
+;;                                     ("In Progress" . 4)
+;;                                     ("In Review"   . 5)
+;;                                     ("Done"        . 8)))
+;;   (let* ((mp-jira-host (car (last (string-split jiralib2-url "//"))))
+;;          (mp-jira-creds (car (auth-source-search :host mp-jira-host))))
+;;     (setq jiralib2-user-login-name (plist-get mp-jira-creds :user)
+;;           jiralib2-token (auth-info-password mp-jira-creds)))
+;;   (defun mp/ejira-custom-unresolved-tickets (project-id)
+;;     (let ((base-query (format "project = '%s' and resolution = unresolved" project-id)))
+;;       (if (equal project-id "EN")
+;;           (format "%s and (createdDate > 2023-10-19 or updatedDate > 2023-10-19)" base-query)
+;;         base-query)))
+;;   (make-directory ejira-org-directory 'parents)
+;;   :config
+;;   (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+;;   (require 'ejira-agenda)
+;;   (add-to-list 'org-agenda-files ejira-org-directory)
+;;   (setq ejira-update-jql-unresolved-fn #'mp/ejira-custom-unresolved-tickets)
+;;   (let* ((todos-minus-jira
+;;           '((alltodo
+;;              ""
+;;              ((org-agenda-files (remove ejira-org-directory org-agenda-files))
+;;               (org-agenda-overriding-header "Other TODOs")))))
+;;          ;; little function to build a jira view
+;;          (jira-view
+;;           (lambda (alias name jql)
+;;             `(,alias
+;;               ,name
+;;               ,(append
+;;                 `((agenda)
+;;                   (ejira-jql ,jql
+;;                              ((org-agenda-overriding-header ,name))))
+;;                 todos-minus-jira)))))
+;;     (org-add-agenda-custom-command
+;;      (funcall jira-view "ja" "Assigned Issues" "resolution = unresolved and assignee = currentUser()"))
+;;     (org-add-agenda-custom-command
+;;      (funcall jira-view "js" "Current Sprint" (concat "project in (" ejira-scrum-project ") and sprint in openSprints()")))
+;;     (org-add-agenda-custom-command
+;;      (funcall jira-view "jp" "EN project" (mp/ejira-custom-unresolved-tickets "EN")))))
 
 ;; **********************************************************************
 ;; Custom Functions

@@ -77,7 +77,7 @@ rec {
   networking.interfaces.enp82s0u2u1u2.useDHCP = true;
   networking.interfaces.wlp0s20f3.useDHCP = true;
 
-  nixpkgs.config.allowUnfree = true;
+  # nixpkgs.config.allowUnfree = true;
   nix = {
     package = pkgs.nixUnstable;
     extraOptions = ''
@@ -180,6 +180,7 @@ rec {
    naturalScrolling = true;
   };
 
+  systemd.services.NetworkManager-wait-online.enable = false;
   systemd.sleep.extraConfig = ''
     # Doesn't work on gnome, so we set suspend mode to disk below to enable hybrid sleep
     suspend=suspend-then-hibernate

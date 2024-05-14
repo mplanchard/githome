@@ -2,12 +2,12 @@
   description = "System config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/release-23.05";
+    nixpkgs.url = "nixpkgs/release-23.11";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
+    home-manager.url = "github:nix-community/home-manager/release-23.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # GL support on non nixOS systems
@@ -19,23 +19,7 @@
     let
 
       # unstable = import inputs.nixpkgs-unstable { inherit system; };
-      overlays = [
-        emacs-overlay.overlay
-        # Add in GL wrappers, used below.
-        # ((import ./nixGL.nix) (import inputs.nixGL.outPath))
-        # (final: prev: {
-        #   # Resolve an issue where alacritty cannot find GL libraries since they
-        #   # are system libraries.
-        #   alacritty = prev.wrapWithNixGLIntel prev.alacritty;
-        #   # There is some suggestion on GH that this should also work for zoom-us
-        #   # (i.e. zoom), but haven't been able to figure it out for me:
-        #   # https://github.com/NixOS/nixpkgs/issues/82959
-        #   # zoom-us = prev.wrapWithNixGLIntel prev.zoom-us;
-        # })
-        # (self: super: {
-        #   kalendar = unstable.kalendar;
-        # })
-      ];
+      overlays = [ emacs-overlay.overlay ];
 
       supportedSystems = [
         "x86_64-linux"
@@ -53,22 +37,9 @@
             inherit system;
             config.allowUnfree = true;
           };
-          unstable-overlay = self: super: {
-            _1password = unstable._1password;
-            _1password-gui = unstable._1password-gui;
-            discord = unstable.discord;
-            fd = unstable.fd;
-            signal-desktop = unstable.signal-desktop;
-            iosevka-comfy = unstable.iosevka-comfy.comfy;
-            iosevka-comfy-motion = unstable.iosevka-comfy.comfy-motion;
-            iosevka-comfy-motion-fixed = unstable.iosevka-comfy.comfy-motion-fixed;
-            mu = unstable.mu;
-            zoom-us = unstable.zoom-us;
-          };
         in
           import nixpkgs {
-            inherit system;
-            overlays = overlays ++ [ unstable-overlay ];
+            inherit system overlays;
             config.allowUnfree = true;
           }
       );
@@ -103,6 +74,7 @@
             (import ./home-manager/gnome.nix)
             # (import ./home-manager/sway.nix)
           ];
+
           homeManager = (home-manager.lib.homeManagerConfiguration (
             {
               inherit system;

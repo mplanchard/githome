@@ -100,7 +100,7 @@
 
     bat.enable = true;
 
-    exa = {
+    eza = {
       enable = true;
       enableAliases = true;
     };
@@ -207,24 +207,24 @@
   # Enable XDG env vars for config locations and such
   xdg.enable = true;
 
-  # Customize desktop entries
-  xdg.desktopEntries = {
-    # Add the pipewire argument to slack for full wayland screenshare suppoort
-    slack = {
-      name = "Slack";
-      exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
-      comment = "Slack Desktop";
-      genericName = "Slack Client for Linux";
-      icon = "${pkgs.slack}/share/pixmaps/slack.png";
-      type = "Application";
-      startupNotify = true;
-      categories = ["GNOME" "GTK" "Network" "InstantMessaging"];
-      mimeType = ["x-scheme-handler/slack"];
-      settings = {
-        StartupWMClass = "Slack";
-      };
-    };
-  };
+  # # Customize desktop entries
+  # xdg.desktopEntries = {
+  #   # Add the pipewire argument to slack for full wayland screenshare suppoort
+  #   slack = {
+  #     name = "Slack";
+  #     # exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
+  #     comment = "Slack Desktop";
+  #     genericName = "Slack Client for Linux";
+  #     icon = "${pkgs.slack}/share/pixmaps/slack.png";
+  #     type = "Application";
+  #     startupNotify = true;
+  #     categories = ["GNOME" "GTK" "Network" "InstantMessaging"];
+  #     mimeType = ["x-scheme-handler/slack"];
+  #     settings = {
+  #       StartupWMClass = "Slack";
+  #     };
+  #   };
+  # };
 
   xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
       ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
@@ -240,11 +240,11 @@
     coreutils
     curl
     delta
-    discord
+    unstable.discord
     direnv
     unstable.element-desktop
     emacs-all-the-icons-fonts
-    fd
+    unstable.fd
     findutils
     fira-code
     fontconfig
@@ -257,9 +257,9 @@
     hack-font
     html-tidy
     htop
-    iosevka-comfy
-    iosevka-comfy-motion
-    iosevka-comfy-motion-fixed
+    unstable.iosevka-comfy.comfy
+    unstable.iosevka-comfy.comfy-motion
+    unstable.iosevka-comfy.comfy-motion-fixed
     ispell
     janet
     jq
@@ -280,13 +280,13 @@
     procps
     python3Full
     ripgrep
-    rnix-lsp
+    # rnix-lsp
     rustc
     rust-analyzer
     scheme-manpages
     shellcheck
-    unstable.slack
-    signal-desktop
+    slack
+    unstable.signal-desktop
     spot
     spotify
     sqlite
@@ -300,7 +300,7 @@
     which
     yarn
     zip
-    unstable.zoom-us
+    zoom-us
     zulip
 
     (makeDesktopItem {
@@ -329,7 +329,7 @@
         allow-emacs-pinentry
         allow-loopback-pinentry
       '';
-      pinentryFlavor = "emacs";
+      pinentryFlavor = "gtk2";
     };
   };
   # Custom services

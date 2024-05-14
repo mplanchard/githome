@@ -23,8 +23,8 @@
 (package! direnv) ;; automatically run .envrc commands for the emacs environment
 (package! edit-server)  ;; allow editing text boxes in FF
 ;; (package! elpher) ;; gopher in emacs
-(package! ejira
-  :recipe (:host github :repo "nyyManni/ejira"))
+;; (package! ejira
+;;   :recipe (:host github :repo "nyyManni/ejira"))
 ;; see https://www.reddit.com/r/emacs/comments/14dej62/please_help_collecting_statistics_to_optimize/
 (package! emacs-gc-stats)
 (package! evil-terminal-cursor-changer) ;; when running in the terminal, don't just use a block cursor all the time
@@ -66,6 +66,7 @@
 (package! pandoc-mode) ;; convert ALL the things
 (package! protobuf-mode) ;; support for editing protos
 (package! pyvenv) ;; oh python
+(package! rainbow-mode)
 (package! rmsbolt) ;; read the assembly
 (package! shfmt) ;; format shell scripts
 (package! skewer-mode) ;; interactively edit JS/HTML

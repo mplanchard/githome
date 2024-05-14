@@ -312,7 +312,7 @@ else
         direnv \
         editorconfig \
         emacs-plus \
-        exa \
+        eza \
         fd \
         fzf \
         git \
@@ -465,8 +465,8 @@ echo "Installing Rust utilities ..."
 if [[ $(command -v watchexec) == "" || "$UPGRADE" ]]; then
     cargo install watchexec-cli
 fi
-if [[ $(command -v exa) == "" || "$UPGRADE" ]]; then
-    cargo install exa
+if [[ $(command -v eza) == "" || "$UPGRADE" ]]; then
+    cargo install eza
 fi
 if [[ $(command -v btm) == "" || "$UPGRADE" ]]; then
     cargo install bottom
