@@ -1,3 +1,4 @@
+;; Allow use of the common lisp emulation library for CL functions
 (require 'cl-lib)
 
 ;; --------------------------------------------------------------------------------
@@ -137,7 +138,7 @@
    ;; I've got to get away from these confounded relatives, hanging on the bell all day
    ;; never giving me a moment's peace
    ring-bell-function #'ignore
-   ;; secrets!
+   ;; keep it secret, keep it safe
    auth-sources '("~/.authinfo.gpg")
    ;; trigger completion-at-point with TAB
    tab-always-indent 'complete
