@@ -409,7 +409,6 @@
   ;; Build with --test
   (setq lsp-rust-cfg-test t)
   ;; Inlay type hints are nice
-  (setq lsp-rust-analyzer-server-display-inlay-hints t)
   (setq lsp-rust-analyzer-display-chaining-hints t)
   (setq lsp-rust-analyzer-display-parameter-hints t)
   (setq lsp-rust-all-targets t)
@@ -418,7 +417,8 @@
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
-  (setq lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"]))
+  (setq lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"])
+  (lsp-inlay-hints-mode))
 
 (use-package! lsp-ui
   :config
