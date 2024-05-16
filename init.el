@@ -17,6 +17,12 @@
   (let ((sysinfo (shell-command-to-string "uname -v")))
     (not (eq (cl-search "NixOS" sysinfo) nil))))
 
+;; Used for highlight-on-yank for evil mode
+;; Cribbed from https://blog.meain.io/2020/emacs-highlight-yanked/
+(defun my/evil-yank-advice (orig-fn beg end &rest args)
+  (pulse-momentary-highlight-region beg end)
+  (apply orig-fn beg end args))
+
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
 ;; --------------------------------------------------------------------------------
@@ -88,7 +94,10 @@
    evil-kbd-macro-suppress-motion-error t
    ;; Set to nil for evil-collection compatibility
    evil-want-keybinding nil)
-  (evil-mode 1))
+  (evil-mode 1)
+  :config
+  ;; Flash yanked text when yanking
+  (advice-add 'evil-yank :around 'my/evil-yank-advice))
 
 (use-package evil-collection
   :after evil
@@ -133,14 +142,20 @@
    ;; trigger completion-at-point with TAB
    tab-always-indent 'complete
    ;; hide commands from M-x that don't apply to the current mode
-   read-extended-command-predicate #'command-completion-default-include-p)
+   read-extended-command-predicate #'command-completion-default-include-p
+   ;; relative line numbers
+   display-line-numbers 'relative)
   ;; theme selection
   (load-theme 'modus-vivendi t)
   ;; font settings
   (set-frame-font "ComicShannsMono Nerd Font Mono" nil t)
-  ;; height is x10 of usual fon size
+  ;; height is x10 of usual font size
   (set-face-attribute 'default nil :height 120)
   ;; turn off the toolbar
   (tool-bar-mode -1)
   ;; save minibuffer history
-  (savehist-mode))
+  (savehist-mode)
+  ;; turn on line numbers by default
+  (global-display-line-numbers-mode)
+  ;; turn off scroll bars
+  (scroll-bar-mode -1))
