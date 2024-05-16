@@ -145,7 +145,9 @@
    ;; hide commands from M-x that don't apply to the current mode
    read-extended-command-predicate #'command-completion-default-include-p
    ;; relative line numbers
-   display-line-numbers 'relative)
+   display-line-numbers 'relative
+   ;; don't prompt, just follow symbolic links
+   vc-follow-symlinks t)
   ;; theme selection
   (load-theme 'modus-vivendi t)
   ;; font settings
