@@ -17,6 +17,16 @@
   :init (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
 
+;; direnv
+;; must be loaded before rustic
+(use-package inheritenv)
+(use-package envrc
+  :hook (after-init . envrc-global-mode))
+
+;; (after!
+;;   envrc
+;;   (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
 (setq user-full-name "Matthew Planchard"
@@ -367,7 +377,10 @@
 (setq read-process-output-max (* 1024 1024)) ;; 1 mb
 
 (use-package! lsp
-  :config
+  :hook (((rust-mode rustic-mode typescript-mode) . lsp-deferred)
+         ((rust-mode rustic-mode) . lsp-inlay-hints-mode))
+  :commands (lsp lsp-deferred)
+  :init
   ;; no need for this IMO
   (setq lsp-enable-on-type-formatting nil)
   ;; the headerline is cool
@@ -409,16 +422,18 @@
   ;; Build with --test
   (setq lsp-rust-cfg-test t)
   ;; Inlay type hints are nice
-  (setq lsp-rust-analyzer-display-chaining-hints t)
-  (setq lsp-rust-analyzer-display-parameter-hints t)
+  (setq
+   lsp-inlay-hints-mode t
+   lsp-rust-analyzer-display-chaining-hints t
+   lsp-rust-analyzer-display-parameter-hints t
+   lsp-rust-analyzer-display-closure-return-type-hints t)
   (setq lsp-rust-all-targets t)
   (setq lsp-rust-analyzer-cargo-run-build-scripts nil)
   ;; get the best macro support we can get
   (setq lsp-rust-analyzer-experimental-proc-attr-macros t)
   ;; run cargo clippy rather than cargo check to get diagnostics
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
-  (setq lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"])
-  (lsp-inlay-hints-mode))
+  (setq lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"]))
 
 (use-package! lsp-ui
   :config
@@ -646,10 +661,6 @@
   (setq sql-postgres-login-params (append sql-postgres-login-params '(port)))
   (add-hook! sql-interactive #'(lambda () (add-to-list 'company-backends '(company-dabbrev)))))
 
-;; direnv
-(after!
-  direnv
-  (setq direnv-non-file-modes (append direnv-non-file-modes '(+doom-dashboard-mode))))
 
 (after!
   vterm
@@ -685,7 +696,7 @@
 (add-hook 'magit-mode-hook (lambda () (magit-delta-mode +1)))
 
 ;; Automatically load .envrc files whenever possible
-(use-package! direnv :config (direnv-mode))
+;; (use-package! direnv :config (direnv-mode))
 ;; Use this explicitly because I like using it to jump around when I have lots
 ;; of windows open. Keybinding for ace-window is set up below.
 (use-package! ace-window)

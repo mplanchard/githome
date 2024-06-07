@@ -20,7 +20,10 @@
 (package! csv-mode)  ;; some support for CSVs
 (package! dap-mode)  ;; debugger
 (package! dhall-mode)  ;; support for dhall config language
-(package! direnv) ;; automatically run .envrc commands for the emacs environment
+;; (package! direnv) ;; automatically run .envrc commands for the emacs environment
+(package! envrc)
+;; must be loaded prior to envrc
+(package! inheritenv)
 (package! edit-server)  ;; allow editing text boxes in FF
 ;; (package! elpher) ;; gopher in emacs
 ;; (package! ejira

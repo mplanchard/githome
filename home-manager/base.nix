@@ -212,7 +212,7 @@
   #   # Add the pipewire argument to slack for full wayland screenshare suppoort
   #   slack = {
   #     name = "Slack";
-  #     # exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
+  #     exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
   #     comment = "Slack Desktop";
   #     genericName = "Slack Client for Linux";
   #     icon = "${pkgs.slack}/share/pixmaps/slack.png";
@@ -281,8 +281,8 @@
     python3Full
     ripgrep
     # rnix-lsp
-    rustc
-    rust-analyzer
+    # rustc
+    # rust-analyzer
     scheme-manpages
     shellcheck
     slack

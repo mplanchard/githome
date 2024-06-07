@@ -7,16 +7,16 @@
 ;; My own, my precious
 ;; --------------------------------------------------------------------------------
 
+;; Return whether we're running on NixOS
+(defun my/nixos-p ()
+  (let ((sysinfo (shell-command-to-string "uname -v")))
+    (not (eq (cl-search "NixOS" sysinfo) nil))))
+
 ;; A function to retrieve the build date of emacs, needed for elpaca on NixOS
 (defun my/nixos/get-emacs-build-date ()
   (string-match "--prefix.*emacs.*\\([[:digit:]]\\{8\\}\\)" system-configuration-options)
   (let ((config-date (match-string 1 system-configuration-options)))
     (car (read-from-string config-date))))
-
-;; Return whether we're running on NixOS
-(defun my/nixos-p ()
-  (let ((sysinfo (shell-command-to-string "uname -v")))
-    (not (eq (cl-search "NixOS" sysinfo) nil))))
 
 ;; Used for highlight-on-yank for evil mode
 ;; Cribbed from https://blog.meain.io/2020/emacs-highlight-yanked/
@@ -28,9 +28,16 @@
 ;; ELPACA INSTALL
 ;; --------------------------------------------------------------------------------
 
-;; If we're running on NixOS, set elpaca-core-date
+;; If we're running on NixOS, set elpaca-core-date.
+;;
+;; This value is necessary for elpaca to run, but something about the NixOS build
+;; prevents it from collecting this value via its normal flow.
+;;
+;; See https://github.com/progfolio/elpaca/issues/222 for more info.
 (if (my/nixos-p)
     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
+
+;; Everything from here is copied directly from the elpaca readme.
 
 (defvar elpaca-installer-version 0.7)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -80,6 +87,12 @@
 (elpaca elpaca-use-package
 	(elpaca-use-package-mode))
 
+;; Display key prompt popups for keys that follow whichever prefix you just typed
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode))
+
 ;; Modal editing
 (use-package evil :ensure t :demand t
   :init
@@ -95,6 +108,7 @@
    evil-kbd-macro-suppress-motion-error t
    ;; Set to nil for evil-collection compatibility
    evil-want-keybinding nil)
+  (add-hook 'help-mode-hook #'evil-normalize-keymaps)
   (evil-mode 1)
   :config
   ;; Flash yanked text when yanking
@@ -106,9 +120,63 @@
   :init
   (evil-collection-init))
 
+;; Flexible fancy keybinding, with leader key support
+(use-package general
+  :ensure t
+  :init
+  (general-define-key
+   :states '(global normal visual motion emacs insert)
+   :prefix-map 'my/leader-map
+   :global-prefix "C-SPC"
+   :non-normal-prefix "M-SPC"
+   :prefix "SPC")
+  
+  (general-create-definer my/leader-key-def
+    :keymaps 'my/leader-map)
+  
+  (defvar my/file-map (make-sparse-keymap))
+  (defvar my/buffer-map (make-sparse-keymap))
+  (defvar my/window-map (make-sparse-keymap))
+  (defvar my/help-map (make-sparse-keymap))
+  
+  (general-create-definer my/buffer-key-def
+    :keymaps 'my/buffer-map)
+  (general-create-definer my/file-key-def
+    :keymaps 'my/file-map)
+  (general-create-definer my/help-key-def
+    :keymaps 'my/help-map)
+  (general-create-definer my/window-key-def
+    :keymaps 'my/window-map)
+  
+  (my/buffer-key-def
+   "s" #'save-buffer
+   "b" #'switch-to-buffer)
+  (my/help-key-def
+   "m" #'describe-mode
+   "f" #'describe-function
+   "v" #'describe-variable)
+  (my/file-key-def
+    "f" #'find-file
+    "r" #'recentf)
+  (my/window-key-def
+   "l" #'evil-window-right
+   "h" #'evil-window-left
+   "j" #'evil-window-down
+   "k" #'evil-window-up
+   "p" #'evil-window-prev
+   "d" #'evil-window-delete
+   "v" #'evil-window-vsplit)
+  
+  (my/leader-key-def
+    "b" (cons "buffer" my/buffer-map)
+    "f" (cons "file" my/file-map)
+    "h" (cons "help" my/help-map)
+    "w" (cons "window" my/window-map)
+    "x" #'execute-extended-command))
+
 ;; Pull PATH from default shell into emacs. Very useful in nix environments.
 (use-package exec-path-from-shell
-  :ensure t
+  :commands exec-path-from-shell-initialize
   :init
   (when (daemonp) (exec-path-from-shell-initialize)))
 
@@ -153,7 +221,7 @@
   ;; font settings
   (set-frame-font "ComicShannsMono Nerd Font Mono" nil t)
   ;; height is x10 of usual font size
-  (set-face-attribute 'default nil :height 120)
+  (set-face-attribute 'default nil :height 140)
   ;; turn off the toolbar
   (tool-bar-mode -1)
   ;; save minibuffer history

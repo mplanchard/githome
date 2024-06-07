@@ -1,3 +1,5 @@
 [user]
 	email = matthew@spec-trust.com
 	name = Matthew Planchard
+[forge]
+    omitExpensive = true

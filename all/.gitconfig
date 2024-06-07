@@ -19,6 +19,8 @@
 	show = delta
 [pull]
 	ff = only
+[fetch]
+	prune = true
 [push]
 	default = current
 [rerere]
