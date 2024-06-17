@@ -1,5 +1,17 @@
 # Matthew's Dotfiles
 
+To install nix stuff on linux:
+
+```sh
+nixos-rebuild --use-remote-sudo switch
+```
+
+To install nix stuff on mac:
+
+```sh
+nix run nix-darwin -- switch --flake .
+```
+
 This repo contains dotfiles and other config files for a variety of systems.
 It's intended to be deployed with [GNU Stow], which is a symlink manager. Each
 top-level directory is a stow "package," containing symlinks for a given system

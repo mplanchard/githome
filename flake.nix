@@ -2,20 +2,22 @@
   description = "System config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/release-23.11";
+    nixpkgs.url = "nixpkgs/release-24.05";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-23.11";
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.url = "github:LnL7/nix-darwin"; 
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     # GL support on non nixOS systems
     # nixGL = { url = "github:guibou/nixGL"; flake = false; };
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
-  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, nixpkgs-unstable, ... }:
+  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, nixpkgs-unstable, nix-darwin, ... }:
     let
 
       # unstable = import inputs.nixpkgs-unstable { inherit system; };
@@ -59,7 +61,7 @@
 
     in
     rec {
-      mp-st-nix =
+      x86-linux-gnome =
         let
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
@@ -68,11 +70,10 @@
         rec {
           homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
             (import ./home-manager/base.nix)
+            (import ./home-manager/linux.nix)
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
-            # (import ./home-manager/kde.nix)
             (import ./home-manager/gnome.nix)
-            # (import ./home-manager/sway.nix)
           ];
 
           homeManager = (home-manager.lib.homeManagerConfiguration (
@@ -84,7 +85,6 @@
               # This is the home manager config. The attrset should be the same format
               # as what you find in home-manager's documentation for what you'd put in
               # a home.nix file.
-              # configuration = homeManagerConfig;
               configuration = homeManagerConfig;
             })).activationPackage;
         };
@@ -98,6 +98,7 @@
         rec {
           homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
             (import ./home-manager/base.nix)
+            (import ./home-manager/linux.nix)
             (import ./home-manager/not-aarch64.nix)
             (import ./home-manager/email.nix)
             (import ./home-manager/kde.nix)
@@ -111,7 +112,6 @@
               # This is the home manager config. The attrset should be the same format
               # as what you find in home-manager's documentation for what you'd put in
               # a home.nix file.
-              # configuration = homeManagerConfig;
               configuration = homeManagerConfig;
             })).activationPackage;
         };
@@ -119,8 +119,8 @@
       mp-st-m1 =
         let
           system = "aarch64-darwin";
-          systemPkgs = pkgs.x86_64-darwin;
-          systemUnstable = unstable.x86_64-linux;
+          systemPkgs = pkgs.aarch64-darwin;
+          systemUnstable = unstable.aarch64-darwin;
         in
         rec {
           homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
@@ -136,12 +136,38 @@
               # This is the home manager config. The attrset should be the same format
               # as what you find in home-manager's documentation for what you'd put in
               # a home.nix file.
-              # configuration = homeManagerConfig;
               configuration = homeManagerConfig;
             })).activationPackage;
         };
 
+      darwinConfigurations = {
+        mp-st-m1 = nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          modules = [
+            ./darwin.nix
+            home-manager.darwinModules.home-manager {
+              # home-manager.useGlobalPkgs = true;
+              # home-manager.useUserPackages = true;
+              home-manager.users.matthew = mp-st-m1.homeManagerConfig;
+            }
+          ];
+        };
+      };
+
       nixosConfigurations = {
+        mp-st-nix-fw = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          pkgs = pkgs.x86_64-linux;
+          modules = [
+            ./nixos/configuration-mp-st-nix-fw.nix
+            ./nixos/crowdstrike-falcon-sensor/module.nix
+            home-manager.nixosModules.home-manager {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
+            }
+          ];
+        };
         mp-st-nix = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           pkgs = pkgs.x86_64-linux;
@@ -151,7 +177,7 @@
             home-manager.nixosModules.home-manager {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-              home-manager.users.matthew = mp-st-nix.homeManagerConfig;
+              home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
             }
           ];
         };

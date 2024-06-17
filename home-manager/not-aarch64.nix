@@ -23,8 +23,10 @@ hmConfig // {
       dropbox
       libinput-gestures
       niv
+      unstable.signal-desktop
       xdg-utils
       xorg.xev
+      zulip
     ];
   };
 

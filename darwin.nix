@@ -5,7 +5,15 @@
     name = "matthew";
     home = "/Users/matthew";
   };
-  home-manager.users.matthew = import ./home-manager/base.nix;
   services.nix-daemon.enable = true;
+
+  # home-manager.useUserPackages = true;
+  # home-manager.useGlobalPkgs = true;
+
+  programs.fish.enable = true;
+
   nix.package = pkgs.nix;
+  nix.settings.experimental-features = "nix-command flakes";
+
+  nixpkgs.hostPlatform = "aarch64-darwin";
 }

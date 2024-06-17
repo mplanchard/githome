@@ -1157,20 +1157,6 @@
 (setq mp/default-github-org "SpecTrust-Inc")
 (setq mp/default-github-repo "spec-protect")
 
-(setq sql-connection-alist
-      '(("st-dev"
-         (sql-product 'postgres)
-         (sql-server "localhost")
-         (sql-port 5432)
-         (sql-user "postgres")
-         (sql-database "spec_protected"))
-        ("st-dev-test"
-         (sql-product 'postgres)
-         (sql-server "localhost")
-         (sql-port 5432)
-         (sql-user "postgres")
-         (sql-database "spec_protected_test"))))
-
 ;; **********************************************************************
 ;; Org-Jira
 ;; **********************************************************************

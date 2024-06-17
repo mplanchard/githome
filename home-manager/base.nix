@@ -30,8 +30,20 @@
       };
     };
 
+    zsh.enable = true;
+    zsh.profileExtra = ''
+        if [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
+           source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+        fi
+    '';
+
     bash = {
       enable = true;
+      profileExtra = ''
+        if [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
+           source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+        fi
+      '';
       initExtra = ''
         # HACK: for some reason this, unlike hte other sessionVariables, is getting
         # overridden in my shells. Set it manually.
@@ -108,6 +120,7 @@
     direnv = {
       enable = true;
       enableBashIntegration = true;
+      enableZshIntegration = true;
       # Being set elsewhere.
       # enableFishIntegration = true;
       nix-direnv.enable = true;
@@ -132,7 +145,7 @@
       generateCaches = true;
     };
 
-    nushell.enable = true;
+    # nushell.enable = true;
 
     # Always install ssh
     ssh = {
@@ -145,19 +158,6 @@
           user = "git";
           port = 443;
         };
-        "aws-ssm" = {
-          host = "i-* mi-*";
-          user = "admin";
-          proxyCommand = ''
-            sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
-          '';
-          extraOptions = {
-            StrictHostKeyChecking = "no";
-          };
-        };
-        # "*" = {
-        #   serverAliveInterval = 60;
-        # };
       };
     };
 
@@ -207,29 +207,11 @@
   # Enable XDG env vars for config locations and such
   xdg.enable = true;
 
-  # # Customize desktop entries
-  # xdg.desktopEntries = {
-  #   # Add the pipewire argument to slack for full wayland screenshare suppoort
-  #   slack = {
-  #     name = "Slack";
-  #     exec = "${pkgs.slack}/bin/slack --enable-features=WebRTCPipeWireCapturer %U";
-  #     comment = "Slack Desktop";
-  #     genericName = "Slack Client for Linux";
-  #     icon = "${pkgs.slack}/share/pixmaps/slack.png";
-  #     type = "Application";
-  #     startupNotify = true;
-  #     categories = ["GNOME" "GTK" "Network" "InstantMessaging"];
-  #     mimeType = ["x-scheme-handler/slack"];
-  #     settings = {
-  #       StartupWMClass = "Slack";
-  #     };
-  #   };
-  # };
-
-  xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
-      ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
-      Hidden=true
-    '';
+  # TODO: move this to a gnome-specific config
+  #xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
+  #    ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
+  #    Hidden=true
+  #  '';
 
   home.packages = with pkgs; [
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
@@ -240,8 +222,8 @@
     coreutils
     curl
     delta
-    unstable.discord
-    direnv
+    discord
+    # direnv
     unstable.element-desktop
     emacs-all-the-icons-fonts
     unstable.fd
@@ -263,20 +245,17 @@
     ispell
     janet
     jq
-    krita
-    libreoffice
     lsof
     mu.mu4e
     neovim
     nerdfonts
     nodejs
-    nodePackages.npm
+    # nodePackages.npm
     openssh
     pandoc
     pass
     pinentry
     pinentry-curses
-    powertop
     procps
     python3Full
     ripgrep
@@ -286,13 +265,10 @@
     scheme-manpages
     shellcheck
     slack
-    unstable.signal-desktop
-    spot
     spotify
     sqlite
     stow
     texlive.combined.scheme-full
-    tlp # power management
     tmux
     tokei
     unzip
@@ -301,7 +277,6 @@
     yarn
     zip
     zoom-us
-    zulip
 
     (makeDesktopItem {
       name = "org-protocol";
