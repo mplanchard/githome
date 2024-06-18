@@ -86,10 +86,12 @@
         iam = "set_profile";
       };
       shellInit = ''
-        set PWS "$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")"
-        set -gx GITLAB_TOKEN "$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')"
-        set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
-        set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
+        if test -f ~/.authinfo.gpg
+          set PWS "$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")"
+          set -gx GITLAB_TOKEN "$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')"
+          set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
+          set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
+        end
         set -gx EDITOR emacsclient
 
         function set_aws_profile
@@ -114,14 +116,13 @@
 
     eza = {
       enable = true;
-      # enableAliases = true;
     };
 
     direnv = {
       enable = true;
       enableBashIntegration = true;
       enableZshIntegration = true;
-      # Being set elsewhere.
+      # seems to be auto-enabled for fish if direnv is enabled
       # enableFishIntegration = true;
       nix-direnv.enable = true;
     };
@@ -206,12 +207,6 @@
 
   # Enable XDG env vars for config locations and such
   xdg.enable = true;
-
-  # TODO: move this to a gnome-specific config
-  #xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
-  #    ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
-  #    Hidden=true
-  #  '';
 
   home.packages = with pkgs; [
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
@@ -307,26 +302,6 @@
       #   pinentry-program /etc/profiles/per-user/matthew/bin/pinentry
       # '';
       # pinentryFlavor = "gnome3";
-    };
-  };
-  # Custom services
-  systemd.user.services = {
-    dropbox = {
-      Install = {
-        WantedBy = [ "graphical-session.target" ];
-      };
-      Unit = {
-        Description = "dropbox";
-      };
-      Service = {
-        ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
-        ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
-        KillMode = "control-group"; # upstream recommends process
-        Restart = "on-failure";
-        PrivateTmp = true;
-        ProtectSystem = "full";
-        Nice = 10;
-      };
     };
   };
 }
