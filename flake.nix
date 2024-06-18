@@ -4,20 +4,35 @@
   inputs = {
     nixpkgs.url = "nixpkgs/release-24.05";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
+
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+
     # must match nixpkgs version
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
     nix-darwin.url = "github:LnL7/nix-darwin"; 
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    # standard, device-specific hardware tweaks
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
     # GL support on non nixOS systems
     # nixGL = { url = "github:guibou/nixGL"; flake = false; };
   };
 
   # `inputs@` stores extra arguments in the ... in a var called `inputs`
-  outputs = inputs@{ self, emacs-overlay, home-manager, nixpkgs, nixpkgs-unstable, nix-darwin, ... }:
+  outputs = inputs@{
+      self,
+      emacs-overlay,
+      home-manager,
+      nix-darwin,
+      nixos-hardware,
+      nixpkgs,
+      nixpkgs-unstable,
+      ...
+  }:
     let
 
       # unstable = import inputs.nixpkgs-unstable { inherit system; };
@@ -160,6 +175,7 @@
           pkgs = pkgs.x86_64-linux;
           modules = [
             ./nixos/configuration-mp-st-nix-fw.nix
+            nixos-hardware.nixosModules.framework-13th-gen-intel
             ./nixos/crowdstrike-falcon-sensor/module.nix
             home-manager.nixosModules.home-manager {
               home-manager.useGlobalPkgs = true;
@@ -190,7 +206,7 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-              home-manager.users.matthew = mp-st-nix.homeManagerConfig;
+              home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
             }
           ];
         };

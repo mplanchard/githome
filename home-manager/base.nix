@@ -114,7 +114,7 @@
 
     eza = {
       enable = true;
-      enableAliases = true;
+      # enableAliases = true;
     };
 
     direnv = {
@@ -255,7 +255,7 @@
     pandoc
     pass
     pinentry
-    pinentry-curses
+    # pinentry-curses
     procps
     python3Full
     ripgrep
@@ -300,11 +300,13 @@
       maxCacheTtl = 43200;
       maxCacheTtlSsh = 43200;
       enableSshSupport = true;
-      extraConfig = ''
-        allow-emacs-pinentry
-        allow-loopback-pinentry
-      '';
-      pinentryFlavor = "gtk2";
+      pinentryPackage = pkgs.pinentry-gnome3;
+      # extraConfig = ''
+      #   allow-emacs-pinentry
+      #   allow-loopback-pinentry
+      #   pinentry-program /etc/profiles/per-user/matthew/bin/pinentry
+      # '';
+      # pinentryFlavor = "gnome3";
     };
   };
   # Custom services

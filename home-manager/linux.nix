@@ -6,6 +6,7 @@ hmConfig // {
       gnupg
       # krita
       # libreoffice
+      maestral-gui
       powertop
       tlp # power management
     ];

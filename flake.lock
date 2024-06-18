@@ -45,16 +45,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1717476296,
-        "narHash": "sha256-ScHe38Tr+TxGURC17kby4mIIxOG3aJvZWXzPM79UnEk=",
+        "lastModified": 1718530513,
+        "narHash": "sha256-BmO8d0r+BVlwWtMLQEYnwmngqdXIuyFzMwvmTcLMee8=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "095ef64aa3b2ab4a4f1bf07f29997e21e3a5576a",
+        "rev": "a1fddf0967c33754271761d91a3d921772b30d0e",
         "type": "github"
       },
       "original": {
         "owner": "nix-community",
-        "ref": "release-23.11",
+        "ref": "release-24.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -76,6 +76,22 @@
       "original": {
         "owner": "LnL7",
         "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "nixos-hardware": {
+      "locked": {
+        "lastModified": 1718548414,
+        "narHash": "sha256-1obyIuQPR/Kq1j5/i/5EuAfQrDwjYnjCDG8iLtXmBhQ=",
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "rev": "cde8f7e11f036160b0fd6a9e07dc4c8e4061cf06",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixos-hardware",
         "type": "github"
       }
     },
@@ -128,16 +144,16 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1717737383,
-        "narHash": "sha256-HmwWo+j1cWpNJ/kVktVc7rXFGgaWIZgd6YTZLNWiYrs=",
+        "lastModified": 1718626111,
+        "narHash": "sha256-ecmQa4VESUOeMQlbynVJaWjG4Tzw/LpQ8lXHKv3QnxQ=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4bc1bbad5e9d6dbc2179f05cbb58c65787e63cb0",
+        "rev": "818bf0b7071d25bb7821395e550ee9adccab722c",
         "type": "github"
       },
       "original": {
         "id": "nixpkgs",
-        "ref": "release-23.11",
+        "ref": "release-24.05",
         "type": "indirect"
       }
     },
@@ -146,6 +162,7 @@
         "emacs-overlay": "emacs-overlay",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
+        "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable"
       }
