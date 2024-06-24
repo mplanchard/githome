@@ -5,6 +5,11 @@
 **/.local_profile
 **/.gitconfig.local
 
+# Stuff that's created & symlinked by home-manager
+linux/.config/environment.d/*-home-manager.conf
+linux/.config/fontconfig/conf.d/*-hm-fonts.conf
+linux/.config/fontconfig/conf.d/*-hm-default-fonts.conf
+
 # Obvious reasons for ignoring these
 **/.gnupg/
 **/.ssh/

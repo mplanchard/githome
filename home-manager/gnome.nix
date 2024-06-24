@@ -3,9 +3,10 @@
 hmConfig // {
   home = hmConfig.home or {} // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
-      gnomeExtensions.appindicator
+      gnome.dconf-editor
       gnome.gnome-shell-extensions
       gnome.gnome-tweaks
+      gnomeExtensions.appindicator
       pavucontrol
     ];
   };

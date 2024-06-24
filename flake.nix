@@ -182,6 +182,7 @@
               home-manager.useUserPackages = true;
               home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
             }
+            ./nixos/gnome.nix
           ];
         };
         mp-st-nix = nixpkgs.lib.nixosSystem {

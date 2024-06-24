@@ -1,5 +1,7 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+(require 'cl-lib)
+
 ;; native comp
 (when (fboundp 'native-compile-async)
   (setq comp-deferred-compilation t))
@@ -630,15 +632,6 @@
 (setq org-annotate-file-storage-file "~/org/annotations.org")
 (setq org-annotate-file-add-search t)
 
-(setq
- deft-directory org-directory
- deft-extensions '("org" "md")
- deft-recursive t)
-
-(setq deft-directory org-directory
-      deft-extensions '("org" "md" "txt")
-      deft-recursive t)
-
 (after! github-review
   :config
   (add-hook! 'github-review-mode-hook #'(lambda () (ws-butler-mode -1))))
@@ -800,10 +793,6 @@
           magit-insert-local-branches))
   ;; Copy abbreviated revisions instead of the whole thing
   (setq magit-copy-revision-abbreviated t))
-
-(use-package! org-remark
-  :config
-  (org-remark-global-tracking-mode +1))
 
 ;; Better local syntax highlighting and language analysis
 (use-package! tree-sitter
@@ -1404,6 +1393,28 @@ shell exits, the buffer is killed."
     (set-process-sentinel vterm--process #'my/run-in-vterm-kill)
     (vterm-send-string command)
     (vterm-send-return)))
+
+(defun spec/proxy-db-connect ()
+  "Interactively select a proxy DB to connect to.
+
+Ensures that the sql-connection-alist variable has been properly set up, since
+when it is defined in dir-locals.el, depending on your direnv setup, you may or
+may not have the appropriate env vars defined.
+"
+  (interactive)
+  (when (not (boundp 'sql-connection-alist))
+    (setq sql-connection-alist '()))
+  (setf sql-connection-alist (assoc-delete-all "proxy-dev" sql-connection-alist))
+  (setf sql-connection-alist (assoc-delete-all "proxy-dev-test" sql-connection-alist))
+  (add-to-list 'sql-connection-alist
+               `("proxy-dev"
+                 (sql-product 'postgres)
+                 (sql-database ,(getenv "PROXY_DATABASE_URL"))))
+  (add-to-list 'sql-connection-alist
+               `("proxy-dev-test"
+                 (sql-product 'postgres)
+                 (sql-database ,(getenv "PROXY_TEST_DATABASE_URL"))))
+  (call-interactively #'sql-connect))
 
 (defun my/aws-mfa (mfa-code)
   (interactive "sMFA Code: ")

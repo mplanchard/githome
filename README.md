@@ -1,5 +1,14 @@
 # Matthew's Dotfiles
 
+Order of operations:
+
+- install nix stuff
+- symlink stuff from here
+- symlink stuff from dropbox
+
+TODO:
+- replace stow usage w/home manager
+
 To install nix stuff on linux:
 
 ```sh
@@ -11,6 +20,9 @@ To install nix stuff on mac:
 ```sh
 nix run nix-darwin -- switch --flake .
 ```
+
+Stuff also expects some things to be symlinked from Dropbox via stow. See README
+there. \
 
 This repo contains dotfiles and other config files for a variety of systems.
 It's intended to be deployed with [GNU Stow], which is a symlink manager. Each
