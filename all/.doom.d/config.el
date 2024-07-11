@@ -1406,6 +1406,7 @@ may not have the appropriate env vars defined.
     (setq sql-connection-alist '()))
   (setf sql-connection-alist (assoc-delete-all "proxy-dev" sql-connection-alist))
   (setf sql-connection-alist (assoc-delete-all "proxy-dev-test" sql-connection-alist))
+  (setf sql-connection-alist (assoc-delete-all "clickhouse-dev" sql-connection-alist))
   (add-to-list 'sql-connection-alist
                `("proxy-dev"
                  (sql-product 'postgres)
@@ -1414,6 +1415,14 @@ may not have the appropriate env vars defined.
                `("proxy-dev-test"
                  (sql-product 'postgres)
                  (sql-database ,(getenv "PROXY_TEST_DATABASE_URL"))))
+  (add-to-list 'sql-connection-alist
+               `("clickhouse-dev"
+                 (sql-product 'clickhouse)
+                 (sql-server "127.0.0.1")
+                 (sql-port ,(string-to-number (getenv "HUB_ANALYTICS_CLICKHOUSE_PORT")))
+                 (sql-user ,(getenv "HUB_ANALYTICS_DB_USERNAME"))
+                 (sql-database ,(getenv "HUB_ANALYTICS_DB_NAME"))
+                 (sql-password ,(getenv "HUB_ANALYTICS_DB_PASSWORD"))))
   (call-interactively #'sql-connect))
 
 (defun my/aws-mfa (mfa-code)
@@ -1761,3 +1770,50 @@ AND (maildir:/gmail/Inbox OR maildir:/spectrust/Inbox)")
                               (:flags . 8)
                               (:from . 30)
                               (:subject . nil))))
+
+(defun mp/attempt-clickhouse-sql ()
+  (setq sql-clickhouse-options nil)
+  (setq sql-clickhouse-program "clickhouse-client")
+  (setq sql-clickhouse-login '(user password))
+  (setq sql-debug-send t)
+  (defun sql-clickhouse-comint (product options &optional buf-name)
+    (let ((params
+           (append
+            options
+            (if (not (string= "" sql-user))
+                (list "--user" sql-user))
+            (if (not (string= "" sql-password))
+                (list "--password" sql-password))
+            (if (not (= 0 sql-port))
+                (list "--port" (number-to-string sql-port)))
+            (if (not (string= "" sql-server))
+                (list "--host" sql-server))
+            (if (not (string= "" sql-database))
+                (list "--database" sql-database))
+            '("--send_logs_level" "trace")
+            '("--verbose")))
+          )
+      (sql-comint product params buf-name))
+    )
+  (setf sql-product-alist (assoc-delete-all "clickhouse" sql-product-alist))
+  (add-to-list
+   'sql-product-alist
+   `(clickhouse
+     :name "clickhouse"
+     :free-software t
+     :font-lock sql-mode-postgres-font-lock-keywords
+     :sqli-program sql-clickhouse-program
+     :sqli-options sql-clickhouse-options
+     :sqli-login sql-clickhouse-login
+     :sqli-comint-func sql-clickhouse-comint
+     :list-all "show tables"
+     :list-table "show table %s"
+     :prompt-regexp ,(format "^%s :) " (system-name))
+     :prompt-length ,(+ (length " :) ") (length (system-name)))
+     :prompt-cont-regexp ,(format "^%s :) " (system-name))
+     :statement sql-postgres-statement-starters
+     :input-filter (lambda (str)
+                     (message str)
+                     (sql-remove-tabs-filter str))
+     :terminator ""))
+  )

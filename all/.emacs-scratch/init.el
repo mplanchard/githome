@@ -44,9 +44,9 @@
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
+                       :ref nil :depth 1
+                       :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                       :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -156,8 +156,8 @@
    "f" #'describe-function
    "v" #'describe-variable)
   (my/file-key-def
-    "f" #'find-file
-    "r" #'recentf)
+   "f" #'find-file
+   "r" #'recentf)
   (my/window-key-def
    "l" #'evil-window-right
    "h" #'evil-window-left
@@ -168,14 +168,15 @@
    "v" #'evil-window-vsplit)
   
   (my/leader-key-def
-    "b" (cons "buffer" my/buffer-map)
-    "f" (cons "file" my/file-map)
-    "h" (cons "help" my/help-map)
-    "w" (cons "window" my/window-map)
-    "x" #'execute-extended-command))
+   "b" (cons "buffer" my/buffer-map)
+   "f" (cons "file" my/file-map)
+   "h" (cons "help" my/help-map)
+   "w" (cons "window" my/window-map)
+   "x" #'execute-extended-command))
 
 ;; Pull PATH from default shell into emacs. Very useful in nix environments.
 (use-package exec-path-from-shell
+  :ensure t
   :commands exec-path-from-shell-initialize
   :init
   (when (daemonp) (exec-path-from-shell-initialize)))
@@ -190,8 +191,8 @@
   :init
   ;; Default config recommended from vertico README
   (setq completion-styles '(orderless basic)
-	completion-category-defaults nil
-	completion-category-overrides '((file (styles partial-completion)))))
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
 
 ;; In-buffer completion-at-point (i.e. completion popup)
 ;; By the same author as vertico
@@ -230,3 +231,56 @@
   (global-display-line-numbers-mode)
   ;; turn off scroll bars
   (scroll-bar-mode -1))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values
+   '((eval progn
+	   (define-derived-mode deno-mode typescript-mode
+	     "Deno" "A major mode for Deno files"
+	     (set (make-local-variable 'lsp-enabled-clients)
+		  '(deno-ls))
+	     (setq +format-with-lsp t)
+	     (when (boundp 'prettier-js-mode) (prettier-js-mode -1)))
+	   (add-to-list 'auto-mode-alist
+			'("\\.deno\\.ts\\'" . deno-mode))
+	   (when (fboundp 'lsp) (add-hook 'deno-mode-hook #'lsp)))
+     (eval progn (setq sql-postgres-login-params nil)
+	   (when (not (boundp 'sql-connection-alist))
+	     (setq sql-connection-alist 'nil))
+	   (dolist (db '("proxy-dev" "proxy-dev-test"))
+	     (setf sql-connection-alist
+		   (assoc-delete-all db sql-connection-alist)))
+	   (with-temp-buffer
+	     (insert-file-contents-literally
+	      (concat
+	       (let ((d (dir-locals-find-file ".")))
+		 (if (stringp d) d (car d)))
+	       "./env/local.env"))
+	     (let
+		 ((proxy-db-url
+		   (progn
+		     (search-forward "PROXY_DATABASE_URL=")
+		     (buffer-substring-no-properties (point)
+						     (line-end-position))))
+		  (proxy-test-db-url
+		   (progn
+		     (goto-char (point-min))
+		     (search-forward "PROXY_TEST_DATABASE_URL=")
+		     (buffer-substring-no-properties (point)
+						     (line-end-position)))))
+	       (add-to-list 'sql-connection-alist
+			    `("proxy-dev" (sql-product 'postgres)
+			      (sql-database ,proxy-db-url)))
+	       (add-to-list 'sql-connection-alist
+			    `("proxy-dev-test" (sql-product 'postgres)
+			      (sql-database ,proxy-test-db-url)))))))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

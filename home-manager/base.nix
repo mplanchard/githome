@@ -167,8 +167,14 @@
       # Enable once bash is configured by home manager
       enableBashIntegration = true;
       enableFishIntegration = true;
+      enableTransience = true;
       settings = {
         kubernetes.disabled = false;
+        # get rid of annoying extra space
+        nix_shell.format = "via [$symbol$state($name)]($style) ";
+        nix_shell.symbol = "❄️ ";
+        nix_shell.impure_msg = "";
+        nix_shell.pure_msg = "pure ";
       };
     };
 
@@ -270,6 +276,7 @@
     wget
     which
     yarn
+    unstable.zed-editor
     zip
     zoom-us
 

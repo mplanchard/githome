@@ -75,6 +75,17 @@
     #media-session.enable = true;
   };
 
+  # Enable suspend-then-hibernate
+  systemd.sleep.extraConfig = ''
+    # Doesn't work on gnome, so we set suspend mode to disk below to enable hybrid sleep
+    suspend=suspend-then-hibernate
+    HibernateDelaySec=3600
+    AllowHibernation=yes
+    AllowSuspendThenHibernate=yes
+    SuspendMode=disk
+    SuspendMode=suspend
+  '';
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
