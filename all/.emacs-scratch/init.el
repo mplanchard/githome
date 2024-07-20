@@ -295,6 +295,9 @@
   (defvar my/open-map (make-sparse-keymap))
   (general-create-definer my/open-key-def :keymaps 'my/open-map)
 
+  (defvar my/project-map (make-sparse-keymap))
+  (general-create-definer my/project-key-def :keymaps 'my/project-map)
+
   (defvar my/quit-map (make-sparse-keymap))
   (general-create-definer my/quit-key-def :keymaps 'my/quit-map)
 
@@ -330,6 +333,9 @@
   (my/open-key-def
    "t" #'toggle-term-toggle
    "T" #'vterm)
+  (my/project-key-def
+   "p" #'project-switch-project
+   "b" #'consult-project-buffer)
   (my/window-key-def
    "l" #'evil-window-right
    "h" #'evil-window-left
@@ -346,6 +352,7 @@
    "g" (cons "file" my/git-map)
    "h" (cons "help" my/help-map)
    "o" (cons "open" my/open-map)
+   "o" (cons "project" my/project-map)
    "q" (cons "quit" my/quit-map)
    "w" (cons "window" my/window-map)
    "x" (cons "execute" #'execute-extended-command)
