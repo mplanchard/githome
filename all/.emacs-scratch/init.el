@@ -78,6 +78,7 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
+
 ;; --------------------------------------------------------------------------------
 ;; PACKAGE INSTALL/CONFIG
 ;; --------------------------------------------------------------------------------
@@ -114,65 +115,20 @@
   ;; Flash yanked text when yanking
   (advice-add 'evil-yank :around 'my/evil-yank-advice))
 
-(use-package evil-collection
+(use-package evil-collection :ensure t
   :after evil
-  :ensure t
   :init
   (evil-collection-init))
 
-;; Flexible fancy keybinding, with leader key support
-(use-package general
-  :ensure t
-  :init
-  (general-define-key
-   :states '(global normal visual motion emacs insert)
-   :prefix-map 'my/leader-map
-   :global-prefix "C-SPC"
-   :non-normal-prefix "M-SPC"
-   :prefix "SPC")
-  
-  (general-create-definer my/leader-key-def
-    :keymaps 'my/leader-map)
-  
-  (defvar my/file-map (make-sparse-keymap))
-  (defvar my/buffer-map (make-sparse-keymap))
-  (defvar my/window-map (make-sparse-keymap))
-  (defvar my/help-map (make-sparse-keymap))
-  
-  (general-create-definer my/buffer-key-def
-    :keymaps 'my/buffer-map)
-  (general-create-definer my/file-key-def
-    :keymaps 'my/file-map)
-  (general-create-definer my/help-key-def
-    :keymaps 'my/help-map)
-  (general-create-definer my/window-key-def
-    :keymaps 'my/window-map)
-  
-  (my/buffer-key-def
-   "s" #'save-buffer
-   "b" #'switch-to-buffer)
-  (my/help-key-def
-   "m" #'describe-mode
-   "f" #'describe-function
-   "v" #'describe-variable)
-  (my/file-key-def
-   "f" #'find-file
-   "r" #'recentf)
-  (my/window-key-def
-   "l" #'evil-window-right
-   "h" #'evil-window-left
-   "j" #'evil-window-down
-   "k" #'evil-window-up
-   "p" #'evil-window-prev
-   "d" #'evil-window-delete
-   "v" #'evil-window-vsplit)
-  
-  (my/leader-key-def
-   "b" (cons "buffer" my/buffer-map)
-   "f" (cons "file" my/file-map)
-   "h" (cons "help" my/help-map)
-   "w" (cons "window" my/window-map)
-   "x" #'execute-extended-command))
+;; Terminal
+(use-package vterm :ensure t)
+(use-package toggle-term :ensure t
+  :config
+  (setq
+   ;; make it a little bigger
+   toggle-term-size 30
+   ;; set vterm as last-used so "toggle" will use it on startup
+   toggle-term-last-used '("*vterm-popup*" . vterm)))
 
 ;; Pull PATH from default shell into emacs. Very useful in nix environments.
 (use-package exec-path-from-shell
@@ -184,7 +140,29 @@
 ;; Completion framework
 (use-package vertico :ensure t
   :init
-  (vertico-mode))
+  (vertico-mode)
+  :config
+  (general-def vertico-map
+    "C-j" #'vertico-next
+    "C-k" #'vertico-previous
+    "C-;" #'embark-act
+    "C-." #'embark-dwim))
+;; Annotations in completion minibuffers
+(use-package marginalia :ensure t
+  :init
+  (marginalia-mode))
+(use-package consult :ensure t)
+(use-package embark :ensure t
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (general-define-key
+   :states '(global normal visual motion emacs insert)
+   "C-;" #'embark-act
+   "C-." #'embark-dwim))
+(use-package embark-consult :ensure t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 ;; Use broader matching rather than the default tab completion 
 (use-package orderless :ensure t
@@ -199,6 +177,135 @@
 (use-package corfu :ensure t
   :init
   (global-corfu-mode))
+
+;; Magit (VC commands) and forge (interaction with forges)
+(use-package magit :ensure t)
+(use-package forge :ensure t
+  :after magit)
+
+(use-package lsp-mode :ensure t
+  :config
+  (setq
+    gc-cons-threshold (* 100 1024 1024) ; 100 MB
+    read-process-output-max (* 3 1024 1024) ; 3 MB
+    lsp-headerline-breadcrumb-icons-enable nil
+    lsp-idle-delay 1
+    lsp-lens-enable nil
+    lsp-rust-all-features t
+    lsp-rust-all-targets t
+    lsp-rust-analyzer-check-all-targets t
+    lsp-rust-analyzer-display-chaining-hints t
+    lsp-rust-analyzer-display-closure-return-type-hints t
+    lsp-rust-analyzer-display-parameter-hints t
+    lsp-rust-clippy-preference "on")
+  :hook
+  (rustic-mode-hook . lsp-inlay-hints-mode))
+(use-package lsp-ui :ensure t
+  :config
+  (setq
+   lsp-ui-sideline-show-diagnostics t
+   lsp-ui-peek-enable t
+   lsp-ui-peek-show-directory t
+   ;; always show a preview before jumping to definition
+   lsp-ui-peek-always-show t
+   lsp-ui-doc-enable nil
+   lsp-ui-doc-position 'at-point
+   lsp-ui-doc-include-signature t))
+
+(use-package envrc :ensure t
+  :hook
+  (after-init . envrc-global-mode))
+
+(use-package rustic :ensure t)
+
+;; Flexible fancy keybinding, with leader key support
+(use-package general
+  :ensure t
+  :init
+  (general-define-key
+   :states '(global normal visual motion emacs insert)
+   :prefix-map 'my/leader-map
+   :global-prefix "C-SPC"
+   :non-normal-prefix "M-SPC"
+   :prefix "SPC")
+  (general-define-key
+   :states '(normal visual motion)
+   :prefix-map 'my/go-map
+   :prefix "g")
+  
+  (general-create-definer my/go-key-def
+    :keymaps 'my/go-map)
+  (general-create-definer my/leader-key-def
+    :keymaps 'my/leader-map)
+  
+  (defvar my/buffer-map (make-sparse-keymap))
+  (general-create-definer my/buffer-key-def :keymaps 'my/buffer-map)
+
+  (defvar my/file-map (make-sparse-keymap))
+  (general-create-definer my/file-key-def :keymaps 'my/file-map)
+
+  (defvar my/git-map (make-sparse-keymap))
+  (general-create-definer my/git-key-def :keymaps 'my/git-map)
+
+  (defvar my/help-map (make-sparse-keymap))
+  (general-create-definer my/help-key-def :keymaps 'my/help-map)
+
+  (defvar my/open-map (make-sparse-keymap))
+  (general-create-definer my/open-key-def :keymaps 'my/open-map)
+
+  (defvar my/quit-map (make-sparse-keymap))
+  (general-create-definer my/quit-key-def :keymaps 'my/quit-map)
+
+  (defvar my/window-map (make-sparse-keymap))
+  (general-create-definer my/window-key-def :keymaps 'my/window-map)
+  
+  (my/buffer-key-def
+   "b" #'consult-project-buffer
+   "B" #'consult-buffer
+   "d" #'kill-this-buffer
+   "n" #'next-buffer
+   "p" #'previous-buffer
+   "r" #'revert-buffer
+   "s" #'save-buffer)
+  (my/help-key-def
+   "f" #'describe-function
+   "k" #'describe-key
+   "i" #'info
+   "m" #'describe-mode
+   "v" #'describe-variable)
+  (my/file-key-def
+   "f" #'find-file
+   "r" #'recentf)
+  (my/git-key-def
+   "g" #'magit-status)
+  (my/open-key-def
+   "t" #'toggle-term-toggle
+   "T" #'vterm)
+  (my/window-key-def
+   "l" #'evil-window-right
+   "h" #'evil-window-left
+   "j" #'evil-window-down
+   "k" #'evil-window-up
+   "p" #'evil-window-prev
+   "d" #'evil-window-delete
+   "v" #'evil-window-vsplit)
+  (my/leader-key-def
+   "SPC" (cons "project-find-file" #'project-find-file)
+   "/" (cons "search" #'consult-ripgrep)
+   "b" (cons "buffer" my/buffer-map)
+   "f" (cons "file" my/file-map)
+   "g" (cons "file" my/git-map)
+   "h" (cons "help" my/help-map)
+   "o" (cons "open" my/open-map)
+   "q" (cons "quit" my/quit-map)
+   "w" (cons "window" my/window-map)
+   "x" (cons "execute" #'execute-extended-command)
+   ":" (cons "execute" #'execute-extended-command)
+   "u" (cons "prefix" #'universal-argument))
+
+  (my/go-key-def
+    "c" #'comment-dwim
+    "d" #'xref-find-definitions))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
@@ -216,7 +323,26 @@
    ;; relative line numbers
    display-line-numbers 'relative
    ;; don't prompt, just follow symbolic links
-   vc-follow-symlinks t)
+   vc-follow-symlinks t
+   ;; backup all files to a common directory
+   backup-directory-alist '("." . (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
+   ;; add a newline at the end of files when visiting if they don't already have one
+   require-final-newline 'visit
+   ;; write to the target, not the symlink, when saving a file opened via symlink
+   file-preserve-symlinks-on-save t
+   ;; don't tell me every time auto-saving happens
+   auto-save-no-message t
+   ;; don't recenter every time I scroll offscreen, only if jumping a huge distance
+   scroll-conservatively 50
+   ;; show matching parenthesis when cursor is either inside or outside the other paren
+   show-paren-when-point-inside-paren t
+   ;; chemacs-aware user init directory
+   my/user-init-dir (if (boundp 'chemacs-profile)
+			(alist-get 'user-emacs-directory chemacs-profile)
+		      (file-name-directory (user-init-file)))
+   ;; set custom file to a file in the chemacs profile dir
+   custom-file (file-name-concat my/user-init-dir "custom.el"))
+
   ;; theme selection
   (load-theme 'modus-vivendi t)
   ;; font settings
@@ -230,57 +356,6 @@
   ;; turn on line numbers by default
   (global-display-line-numbers-mode)
   ;; turn off scroll bars
-  (scroll-bar-mode -1))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(safe-local-variable-values
-   '((eval progn
-	   (define-derived-mode deno-mode typescript-mode
-	     "Deno" "A major mode for Deno files"
-	     (set (make-local-variable 'lsp-enabled-clients)
-		  '(deno-ls))
-	     (setq +format-with-lsp t)
-	     (when (boundp 'prettier-js-mode) (prettier-js-mode -1)))
-	   (add-to-list 'auto-mode-alist
-			'("\\.deno\\.ts\\'" . deno-mode))
-	   (when (fboundp 'lsp) (add-hook 'deno-mode-hook #'lsp)))
-     (eval progn (setq sql-postgres-login-params nil)
-	   (when (not (boundp 'sql-connection-alist))
-	     (setq sql-connection-alist 'nil))
-	   (dolist (db '("proxy-dev" "proxy-dev-test"))
-	     (setf sql-connection-alist
-		   (assoc-delete-all db sql-connection-alist)))
-	   (with-temp-buffer
-	     (insert-file-contents-literally
-	      (concat
-	       (let ((d (dir-locals-find-file ".")))
-		 (if (stringp d) d (car d)))
-	       "./env/local.env"))
-	     (let
-		 ((proxy-db-url
-		   (progn
-		     (search-forward "PROXY_DATABASE_URL=")
-		     (buffer-substring-no-properties (point)
-						     (line-end-position))))
-		  (proxy-test-db-url
-		   (progn
-		     (goto-char (point-min))
-		     (search-forward "PROXY_TEST_DATABASE_URL=")
-		     (buffer-substring-no-properties (point)
-						     (line-end-position)))))
-	       (add-to-list 'sql-connection-alist
-			    `("proxy-dev" (sql-product 'postgres)
-			      (sql-database ,proxy-db-url)))
-	       (add-to-list 'sql-connection-alist
-			    `("proxy-dev-test" (sql-product 'postgres)
-			      (sql-database ,proxy-test-db-url)))))))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+  (scroll-bar-mode -1)
+  ;; laod customizations
+  (load custom-file))
