@@ -366,6 +366,9 @@
 
 ;; Emacs settings
 (use-package emacs :ensure nil
+  :custom
+  ;; relative line numbers
+  (display-line-numbers-type 'relative)
   :config
   (setq
    ;; I've got to get away from these confounded relatives, hanging on the bell all day
@@ -377,8 +380,6 @@
    tab-always-indent 'complete
    ;; hide commands from M-x that don't apply to the current mode
    read-extended-command-predicate #'command-completion-default-include-p
-   ;; relative line numbers
-   display-line-numbers 'relative
    ;; don't prompt, just follow symbolic links
    vc-follow-symlinks t
    ;; backup all files to a common directory
