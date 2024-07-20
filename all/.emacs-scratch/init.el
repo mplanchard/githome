@@ -94,8 +94,18 @@
   :init
   (which-key-mode))
 
+(use-package helpful :ensure t
+  :config
+  (general-def
+    [remap describe-function] #'helpful-callable
+    [remap describe-variable] #'helpful-variable
+    [remap describe-key] #'helpful-key
+    [remap describe-command] #'helpful-command))
+
 ;; Modal editing
 (use-package evil :ensure t :demand t
+  :custom
+  (evil-lookup-func #'helpful-at-point)
   :init
   (setq
    ;; use emacs' native redo for C-r
@@ -109,16 +119,22 @@
    evil-kbd-macro-suppress-motion-error t
    ;; Set to nil for evil-collection compatibility
    evil-want-keybinding nil)
-  (add-hook 'help-mode-hook #'evil-normalize-keymaps)
-  (evil-mode 1)
   :config
+  (evil-mode 1)
   ;; Flash yanked text when yanking
   (advice-add 'evil-yank :around 'my/evil-yank-advice))
 
 (use-package evil-collection :ensure t
   :after evil
+  :custom
+  ;; don't interfere w/my leader key
+  (evil-collection-key-blacklist '("SPC"))
   :init
   (evil-collection-init))
+
+(use-package evil-surround :ensure t
+  :config
+  (global-evil-surround-mode 1))
 
 ;; Terminal
 (use-package vterm :ensure t)
@@ -176,12 +192,21 @@
 ;; By the same author as vertico
 (use-package corfu :ensure t
   :init
-  (global-corfu-mode))
+  (global-corfu-mode)
+  :custom
+  (corfu-auto t))
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t)
 (use-package forge :ensure t
   :after magit)
+(use-package magit-delta :ensure t
+  :hook (magit-mode . magit-delta-mode))
+(use-package diff-hl :ensure t
+  :config
+  (global-diff-hl-mode)
+  :hook
+  (dired-mode . diff-hl-dired-mode))
 
 (use-package lsp-mode :ensure t
   :config
@@ -189,6 +214,7 @@
     gc-cons-threshold (* 100 1024 1024) ; 100 MB
     read-process-output-max (* 3 1024 1024) ; 3 MB
     lsp-headerline-breadcrumb-icons-enable nil
+    lsp-headerline-breadcrumb-enable-diagnostics nil
     lsp-idle-delay 1
     lsp-lens-enable nil
     lsp-rust-all-features t
@@ -197,9 +223,18 @@
     lsp-rust-analyzer-display-chaining-hints t
     lsp-rust-analyzer-display-closure-return-type-hints t
     lsp-rust-analyzer-display-parameter-hints t
-    lsp-rust-clippy-preference "on")
+    lsp-rust-clippy-preference "on"
+
+    ;; Show function signatures while writing functions and types for the thing at point
+    lsp-signature-auto-activate t
+    ;; I like the function signatures while writing functions, but don't like
+    ;; the we way the docs make the little buffer at the bottom pop up distractingly.
+    lsp-signature-render-documentation nil)
+  (general-def lsp-mode-map
+    [remap evil-lookup] #'lsp-describe-thing-at-point)
   :hook
-  (rustic-mode-hook . lsp-inlay-hints-mode))
+  (rustic-mode-hook . (lsp-inlay-hints-mode #'lsp-deferred)))
+
 (use-package lsp-ui :ensure t
   :config
   (setq
@@ -208,9 +243,16 @@
    lsp-ui-peek-show-directory t
    ;; always show a preview before jumping to definition
    lsp-ui-peek-always-show t
-   lsp-ui-doc-enable nil
-   lsp-ui-doc-position 'at-point
-   lsp-ui-doc-include-signature t))
+
+   lsp-ui-doc-header t
+   lsp-ui-doc-position 'top
+   lsp-ui-doc-alignment 'window
+   lsp-ui-doc-include-signature t
+   lsp-ui-doc-show-with-mouse nil
+   lsp-ui-doc-include-signature t)
+  (general-def lsp-ui-mode-map
+    [remap xref-find-definitions] #'lsp-ui-peek-find-definitions
+    [remap xref-find-references] #'lsp-ui-peek-find-references))
 
 (use-package envrc :ensure t
   :hook
@@ -262,7 +304,7 @@
   (my/buffer-key-def
    "b" #'consult-project-buffer
    "B" #'consult-buffer
-   "d" #'kill-this-buffer
+   "d" #'kill-current-buffer
    "n" #'next-buffer
    "p" #'previous-buffer
    "r" #'revert-buffer
@@ -277,7 +319,14 @@
    "f" #'find-file
    "r" #'recentf)
   (my/git-key-def
-   "g" #'magit-status)
+    "." #'magit-file-dispatch
+    "g" #'magit-status
+    "n" #'diff-hl-next-hunk
+    "p" #'diff-hl-previous-hunk
+    "r" #'diff-hl-revert-hunk
+    "s" #'diff-hl-stage-dwim
+    "S" #'diff-hl-show-hunk
+    "u" #'diff-hl-unstage)
   (my/open-key-def
    "t" #'toggle-term-toggle
    "T" #'vterm)
@@ -305,7 +354,8 @@
 
   (my/go-key-def
     "c" #'comment-dwim
-    "d" #'xref-find-definitions))
+    "d" #'xref-find-definitions
+    "D" #'xref-find-references))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
