@@ -194,14 +194,17 @@
   :init
   (global-corfu-mode)
   :custom
+  ;; automatically show completions after some delay
   (corfu-auto t))
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t)
 (use-package forge :ensure t
   :after magit)
+;; better diff highlighting
 (use-package magit-delta :ensure t
   :hook (magit-mode . magit-delta-mode))
+;; gutter highlights for changed regions, plus operations on those hunks
 (use-package diff-hl :ensure t
   :config
   (global-diff-hl-mode)
@@ -352,7 +355,7 @@
    "g" (cons "file" my/git-map)
    "h" (cons "help" my/help-map)
    "o" (cons "open" my/open-map)
-   "o" (cons "project" my/project-map)
+   "p" (cons "project" my/project-map)
    "q" (cons "quit" my/quit-map)
    "w" (cons "window" my/window-map)
    "x" (cons "execute" #'execute-extended-command)
@@ -362,7 +365,8 @@
   (my/go-key-def
     "c" #'comment-dwim
     "d" #'xref-find-definitions
-    "D" #'xref-find-references))
+    "D" #'xref-find-references
+    "g" #'evil-goto-first-line))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
