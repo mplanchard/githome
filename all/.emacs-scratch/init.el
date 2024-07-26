@@ -1,5 +1,20 @@
-;; Allow use of the common lisp emulation library for CL functions
+;;; init.el --- MP's Emacs Config -*- lexical-binding: t; -*-
+
+;;; Commentary:
+
+;; This is my from-scratch Emacs config.  I am coming from Doom, so some
+;; aspects of Doom are mirrored here.  In general, the config attempts to:
+;; - Use native Emacs constructs over third-party packages
+;; - Create keybindings approximately equivalent to doom
+;; - Prioritize Emacs startup time and general editing performance
+;;
+;; There has not been much if any effort expended in ensuring that this
+;; config is generalizable to any use cases other than my own, so caveat
+;; emptor if you are pulling from it.
+
 (require 'cl-lib)
+
+;;; Code:
 
 ;; --------------------------------------------------------------------------------
 ;; MY FUNCTIONS
@@ -7,13 +22,14 @@
 ;; My own, my precious
 ;; --------------------------------------------------------------------------------
 
-;; Return whether we're running on NixOS
 (defun my/nixos-p ()
+  "Return whether it looks like we are running on NixOS."
   (let ((sysinfo (shell-command-to-string "uname -v")))
     (not (eq (cl-search "NixOS" sysinfo) nil))))
 
 ;; A function to retrieve the build date of emacs, needed for elpaca on NixOS
 (defun my/nixos/get-emacs-build-date ()
+  "Get the build date of Emacs on a nixos system.  Used for elpaca."
   (string-match "--prefix.*emacs.*\\([[:digit:]]\\{8\\}\\)" system-configuration-options)
   (let ((config-date (match-string 1 system-configuration-options)))
     (car (read-from-string config-date))))
@@ -21,8 +37,108 @@
 ;; Used for highlight-on-yank for evil mode
 ;; Cribbed from https://blog.meain.io/2020/emacs-highlight-yanked/
 (defun my/evil-yank-advice (orig-fn beg end &rest args)
+  "Pulse the region being yanked.
+
+Call ORIG-FN with arguments BEG and END, along with any other ARGS.
+Prior to calling, pulse the region between BEG and END."
   (pulse-momentary-highlight-region beg end)
   (apply orig-fn beg end args))
+
+;; Split windows and then balance them
+(defun my/split-and-balance ()
+  "Split window horizontally and rebalance the group."
+  (interactive)
+  (call-interactively #'split-window-vertically)
+  (balance-windows (window-parent)))
+
+;; Split windows vertically and then balance them
+(defun my/vsplit-and-balance ()
+  "Split window vertically and rebalance the group."
+  (interactive)
+  (call-interactively #'split-window-horizontally)
+  (balance-windows (window-parent)))
+
+;; split, then move focus to the new window
+(defun my/split-balance-and-follow ()
+  "Split window horizontally and follow."
+  (interactive)
+  (call-interactively #'my/split-and-balance)
+  (select-window (next-window)))
+
+(defun my/vsplit-balance-and-follow ()
+  "Split window vertically and follow."
+  (interactive)
+  (call-interactively #'my/vsplit-and-balance)
+  (select-window (next-window)))
+
+(defun my/delete-other-vertical-windows ()
+  "Maximize the current window vertically."
+  (interactive)
+  ;; There may be a less awkward way to do this, but this is the best
+  ;; I've got so far, since "next sibling" doesn't wrap around (and
+  ;; so doesn't work if not maximizing from the top child).
+
+  ;; Get refs to the current window & its parent
+  (let ((to-maximize (selected-window))
+        (parent (window-parent)))
+    ;; Check if we are part of a vertical group. If we aren't, there's
+    ;; nothing to do.
+    (when (window-combined-p to-maximize)
+      ;; Select the top child of the vertical group. If it is not the
+      ;; window we're wanting to maximize, delete it and re-select
+      ;; the top child. Do this until we have deleted all windows
+      ;; above the one we're trying to maximize.
+      (select-window (window-top-child parent))
+      (while (not (eq (selected-window) to-maximize))
+        (delete-window)
+        (select-window (window-top-child parent)))
+      ;; Then delete any siblings following the window we're trying to
+      ;; maximize.
+      (while-let ((sibling (window-next-sibling)))
+        (delete-window sibling)))))
+
+;; Define this ahead of time to avoid an error when running term-toggle
+;; due to its defining a dynamic variable that has already been lexically
+;; scoped in the function below
+(defvar toggle-term-last-used)
+(defun my/toggle-term-project ()
+  "Toggle a project-specific terminal.
+
+If in a project, toggles a project-specific terminal in the project root,
+creating a new one if one has not yet been created. If not in a project,
+uses the value of `default-directory'.  If `default-directory' is nil,
+uses the user's home directory."
+  (interactive)
+  (let*
+      ;; set default-directory, which is used by vterm when determining
+      ;; where to open a terminal
+      ((default-directory
+        (or (when
+                (project-current)
+              (project-root (project-current)))
+            default-directory
+            "~"))
+       ;; create a name for the terminal popup, which allows us to set
+       ;; a "last used" terminal value for toggle-term, which it will
+       ;; use to determine which vterm instance to use
+       (term-popup-name
+        (format "*%s-popup*"
+                (or (when
+                        (project-current)
+                      (project-name (project-current)))
+                    "vterm")))
+       ;; set toggle-term-last-used to ensure the toggle-term-toggle
+       ;; command opens the appropriate terminal
+       (toggle-term-last-used `(,term-popup-name . vterm)))
+    (ignore toggle-term-last-used)  ;; avoid lexical binding warning
+    (call-interactively #'toggle-term-toggle)))
+
+(defun my/vterm-new ()
+  "Create a new vterm in the current buffer."
+  (interactive)
+  ;; always open a new one rather than trying to find existing one
+  (let ((current-prefix-arg '(nil)))
+    (call-interactively #'vterm)))
 
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
@@ -38,15 +154,14 @@
     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
 ;; Everything from here is copied directly from the elpaca readme.
-
 (defvar elpaca-installer-version 0.7)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                       :ref nil :depth 1
-                       :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                       :build (:not elpaca--activate-package)))
+                              :ref nil :depth 1
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -78,15 +193,24 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
+;; --------------------------------------------------------------------------------
+;; CONSTANTS
+;; --------------------------------------------------------------------------------
+
+(setq my/leader-key "SPC")
 
 ;; --------------------------------------------------------------------------------
-;; PACKAGE INSTALL/CONFIG
+;; THIRD PARTY PACKAGE INSTALL/CONFIG
 ;; --------------------------------------------------------------------------------
 
 ;; Use elpaca's use-package macro, to translate use-package definitions into
 ;; async package installs.
 (elpaca elpaca-use-package
-	(elpaca-use-package-mode))
+  (elpaca-use-package-mode))
+
+;; -------------------------------------------------------------------
+;; Keybindings
+;; -------------------------------------------------------------------
 
 ;; Display key prompt popups for keys that follow whichever prefix you just typed
 (use-package which-key
@@ -94,185 +218,17 @@
   :init
   (which-key-mode))
 
-(use-package helpful :ensure t
-  :config
-  (general-def
-    [remap describe-function] #'helpful-callable
-    [remap describe-variable] #'helpful-variable
-    [remap describe-key] #'helpful-key
-    [remap describe-command] #'helpful-command))
-
-;; Modal editing
-(use-package evil :ensure t :demand t
-  :custom
-  (evil-lookup-func #'helpful-at-point)
-  :init
-  (setq
-   ;; use emacs' native redo for C-r
-   evil-undo-system #'undo-redo
-   ;; make C-u scroll rather than use as prefix arg
-   evil-want-C-u-scroll t
-   ;; no need to delay before interpreting esc sequences as such
-   evil-esc-delay 0
-   ;; don't treat "going right at end of line" or "left at beginning of line" as
-   ;; errors (and thus to terminate macro recording/replay)
-   evil-kbd-macro-suppress-motion-error t
-   ;; Set to nil for evil-collection compatibility
-   evil-want-keybinding nil)
-  :config
-  (evil-mode 1)
-  ;; Flash yanked text when yanking
-  (advice-add 'evil-yank :around 'my/evil-yank-advice))
-
-(use-package evil-collection :ensure t
-  :after evil
-  :custom
-  ;; don't interfere w/my leader key
-  (evil-collection-key-blacklist '("SPC"))
-  :init
-  (evil-collection-init))
-
-(use-package evil-surround :ensure t
-  :config
-  (global-evil-surround-mode 1))
-
-;; Terminal
-(use-package vterm :ensure t)
-(use-package toggle-term :ensure t
-  :config
-  (setq
-   ;; make it a little bigger
-   toggle-term-size 30
-   ;; set vterm as last-used so "toggle" will use it on startup
-   toggle-term-last-used '("*vterm-popup*" . vterm)))
-
-;; Pull PATH from default shell into emacs. Very useful in nix environments.
-(use-package exec-path-from-shell
-  :ensure t
-  :commands exec-path-from-shell-initialize
-  :init
-  (when (daemonp) (exec-path-from-shell-initialize)))
-
-;; Completion framework
-(use-package vertico :ensure t
-  :init
-  (vertico-mode)
-  :config
-  (general-def vertico-map
-    "C-j" #'vertico-next
-    "C-k" #'vertico-previous
-    "C-;" #'embark-act
-    "C-." #'embark-dwim))
-;; Annotations in completion minibuffers
-(use-package marginalia :ensure t
-  :init
-  (marginalia-mode))
-(use-package consult :ensure t)
-(use-package embark :ensure t
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  :config
-  (general-define-key
-   :states '(global normal visual motion emacs insert)
-   "C-;" #'embark-act
-   "C-." #'embark-dwim))
-(use-package embark-consult :ensure t
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-
-;; Use broader matching rather than the default tab completion 
-(use-package orderless :ensure t
-  :init
-  ;; Default config recommended from vertico README
-  (setq completion-styles '(orderless basic)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
-
-;; In-buffer completion-at-point (i.e. completion popup)
-;; By the same author as vertico
-(use-package corfu :ensure t
-  :init
-  (global-corfu-mode)
-  :custom
-  ;; automatically show completions after some delay
-  (corfu-auto t))
-
-;; Magit (VC commands) and forge (interaction with forges)
-(use-package magit :ensure t)
-(use-package forge :ensure t
-  :after magit)
-;; better diff highlighting
-(use-package magit-delta :ensure t
-  :hook (magit-mode . magit-delta-mode))
-;; gutter highlights for changed regions, plus operations on those hunks
-(use-package diff-hl :ensure t
-  :config
-  (global-diff-hl-mode)
-  :hook
-  (dired-mode . diff-hl-dired-mode))
-
-(use-package lsp-mode :ensure t
-  :config
-  (setq
-    gc-cons-threshold (* 100 1024 1024) ; 100 MB
-    read-process-output-max (* 3 1024 1024) ; 3 MB
-    lsp-headerline-breadcrumb-icons-enable nil
-    lsp-headerline-breadcrumb-enable-diagnostics nil
-    lsp-idle-delay 1
-    lsp-lens-enable nil
-    lsp-rust-all-features t
-    lsp-rust-all-targets t
-    lsp-rust-analyzer-check-all-targets t
-    lsp-rust-analyzer-display-chaining-hints t
-    lsp-rust-analyzer-display-closure-return-type-hints t
-    lsp-rust-analyzer-display-parameter-hints t
-    lsp-rust-clippy-preference "on"
-
-    ;; Show function signatures while writing functions and types for the thing at point
-    lsp-signature-auto-activate t
-    ;; I like the function signatures while writing functions, but don't like
-    ;; the we way the docs make the little buffer at the bottom pop up distractingly.
-    lsp-signature-render-documentation nil)
-  (general-def lsp-mode-map
-    [remap evil-lookup] #'lsp-describe-thing-at-point)
-  :hook
-  (rustic-mode-hook . (lsp-inlay-hints-mode #'lsp-deferred)))
-
-(use-package lsp-ui :ensure t
-  :config
-  (setq
-   lsp-ui-sideline-show-diagnostics t
-   lsp-ui-peek-enable t
-   lsp-ui-peek-show-directory t
-   ;; always show a preview before jumping to definition
-   lsp-ui-peek-always-show t
-
-   lsp-ui-doc-header t
-   lsp-ui-doc-position 'top
-   lsp-ui-doc-alignment 'window
-   lsp-ui-doc-include-signature t
-   lsp-ui-doc-show-with-mouse nil
-   lsp-ui-doc-include-signature t)
-  (general-def lsp-ui-mode-map
-    [remap xref-find-definitions] #'lsp-ui-peek-find-definitions
-    [remap xref-find-references] #'lsp-ui-peek-find-references))
-
-(use-package envrc :ensure t
-  :hook
-  (after-init . envrc-global-mode))
-
-(use-package rustic :ensure t)
-
 ;; Flexible fancy keybinding, with leader key support
 (use-package general
+  :demand t
   :ensure t
   :init
   (general-define-key
    :states '(global normal visual motion emacs insert)
    :prefix-map 'my/leader-map
-   :global-prefix "C-SPC"
-   :non-normal-prefix "M-SPC"
-   :prefix "SPC")
+   :global-prefix (format "C-%s" my/leader-key)
+   :non-normal-prefix (format "M-%s" my/leader-key)
+   :prefix my/leader-key)
   (general-define-key
    :states '(normal visual motion)
    :prefix-map 'my/go-map
@@ -301,31 +257,40 @@
   (defvar my/project-map (make-sparse-keymap))
   (general-create-definer my/project-key-def :keymaps 'my/project-map)
 
+  (defvar my/search-map (make-sparse-keymap))
+  (general-create-definer my/search-key-def :keymaps 'my/search-map)
+
   (defvar my/quit-map (make-sparse-keymap))
   (general-create-definer my/quit-key-def :keymaps 'my/quit-map)
 
   (defvar my/window-map (make-sparse-keymap))
   (general-create-definer my/window-key-def :keymaps 'my/window-map)
+
+  (defvar my/window-maximize-map (make-sparse-keymap))
+  (general-create-definer my/window-maximize-key-def :keymaps 'my/window-maximize-map)
   
   (my/buffer-key-def
-   "b" #'consult-project-buffer
-   "B" #'consult-buffer
-   "d" #'kill-current-buffer
-   "n" #'next-buffer
-   "p" #'previous-buffer
-   "r" #'revert-buffer
-   "s" #'save-buffer)
+    "b" #'consult-project-buffer
+    "B" #'consult-buffer
+    "d" #'kill-current-buffer
+    "n" #'next-buffer
+    "p" #'previous-buffer
+    "r" #'revert-buffer
+    "s" #'save-buffer
+    "x" #'scratch-buffer)
   (my/help-key-def
-   "f" #'describe-function
-   "k" #'describe-key
-   "i" #'info
-   "m" #'describe-mode
-   "v" #'describe-variable)
+    "f" #'describe-function
+    "k" #'describe-key
+    "i" #'info
+    "m" #'describe-mode
+    "v" #'describe-variable)
   (my/file-key-def
-   "f" #'find-file
-   "r" #'recentf)
+    "f" #'find-file
+    "r" #'recentf)
   (my/git-key-def
     "." #'magit-file-dispatch
+    "[" #'diff-hl-previous-hunk
+    "]" #'diff-hl-next-hunk
     "g" #'magit-status
     "n" #'diff-hl-next-hunk
     "p" #'diff-hl-previous-hunk
@@ -334,45 +299,536 @@
     "S" #'diff-hl-show-hunk
     "u" #'diff-hl-unstage)
   (my/open-key-def
-   "t" #'toggle-term-toggle
-   "T" #'vterm)
+    "t" (cons "toggle terminal" #'my/toggle-term-project)
+    ;; use an existing one if present otherwise open a new one
+    ";" (cons "last terminal" #'vterm)
+    "T" (cons "new terminal" #'my/vterm-new))
   (my/project-key-def
-   "p" #'project-switch-project
-   "b" #'consult-project-buffer)
+    "b" #'consult-project-buffer
+    "p" #'project-switch-project)
+  (my/search-key-def
+    "i" #'info-apropos)
   (my/window-key-def
-   "l" #'evil-window-right
-   "h" #'evil-window-left
-   "j" #'evil-window-down
-   "k" #'evil-window-up
-   "p" #'evil-window-prev
-   "d" #'evil-window-delete
-   "v" #'evil-window-vsplit)
+    "=" #'balance-windows
+    "d" #'delete-window
+    "l" #'windmove-right
+    "h" #'windmove-left
+    "j" #'windmove-down
+    "k" #'windmove-up
+    "m" (cons "maximize" my/window-maximize-map)
+    "p" #'evil-window-prev
+    "r" #'winner-redo
+    "s" (cons "split "#'my/split-and-balance)
+    "S" (cons "split and follow" #'my/split-balance-and-follow)
+    "u" #'winner-undo
+    "v" (cons "vsplit" #'my/vsplit-and-balance)
+    "V" (cons "vsplit and follow" #'my/vsplit-balance-and-follow))
+  (my/window-maximize-key-def
+    "m" (cons "maximize window" #'delete-other-windows)
+    "v" (cons "maximize vertically" #'my/delete-other-vertical-windows))
   (my/leader-key-def
-   "SPC" (cons "project-find-file" #'project-find-file)
-   "/" (cons "search" #'consult-ripgrep)
-   "b" (cons "buffer" my/buffer-map)
-   "f" (cons "file" my/file-map)
-   "g" (cons "file" my/git-map)
-   "h" (cons "help" my/help-map)
-   "o" (cons "open" my/open-map)
-   "p" (cons "project" my/project-map)
-   "q" (cons "quit" my/quit-map)
-   "w" (cons "window" my/window-map)
-   "x" (cons "execute" #'execute-extended-command)
-   ":" (cons "execute" #'execute-extended-command)
-   "u" (cons "prefix" #'universal-argument))
+    "SPC" (cons "project-find-file" #'project-find-file)
+    "/" (cons "search" #'consult-ripgrep)
+    "b" (cons "buffer" my/buffer-map)
+    "f" (cons "file" my/file-map)
+    "g" (cons "git" my/git-map)
+    "h" (cons "help" help-map)
+    "o" (cons "open" my/open-map)
+    "p" (cons "project" my/project-map)
+    "q" (cons "quit" my/quit-map)
+    "s" (cons "project" my/search-map)
+    "w" (cons "window" my/window-map)
+    "x" (cons "execute" #'execute-extended-command)
+    ":" (cons "execute" #'execute-extended-command)
+    "u" (cons "prefix" #'universal-argument))
 
   (my/go-key-def
     "c" #'comment-dwim
     "d" #'xref-find-definitions
-    "D" #'xref-find-references
+    "r" #'xref-find-references
     "g" #'evil-goto-first-line))
+
+;; Modal editing
+(use-package evil :ensure t
+  :demand t
+  :after general
+  :custom
+  ;; make lookup with K more consistently useful
+  (evil-lookup-func #'helpful-at-point)
+  :init
+  (setq
+   ;; use emacs' native redo for C-r
+   evil-undo-system #'undo-redo
+   ;; make C-u scroll rather than use as prefix arg
+   evil-want-C-u-scroll t
+   ;; no need to delay before interpreting esc sequences as such
+   evil-esc-delay 0
+   ;; don't treat "going right at end of line" or "left at beginning of line" as
+   ;; errors (and thus to terminate macro recording/replay)
+   evil-kbd-macro-suppress-motion-error t
+   ;; ;; Set to nil for evil-collection compatibility
+   evil-want-keybinding nil)
+  :config
+  ;; where possible, use builtin stuff, but evil does provide some
+  ;; things that require extra code to manage with emacs builtins
+  (evil-mode 1)
+  ;; Flash yanked text when yanking
+  (advice-add 'evil-yank :around 'my/evil-yank-advice))
+
+(use-package evil-collection :ensure t
+  :after evil
+  :custom
+  ;; don't interfere w/my leader key
+  (evil-collection-key-blacklist `(,my/leader-key))
+  :init
+  (evil-collection-init))
+
+(use-package evil-surround :ensure t
+  :config
+  (global-evil-surround-mode 1))
+
+;; -------------------------------------------------------------------
+;; Terminal and Adjacent
+;; -------------------------------------------------------------------
+
+;; Terminal
+(use-package vterm :ensure t
+  :defer t
+  :commands (vterm)
+  :custom
+  (vterm-max-scrollback 100000)
+  :config
+  (general-def vterm-mode-map
+    :states 'insert
+    "C-j" #'(lambda () (interactive) (vterm-send-key "<down>"))
+    "C-k" #'(lambda () (interactive) (vterm-send-key "<up>"))))
+
+(use-package toggle-term :ensure t
+  :defer t
+  :commands (toggle-term-toggle)
+  :custom
+  ;; make it a little bigger
+  (toggle-term-size 35)
+  :config
+  (setq
+   ;; set vterm as last-used so "toggle" will use it on startup
+   toggle-term-last-used '("*vterm-popup*" . vterm)))
+
+;; Pull PATH from default shell into emacs. Very useful in nix environments.
+(use-package exec-path-from-shell
+  :ensure t
+  :commands exec-path-from-shell-initialize
+  :init
+  ;; only run when in graphical mode, essentially
+  (when (daemonp) (exec-path-from-shell-initialize)))
+
+;; -------------------------------------------------------------------
+;; Completion, Search, Help
+;; -------------------------------------------------------------------
+
+;; Completion framework
+(use-package vertico :ensure t
+  :init
+  (vertico-mode)
+  :config
+  (general-def vertico-map
+    "C-j" #'vertico-next
+    "C-k" #'vertico-previous
+    "C-;" #'embark-act
+    "C-." #'embark-dwim))
+
+;; Annotations in completion minibuffers
+(use-package marginalia :ensure t
+  :init
+  (marginalia-mode))
+
+;; Interactive search from a variety of sources, e.g. ripgrep
+(use-package consult :ensure t
+  :defer t
+  :custom
+  (xref-show-definitions-function #'consult-xref)
+  (xref-show-xrefs-function #'consult-xref)
+  :commands (consult-project-buffer consult-buffer consult-project-buffer))
+
+;; Right-click contextual interface via the keyboard, essentially
+(use-package embark :ensure t
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (general-define-key
+   :states '(global normal visual motion emacs insert)
+   "C-;" #'embark-act
+   "C-." #'embark-dwim))
+(use-package embark-consult :ensure t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+;; Use broader matching rather than the default tab completion
+(use-package orderless :ensure t
+  :init
+  ;; Default config recommended from vertico README
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+
+;; In-buffer completion-at-point (i.e. completion popup)
+;; By the same author as vertico
+(use-package corfu :ensure t
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.1)
+  :init
+  (global-corfu-mode)
+  :config
+  ;; use shift-tab to insert a separator for orderless style completion
+  (general-def 'corfu-mode-map "<backtab>" #'corfu-insert-separator))
+
+;; More fully-featured help information when running help commands
+(use-package helpful :ensure t
+  :config
+  (general-def
+    [remap describe-function] #'helpful-callable
+    [remap describe-variable] #'helpful-variable
+    [remap describe-key] #'helpful-key
+    [remap describe-command] #'helpful-command))
+
+;; -------------------------------------------------------------------
+;; Version Control (git)
+;; -------------------------------------------------------------------
+
+;; Magit (VC commands) and forge (interaction with forges)
+(use-package magit :ensure t
+  :defer t
+  :commands (magit-status magit-file-dispatch)
+  :config
+  (general-define-key
+   ;; prevent magit from overriding my leader key
+   :keymaps 'magit-mode-map
+   :states '(normal visual motion)
+   :prefix-map 'my/leader-map
+   :prefix my/leader-key))
+
+(use-package forge :ensure t
+  :after magit)
+
+;; better diff highlighting
+(use-package magit-delta :ensure t
+  :hook (magit-mode . magit-delta-mode))
+
+;; gutter highlights for changed regions, plus operations on those hunks
+(use-package diff-hl :ensure t
+  :commands (global-diff-hl-mode diff-hl-mode diff-hl-dired-mode)
+  :hook
+  (dired-mode . diff-hl-dired-mode)
+  (prog-mode . global-diff-hl-mode)
+  (emacs-startup . global-diff-hl-mode))
+
+;; -------------------------------------------------------------------
+;; Programming
+;; -------------------------------------------------------------------
+;; Note that there are several features in here that are reliant on
+;; tree-sitter being installed. I am installing that, including support
+;; in emacs, via Nix. If not using nix, consider using treessit-auto
+;; or a similar package to ease installation of tree-sitter grammars
+
+(use-package citre :ensure t
+  :custom
+  (citre-peek-auto-restore-after-jump nil)
+  (citre-peek-fill-fringe nil)
+  (citre-peek-use-dashes-as-horizontal-border t))
+
+(use-package consult-eglot :ensure t)
+
+(use-package breadcrumb :ensure t
+  :defer t
+  :hook
+  (emacs-startup . breadcrumb-mode))
+
+(use-package eglot
+  :defer t
+  :after general
+  :custom
+  (eglot-report-progress t)
+  :hook
+  ((rustic-mode rust-ts-mode rust-mode) . eglot-ensure)
+  :config
+  (let ((rust-analyzer-config
+         '("rust-analyzer"
+           :initializationOptions
+           (:cargo
+            ;; use --all-features, build in different target dir to avoid
+            ;; recompilation at the expense of disk space
+            (:features "all" :targetDir t)
+            :check
+            ;; use clippy
+            (:command "clippy" :extraArgs ["--benches" "--tests"])
+            :inlayHints
+            (:closureReturnTypeHints
+             (:enable t))))))
+    (add-to-list
+     'eglot-server-programs
+     `((rust-ts-mode rust-mode) . ,rust-analyzer-config))
+    (add-to-list
+     'eglot-server-programs
+     `((rustic-mode :language-id "rust") . ,rust-analyzer-config)))
+
+  (defvar my/eglot-map (make-sparse-keymap))
+  (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
+  (defvar my/eglot-find-map (make-sparse-keymap))
+  (general-create-definer my/eglot-find-def :keymaps 'my/eglot-find-map)
+
+  (my/eglot-key-def
+    "a" #'eglot-code-actions
+    "A" #'eglot-code-action-quickfix
+    "j" (cons "jump to symbol" #'consult-eglot-symbols)
+    "r" #'eglot-rename
+    "x" (cons "diagnostics" #'consult-flymake))
+  (general-define-key
+   :keymaps 'eglot-mode-map
+   :states '(normal visual motion)
+   :prefix my/leader-key
+   "c" (cons "code" my/eglot-map))
+
+  (general-def eglot-mode-map
+    ;; replace general-purpose find-def and find-ref commmands with
+    ;; LSP versions
+    [remap xref-find-definitions] #'citre-peek
+    [remap xref-find-references] #'citre-peek-reference)
+
+  ;; When a peek is showing, press RET to jump there
+  (general-evil-define-key '(normal motion visual) 'citre-peek-keymap
+    "RET" #'citre-peek-jump
+    "M-RET" #'(lambda () (interactive)
+                (call-interactively #'citre-peek-abort)
+                (call-interactively #'xref-find-definitions-other-window))
+    "<return>" #'citre-peek-jump
+    "<escape>" #'citre-peek-abort
+    "g f" #'citre-peek-through
+    "g F" #'citre-peek-through-reference
+    "C-k" #'citre-peek-prev-line
+    "C-j" #'citre-peek-next-line
+    "C-h" #'citre-peek-chain-backward
+    "C-l" #'citre-peek-chain-forawrd
+    "C-S-k" #'citre-peek-prev-branch
+    "C-S-j" #'citre-peek-next-branch
+    "C-p" #'citre-peek-prev-tag
+    "C-n" #'citre-peek-next-tag)
+
+  ;; Put the citre keymap ahead of the evil one to avoid issues
+  ;; w/the evil one coming back to the fore
+  (evil-make-overriding-map citre-peek-keymap 'normal))
+
+;; TODO delete if eglot keeps working well
+;; (use-package lsp-mode :ensure t
+;;   :defer t
+;;   :commands (lsp-deferred lsp-mode)
+;;   :config
+;;   (setq
+;;    gc-cons-threshold (* 100 1024 1024) ; 100 MB
+;;    read-process-output-max (* 3 1024 1024) ; 3 MB
+;;    lsp-headerline-breadcrumb-icons-enable nil
+;;    lsp-headerline-breadcrumb-enable-diagnostics nil
+;;    lsp-idle-delay 1
+;;    lsp-lens-enable nil
+;;    lsp-rust-all-features t
+;;    lsp-rust-all-targets t
+;;    ;; rust-analyzer automatically adds --all-targets and --workspace w/current config
+;;    lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"]
+;;    lsp-rust-analyzer-cargo-watch-command "clippy"
+;;    lsp-rust-analyzer-check-all-targets t
+;;    lsp-rust-analyzer-display-chaining-hints t
+;;    lsp-rust-analyzer-display-closure-return-type-hints t
+;;    lsp-rust-analyzer-display-parameter-hints t
+;;    lsp-rust-clippy-preference "on"
+
+;;    ;; Show function signatures while writing functions and types for the thing at point
+;;    lsp-signature-auto-activate t
+;;    ;; I like the function signatures while writing functions, but don't like
+;;    ;; the we way the docs make the little buffer at the bottom pop up distractingly.
+;;    lsp-signature-render-documentation nil)
+
+;;   (defvar my/code-map (make-sparse-keymap))
+;;   (general-create-definer my/code-key-def :keymaps 'my/code-map)
+;;   (defvar my/code-find-map (make-sparse-keymap))
+;;   (general-create-definer my/code-find-def :keymaps 'my/code-find-map)
+
+;;   (my/code-key-def
+;;     "/" (cons "find symbol in file" #'consult-lsp-file-symbols)
+;;     "a" #'lsp-execute-code-action
+;;     "j" (cons "jump to symbol" #'consult-lsp-symbols)
+;;     "r" #'lsp-rename
+;;     "x" (cons "diagnostics" #'consult-lsp-diagnostics))
+;;   (my/leader-key-def
+;;     "c" (cons "code" my/code-map))
+
+;;   ;; use lsp lookup when in lsp mode for shift-K
+;;   (general-def lsp-mode-map
+;;     [remap evil-lookup] #'lsp-describe-thing-at-point)
+
+;;   ;; :hook (((rustic-mode typescript-ts-mode) . lsp-inlay-hints-mode)
+;;   ;;        ((rustic-mode typescript-ts-mode) . lsp-deferred))
+;;   )
+
+;; (use-package lsp-ui :ensure t
+;;   :after lsp-mode
+;;   :config
+;;   (setq
+;;    lsp-ui-sideline-show-diagnostics t
+;;    lsp-ui-peek-enable t
+;;    lsp-ui-peek-show-directory t
+;;    ;; always show a preview before jumping to definition
+;;    lsp-ui-peek-always-show t
+
+;;    lsp-ui-doc-header t
+;;    lsp-ui-doc-position 'top
+;;    lsp-ui-doc-alignment 'window
+;;    lsp-ui-doc-include-signature t
+;;    lsp-ui-doc-show-with-mouse nil
+;;    lsp-ui-doc-include-signature t)
+;;   (general-def lsp-ui-mode-map
+;;     ;; replace general-purpose find-def and find-ref commmands with
+;;     ;; LSP versions
+;;     [remap xref-find-definitions] #'lsp-ui-peek-find-definitions
+;;     [remap xref-find-references] #'lsp-ui-peek-find-references))
+
+;; (use-package consult-lsp :ensure t
+;;   :after lsp-mode)
+
+(use-package rustic :ensure t
+  :defer t
+  :after eglot
+  :mode ("\\.rs\\'" . rustic-mode)
+  :custom
+  ;; (rustic-lsp-client 'eglot)
+  (rustic-lsp-setup-p nil)
+  (rustic-compile-directory-method #'rustic-buffer-workspace)
+  ;; You want this to match the arguments that rust-analyzer uses
+  ;; when it runs its check command, so that way running clippy after
+  ;; a save and a rust-analyzer-driven check does not necessitate
+  ;; fresh compilation. It can be a little tricky to get right, because
+  ;; rust-analyzer automatically inserts --workspace and --all-targets
+  ;; depending on your LSP configuration.
+  (rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
+  (rustic-format-trigger t)
+  ;; derive the underlying rust-mode that backs rustic-mode from
+  ;; rust-ts-mode
+  ;; note: currently seems to break "current test" determination
+  ;; (rust-mode-treesitter-derive t)
+  :config
+  (defun my/rustic-call-in-crate-ctx (cmd)
+    (interactive)
+    (let ((rustic-compile-directory-method #'rustic-buffer-crate))
+      ;; we aren't usign the lexical variable locally, so it warns
+      ;; us about it, but we do want it set in the context of the
+      ;; interactive call.
+      (ignore rustic-compile-directory-method)
+      (call-interactively cmd)))
+
+  (setq rustic-format-on-save t)
+
+  ;; rust keybindings
+  ;; main map
+  (defvar my/rust-map (make-sparse-keymap))
+  (general-create-definer my/rust-key-def :keymaps 'my/rust-map)
+  ;; map for test prefix
+  (defvar my/rust-test-map (make-sparse-keymap))
+  (general-create-definer my/rust-test-key-def :keymaps 'my/rust-test-map)
+  ;; map for package-local prefix
+  (defvar my/rust-package-map (make-sparse-keymap))
+  (general-create-definer my/rust-package-key-def :keymaps 'my/rust-package-map)
+  ;; map for package-local test prefix
+  (defvar my/rust-package-test-map (make-sparse-keymap))
+  (general-create-definer my/rust-package-test-key-def :keymaps 'my/rust-package-test-map)
+
+  ;; bindings that operate in the scope of the current crate
+  (my/rust-package-test-key-def
+   "a" (cons
+        "run all tests"
+        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test-run)))
+   "t" (cons
+        "run current test"
+        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-current-test)))
+   "r" (cons
+        "rerun last test"
+        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test-rerun))))
+
+  ;; bindings that operate in the scope of the workspace
+  (my/rust-package-key-def
+   "t" my/rust-package-test-map)
+  (my/rust-test-key-def
+   "a" #'rustic-cargo-test-run
+   "t" #'rustic-cargo-test-dwim)
+  (my/rust-key-def
+   "c" #'rustic-cargo-check
+   "C" #'rustic-cargo-clippy
+   "p" (cons "package" my/rust-package-map)
+   "t" (cons "test" my/rust-test-map))
+
+  ;; add rust map to the m prefix on the leader key
+  (general-define-key
+   :keymaps 'rust-mode-map
+   :states '(normal visual motion)
+   :prefix my/leader-key
+   "m" my/rust-map))
+
+(use-package nix-mode :ensure t
+  :mode "\\.nix\\'")
+
+;; Show flymake errors in the sideline
+(use-package sideline-flymake :ensure t
+  :defer t
+  :hook (flymake-mode . sideline-mode)
+  :init
+  (setq
+   sideline-flymake-display-mode 'point
+   sideline-backends-right '(sideline-flymake)))
+
+;; -------------------------------------------------------------------
+;; Envrc
+;; -------------------------------------------------------------------
+
+;; Ensure this is after any other things, since hooks are prepended,
+;; so that this hook will get run before any other hooks for various
+;; modes
+(use-package envrc :ensure t
+  :demand t
+  :hook
+  (emacs-startup . envrc-global-mode)
+  (rustic-mode . envrc-global-mode)
+  (lsp-before-initialize . envrc-global-mode))
+
+;; -------------------------------------------------------------------
+;; Emacs Config
+;; -------------------------------------------------------------------
 
 ;; Emacs settings
 (use-package emacs :ensure nil
   :custom
   ;; relative line numbers
   (display-line-numbers-type 'relative)
+  ;; don't word wrap by default
+  (truncate-lines t)
+  (global-display-fill-column-indicator-mode t)
+  ;; don't show the startup screen
+  (inhibit-startup-screen t)
+  ;; don't display the menu bar
+  (menu-bar-mode nil)
+  ;; use spaces instead of tabs when pressing tab
+  (indent-tabs-mode nil)
+  ;; show tooltips in the echo area rather than as separate frames
+  (tooltip-mode nil)
+  ;; type 'y' or 'n' instaed of 'yes' or 'no'
+  (use-short-answers t)
+  ;; when going "off" the screen, wrap around to the other side
+  (windmove-wrap-around t)
+  ;; no sense paying for the bindings since I'm going to rebind anyway
+  (winner-dont-bind-my-keys t)
+  ;; tracks window history for undo/redo
+  (winner-mode t)
+  :hook
+  (bash-ts-mode . flymake-mode)
+  (emacs-lisp-mode . flymake-mode)
+  (prog-mode . flymake-mode)
   :config
   (setq
    ;; I've got to get away from these confounded relatives, hanging on the bell all day
@@ -387,7 +843,7 @@
    ;; don't prompt, just follow symbolic links
    vc-follow-symlinks t
    ;; backup all files to a common directory
-   backup-directory-alist '("." . (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
+   backup-directory-alist `("." . ,(concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
    ;; add a newline at the end of files when visiting if they don't already have one
    require-final-newline 'visit
    ;; write to the target, not the symlink, when saving a file opened via symlink
@@ -420,4 +876,31 @@
   ;; turn off scroll bars
   (scroll-bar-mode -1)
   ;; laod customizations
-  (load custom-file))
+  (load custom-file)
+  ;; tree-sitter-enabled programming language modes
+  ;; note: rust-mode support is configured via the rustic package options
+  (add-to-list 'auto-mode-alist '("\\.c\\'" . c-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cpp\\'" . c++-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.[Dd]ockerfile\\'" . dockerfile-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go.mod\\'" . go-mod-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.sh\\'" . bash-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode)))
+
+;; Prevent warnings from the byte-compiler about free variables and
+;; unresolved functions, since those are a natural part of an init file.
+;; Local Variables:
+;; byte-compile-warnings: (not free-vars unresolved)
+;; End:
+
+
+(provide 'init)
+;;; init.el ends here
