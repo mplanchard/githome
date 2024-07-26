@@ -140,6 +140,39 @@ uses the user's home directory."
   (let ((current-prefix-arg '(nil)))
     (call-interactively #'vterm)))
 
+(defun my/eglot-set-rust-analyzer-config ()
+  "Set rust-analyzer config for eglot."
+  (let ((rust-analyzer-config
+         '("rust-analyzer"
+           :initializationOptions
+           (:cargo
+            ;; use --all-features, build in different target dir to avoid
+            ;; recompilation at the expense of disk space
+            (:features "all" :targetDir t)
+            :check
+            ;; use clippy
+            (:command "clippy" :extraArgs ["--benches" "--tests"])
+            :inlayHints
+            (:closureReturnTypeHints
+             (:enable t))))))
+    (add-to-list
+     'eglot-server-programs
+     `((rustic-mode rust-ts-mode rust-mode) . ,rust-analyzer-config))))
+
+(defun my/evil-shift-right ()
+  "Shift right, keeping selection."
+  (interactive)
+  (evil-shift-right evil-visual-beginning evil-visual-end)
+  (evil-normal-state)
+  (evil-visual-restore))
+
+(defun my/evil-shift-left ()
+  "Shift right, keeping selection."
+  (interactive)
+  (evil-shift-left evil-visual-beginning evil-visual-end)
+  (evil-normal-state)
+  (evil-visual-restore))
+
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
 ;; --------------------------------------------------------------------------------
@@ -233,12 +266,12 @@ uses the user's home directory."
    :states '(normal visual motion)
    :prefix-map 'my/go-map
    :prefix "g")
-  
+
   (general-create-definer my/go-key-def
     :keymaps 'my/go-map)
   (general-create-definer my/leader-key-def
     :keymaps 'my/leader-map)
-  
+
   (defvar my/buffer-map (make-sparse-keymap))
   (general-create-definer my/buffer-key-def :keymaps 'my/buffer-map)
 
@@ -263,12 +296,15 @@ uses the user's home directory."
   (defvar my/quit-map (make-sparse-keymap))
   (general-create-definer my/quit-key-def :keymaps 'my/quit-map)
 
+  (defvar my/toggle-map (make-sparse-keymap))
+  (general-create-definer my/toggle-key-def :keymaps 'my/toggle-map)
+
   (defvar my/window-map (make-sparse-keymap))
   (general-create-definer my/window-key-def :keymaps 'my/window-map)
 
   (defvar my/window-maximize-map (make-sparse-keymap))
   (general-create-definer my/window-maximize-key-def :keymaps 'my/window-maximize-map)
-  
+
   (my/buffer-key-def
     "b" #'consult-project-buffer
     "B" #'consult-buffer
@@ -308,6 +344,8 @@ uses the user's home directory."
     "p" #'project-switch-project)
   (my/search-key-def
     "i" #'info-apropos)
+  (my/toggle-key-def
+    "t" #'toggle-truncate-lines)
   (my/window-key-def
     "=" #'balance-windows
     "d" #'delete-window
@@ -337,6 +375,7 @@ uses the user's home directory."
     "p" (cons "project" my/project-map)
     "q" (cons "quit" my/quit-map)
     "s" (cons "project" my/search-map)
+    "t" (cons "toggle" my/toggle-map)
     "w" (cons "window" my/window-map)
     "x" (cons "execute" #'execute-extended-command)
     ":" (cons "execute" #'execute-extended-command)
@@ -366,7 +405,7 @@ uses the user's home directory."
    ;; don't treat "going right at end of line" or "left at beginning of line" as
    ;; errors (and thus to terminate macro recording/replay)
    evil-kbd-macro-suppress-motion-error t
-   ;; ;; Set to nil for evil-collection compatibility
+   ;; Set to nil for evil-collection compatibility
    evil-want-keybinding nil)
   :config
   ;; where possible, use builtin stuff, but evil does provide some
@@ -379,7 +418,9 @@ uses the user's home directory."
   :after evil
   :custom
   ;; don't interfere w/my leader key
-  (evil-collection-key-blacklist `(,my/leader-key))
+  (evil-collection-key-blacklist
+   `(,my/leader-key
+     "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
   :init
   (evil-collection-init))
 
@@ -458,7 +499,9 @@ uses the user's home directory."
   (general-define-key
    :states '(global normal visual motion emacs insert)
    "C-;" #'embark-act
-   "C-." #'embark-dwim))
+   "C-." #'embark-dwim)
+  (general-def 'embark-file-map
+    "F" #'find-file-other-window))
 (use-package embark-consult :ensure t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
@@ -500,14 +543,33 @@ uses the user's home directory."
 (use-package magit :ensure t
   :defer t
   :commands (magit-status magit-file-dispatch)
+  :hook (magit-mode . (lambda () (line-number-mode -1)))
+  :init
+  (setq forge-add-default-bindings nil)
   :config
   (general-define-key
    ;; prevent magit from overriding my leader key
    :keymaps 'magit-mode-map
    :states '(normal visual motion)
    :prefix-map 'my/leader-map
-   :prefix my/leader-key))
+   :prefix my/leader-key)
 
+  ;; magit's map uses numbers for showing different indent levels,
+  ;; even with evil-collection active. Override the heck out of that.
+  (general-evil-define-key '(normal visual motion) 'magit-mode-map
+    "0" #'evil-beginning-of-line
+    "1" #'digit-argument
+    "2" #'digit-argument
+    "3" #'digit-argument
+    "4" #'digit-argument
+    "5" #'digit-argument
+    "6" #'digit-argument
+    "7" #'digit-argument
+    "8" #'digit-argument
+    "9" #'digit-argument))
+
+;; TODO deal with removal of insert-assigned-pullreqs &c:
+;; https://github.com/magit/forge/issues/676
 (use-package forge :ensure t
   :after magit)
 
@@ -530,93 +592,6 @@ uses the user's home directory."
 ;; tree-sitter being installed. I am installing that, including support
 ;; in emacs, via Nix. If not using nix, consider using treessit-auto
 ;; or a similar package to ease installation of tree-sitter grammars
-
-(use-package citre :ensure t
-  :custom
-  (citre-peek-auto-restore-after-jump nil)
-  (citre-peek-fill-fringe nil)
-  (citre-peek-use-dashes-as-horizontal-border t))
-
-(use-package consult-eglot :ensure t)
-
-(use-package breadcrumb :ensure t
-  :defer t
-  :hook
-  (emacs-startup . breadcrumb-mode))
-
-(use-package eglot
-  :defer t
-  :after general
-  :custom
-  (eglot-report-progress t)
-  :hook
-  ((rustic-mode rust-ts-mode rust-mode) . eglot-ensure)
-  :config
-  (let ((rust-analyzer-config
-         '("rust-analyzer"
-           :initializationOptions
-           (:cargo
-            ;; use --all-features, build in different target dir to avoid
-            ;; recompilation at the expense of disk space
-            (:features "all" :targetDir t)
-            :check
-            ;; use clippy
-            (:command "clippy" :extraArgs ["--benches" "--tests"])
-            :inlayHints
-            (:closureReturnTypeHints
-             (:enable t))))))
-    (add-to-list
-     'eglot-server-programs
-     `((rust-ts-mode rust-mode) . ,rust-analyzer-config))
-    (add-to-list
-     'eglot-server-programs
-     `((rustic-mode :language-id "rust") . ,rust-analyzer-config)))
-
-  (defvar my/eglot-map (make-sparse-keymap))
-  (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
-  (defvar my/eglot-find-map (make-sparse-keymap))
-  (general-create-definer my/eglot-find-def :keymaps 'my/eglot-find-map)
-
-  (my/eglot-key-def
-    "a" #'eglot-code-actions
-    "A" #'eglot-code-action-quickfix
-    "j" (cons "jump to symbol" #'consult-eglot-symbols)
-    "r" #'eglot-rename
-    "x" (cons "diagnostics" #'consult-flymake))
-  (general-define-key
-   :keymaps 'eglot-mode-map
-   :states '(normal visual motion)
-   :prefix my/leader-key
-   "c" (cons "code" my/eglot-map))
-
-  (general-def eglot-mode-map
-    ;; replace general-purpose find-def and find-ref commmands with
-    ;; LSP versions
-    [remap xref-find-definitions] #'citre-peek
-    [remap xref-find-references] #'citre-peek-reference)
-
-  ;; When a peek is showing, press RET to jump there
-  (general-evil-define-key '(normal motion visual) 'citre-peek-keymap
-    "RET" #'citre-peek-jump
-    "M-RET" #'(lambda () (interactive)
-                (call-interactively #'citre-peek-abort)
-                (call-interactively #'xref-find-definitions-other-window))
-    "<return>" #'citre-peek-jump
-    "<escape>" #'citre-peek-abort
-    "g f" #'citre-peek-through
-    "g F" #'citre-peek-through-reference
-    "C-k" #'citre-peek-prev-line
-    "C-j" #'citre-peek-next-line
-    "C-h" #'citre-peek-chain-backward
-    "C-l" #'citre-peek-chain-forawrd
-    "C-S-k" #'citre-peek-prev-branch
-    "C-S-j" #'citre-peek-next-branch
-    "C-p" #'citre-peek-prev-tag
-    "C-n" #'citre-peek-next-tag)
-
-  ;; Put the citre keymap ahead of the evil one to avoid issues
-  ;; w/the evil one coming back to the fore
-  (evil-make-overriding-map citre-peek-keymap 'normal))
 
 ;; TODO delete if eglot keeps working well
 ;; (use-package lsp-mode :ensure t
@@ -696,26 +671,46 @@ uses the user's home directory."
 
 (use-package rustic :ensure t
   :defer t
-  :after eglot
   :mode ("\\.rs\\'" . rustic-mode)
+
+  :hook
+  ;; fix jumping to test errors and go-to-error in test output.
+  ;; reported as bug here: https://github.com/brotzeit/rustic/issues/573
+  (rustic-cargo-test-mode
+   . (lambda () (add-to-list 'compilation-error-regexp-alist
+                             `(,(rx "thread '"
+                                    (one-or-more (not "'"))
+                                    "' panicked at "
+                                    (group (one-or-more not-newline))
+                                    ":"
+                                    (group (one-or-more digit))
+                                    ":"
+                                    (group (one-or-more digit)))
+                               1 2 3))))
+
   :custom
-  ;; (rustic-lsp-client 'eglot)
+  (rustic-lsp-client 'eglot)
   (rustic-lsp-setup-p nil)
   (rustic-compile-directory-method #'rustic-buffer-workspace)
-  ;; You want this to match the arguments that rust-analyzer uses
-  ;; when it runs its check command, so that way running clippy after
-  ;; a save and a rust-analyzer-driven check does not necessitate
-  ;; fresh compilation. It can be a little tricky to get right, because
-  ;; rust-analyzer automatically inserts --workspace and --all-targets
-  ;; depending on your LSP configuration.
   (rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
   (rustic-format-trigger t)
-  ;; derive the underlying rust-mode that backs rustic-mode from
-  ;; rust-ts-mode
+  ;; derive the underlying rust-mode that backs rustic-mode from rust-ts-mode
   ;; note: currently seems to break "current test" determination
   ;; (rust-mode-treesitter-derive t)
+
   :config
+  ;; rustic adds a weird configuration parameter to eglot-server-programs
+  ;; when it loads, but I want to use my specific config. Because of
+  ;; load order (rustic mode is generally going to get loaded after
+  ;; eglot, since eglot is built in and rustic is deferred), this can
+  ;; wind up at the front of the eglot config list, ahead of custom
+  ;; config. So, delete it.
+  (setq eglot-server-programs
+        (cl-remove '(rustic-mode :language-id "rust") eglot-server-programs
+                   :test 'equal :key 'car))
+
   (defun my/rustic-call-in-crate-ctx (cmd)
+    "Call CMD in the crate context rather than the workspace context."
     (interactive)
     (let ((rustic-compile-directory-method #'rustic-buffer-crate))
       ;; we aren't usign the lexical variable locally, so it warns
@@ -757,7 +752,8 @@ uses the user's home directory."
    "t" my/rust-package-test-map)
   (my/rust-test-key-def
    "a" #'rustic-cargo-test-run
-   "t" #'rustic-cargo-test-dwim)
+   "t" #'rustic-cargo-current-test
+   "r" #'rustic-cargo-test-rerun)
   (my/rust-key-def
    "c" #'rustic-cargo-check
    "C" #'rustic-cargo-clippy
@@ -769,7 +765,7 @@ uses the user's home directory."
    :keymaps 'rust-mode-map
    :states '(normal visual motion)
    :prefix my/leader-key
-   "m" my/rust-map))
+   "m" my/rust-map)) ;; end rustic
 
 (use-package nix-mode :ensure t
   :mode "\\.nix\\'")
@@ -782,6 +778,78 @@ uses the user's home directory."
   (setq
    sideline-flymake-display-mode 'point
    sideline-backends-right '(sideline-flymake)))
+
+(use-package citre :ensure t
+  :custom
+  (citre-peek-auto-restore-after-jump nil)
+  (citre-peek-fill-fringe nil)
+  (citre-peek-use-dashes-as-horizontal-border t)
+
+  :config
+  ;; Define evil-friendly keybindings for interacting with the peek
+  (general-evil-define-key '(normal motion visual) 'citre-peek-keymap
+    "RET" #'citre-peek-jump
+    "<return>" #'citre-peek-jump
+    ;; jump in other window, closing the peek before jumping
+    "M-RET" #'(lambda () (interactive)
+                (call-interactively #'citre-peek-abort)
+                (call-interactively #'xref-find-definitions-other-window))
+    "<escape>" #'citre-peek-abort
+    "g f" #'citre-peek-through
+    "g F" #'citre-peek-through-reference
+    "C-k" #'citre-peek-prev-line
+    "C-j" #'citre-peek-next-line
+    "C-h" #'citre-peek-chain-backward
+    "C-l" #'citre-peek-chain-forawrd
+    "C-S-k" #'citre-peek-prev-branch
+    "C-S-j" #'citre-peek-next-branch
+    "C-p" #'citre-peek-prev-tag
+    "C-n" #'citre-peek-next-tag)
+
+  ;; fix an issue with evil where going into peek mode for some reason
+  ;; requires a subsequent ESC for the citre keymap to become active
+  (advice-add #'citre-peek
+              :after (lambda () (evil-force-normal-state))
+              '((name . "citre-force-normal-mode"))))
+
+(use-package consult-eglot :ensure t)
+
+(use-package breadcrumb :ensure t
+  :defer t
+  :hook
+  (emacs-startup . breadcrumb-mode))
+
+(use-package eglot :ensure nil
+  :after (general evil citre)
+  :custom
+  (eglot-report-progress t)
+  :config
+  (my/eglot-set-rust-analyzer-config)
+
+  (defvar my/eglot-map (make-sparse-keymap))
+  (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
+  (defvar my/eglot-find-map (make-sparse-keymap))
+  (general-create-definer my/eglot-find-def :keymaps 'my/eglot-find-map)
+
+  (my/eglot-key-def
+    "a" #'eglot-code-actions
+    "A" #'eglot-code-action-quickfix
+    "j" (cons "jump to symbol" #'consult-eglot-symbols)
+    "r" #'eglot-rename
+    "x" (cons "diagnostics" #'consult-flymake))
+
+  (general-define-key
+   :keymaps 'eglot-mode-map
+   :states '(normal visual motion)
+   :prefix my/leader-key
+   "c" (cons "code" my/eglot-map))
+
+  (general-def eglot-mode-map
+    ;; replace general-purpose find-def and find-ref commmands with
+    ;; LSP versions
+    [remap xref-find-definitions] #'citre-peek
+    [remap xref-find-references] #'citre-peek-reference))
+
 
 ;; -------------------------------------------------------------------
 ;; Envrc
@@ -829,6 +897,7 @@ uses the user's home directory."
   (bash-ts-mode . flymake-mode)
   (emacs-lisp-mode . flymake-mode)
   (prog-mode . flymake-mode)
+  (before-save . delete-trailing-whitespace)
   :config
   (setq
    ;; I've got to get away from these confounded relatives, hanging on the bell all day
@@ -843,7 +912,7 @@ uses the user's home directory."
    ;; don't prompt, just follow symbolic links
    vc-follow-symlinks t
    ;; backup all files to a common directory
-   backup-directory-alist `("." . ,(concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
+   backup-directory-alist `(("." . ,(concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")))
    ;; add a newline at the end of files when visiting if they don't already have one
    require-final-newline 'visit
    ;; write to the target, not the symlink, when saving a file opened via symlink
