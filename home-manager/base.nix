@@ -261,6 +261,7 @@
     discord
     # direnv
     unstable.element-desktop
+    emacs-lsp-booster
     emacs-all-the-icons-fonts
     unstable.fd
     findutils
@@ -307,40 +308,6 @@
     texlive.combined.scheme-full
     tmux
     tokei
-    # tree-sitter.withPlugins (grammars: with grammars; [
-    #     tree-sitter-bash
-    #     tree-sitter-clojure
-    #     tree-sitter-comment
-    #     tree-sitter-cpp
-    #     tree-sitter-dockerfile
-    #     tree-sitter-elisp
-    #     tree-sitter-fish
-    #     tree-sitter-go
-    #     tree-sitter-graphql
-    #     tree-sitter-hcl
-    #     tree-sitter-html
-    #     tree-sitter-javascript
-    #     tree-sitter-jsdoc
-    #     tree-sitter-json
-    #     tree-sitter-json5
-    #     tree-sitter-latex
-    #     tree-sitter-lua
-    #     tree-sitter-make
-    #     tree-sitter-markdown
-    #     tree-sitter-markdown-inline
-    #     tree-sitter-nix
-    #     tree-sitter-prisma
-    #     tree-sitter-rust
-    #     tree-sitter-scss
-    #     tree-sitter-sql
-    #     tree-sitter-svelte
-    #     tree-sitter-toml
-    #     tree-sitter-tsx
-    #     tree-sitter-typescript
-    #     tree-sitter-vim
-    #     tree-sitter-yaml
-    # ])
-    # tree-sitter
     unzip
     wget
     which

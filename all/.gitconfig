@@ -8,6 +8,8 @@
 	path = ~/.gitconfig.local
 [includeIf "gitdir:~/s/spec/**"]
 	path = ~/.gitconfig.spectrust
+[includeIf "gitdir:~/s/spec-protect"]
+	path = ~/.gitconfig.spectrust
 [github]
 	user = mplanchard
 [merge]

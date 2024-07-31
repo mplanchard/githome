@@ -345,7 +345,8 @@ uses the user's home directory."
   (my/search-key-def
     "i" #'info-apropos)
   (my/toggle-key-def
-    "t" #'toggle-truncate-lines)
+    ;; word wrap, essentially
+    "w" #'toggle-truncate-lines)
   (my/window-key-def
     "=" #'balance-windows
     "d" #'delete-window
@@ -412,7 +413,8 @@ uses the user's home directory."
   ;; things that require extra code to manage with emacs builtins
   (evil-mode 1)
   ;; Flash yanked text when yanking
-  (advice-add 'evil-yank :around 'my/evil-yank-advice))
+  (advice-add 'evil-yank :around 'my/evil-yank-advice)
+  (add-to-list 'evil-insert-state-modes 'git-commit-mode))
 
 (use-package evil-collection :ensure t
   :after evil
@@ -436,6 +438,8 @@ uses the user's home directory."
 (use-package vterm :ensure t
   :defer t
   :commands (vterm)
+  :hook
+  (vterm-mode . (lambda () display-line-numbers-mode -1))
   :custom
   (vterm-max-scrollback 100000)
   :config
@@ -519,7 +523,7 @@ uses the user's home directory."
 (use-package corfu :ensure t
   :custom
   (corfu-auto t)
-  (corfu-auto-delay 0.1)
+  (corfu-auto-delay 0.05)
   :init
   (global-corfu-mode)
   :config
@@ -669,6 +673,8 @@ uses the user's home directory."
 ;; (use-package consult-lsp :ensure t
 ;;   :after lsp-mode)
 
+(use-package prettier-js :ensure t)
+
 (use-package rustic :ensure t
   :defer t
   :mode ("\\.rs\\'" . rustic-mode)
@@ -676,6 +682,7 @@ uses the user's home directory."
   :hook
   ;; fix jumping to test errors and go-to-error in test output.
   ;; reported as bug here: https://github.com/brotzeit/rustic/issues/573
+  (rustic-compilation-mode . (lambda () (display-line-numbers-mode -1)))
   (rustic-cargo-test-mode
    . (lambda () (add-to-list 'compilation-error-regexp-alist
                              `(,(rx "thread '"
@@ -687,13 +694,14 @@ uses the user's home directory."
                                     ":"
                                     (group (one-or-more digit)))
                                1 2 3))))
+  (rustic-mode . (lambda () (set-fill-column 80)))
 
   :custom
   (rustic-lsp-client 'eglot)
   (rustic-lsp-setup-p nil)
   (rustic-compile-directory-method #'rustic-buffer-workspace)
   (rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
-  (rustic-format-trigger t)
+  (rustic-format-trigger 'on-compile)
   ;; derive the underlying rust-mode that backs rustic-mode from rust-ts-mode
   ;; note: currently seems to break "current test" determination
   ;; (rust-mode-treesitter-derive t)
@@ -765,10 +773,18 @@ uses the user's home directory."
    :keymaps 'rust-mode-map
    :states '(normal visual motion)
    :prefix my/leader-key
-   "m" my/rust-map)) ;; end rustic
+   "m" my/rust-map)
+
+  (general-evil-define-key '(insert) 'sql-interactive-mode-map
+    ;; shift-return to insert a newline instead of submitting
+    "<S-return>" #'newline
+    "C-k" #'comint-previous-input
+    "C-j" #'comint-next-input)) ;; end rustic
 
 (use-package nix-mode :ensure t
   :mode "\\.nix\\'")
+
+(use-package svelte-mode :ensure t)
 
 ;; Show flymake errors in the sideline
 (use-package sideline-flymake :ensure t
@@ -823,6 +839,20 @@ uses the user's home directory."
   :after (general evil citre)
   :custom
   (eglot-report-progress t)
+  :hook
+  (eglot-managed-mode
+   . (lambda ()
+       ;; In the normal order of operations, rustic-mode is enabled
+       ;; prior to eglot mode. This means the eglot hook to tell the
+       ;; language server that the content will change winds up at the
+       ;; front of the hooks list, in front of the rustic format-on-save
+       ;; hook. This means it executes first, prior to the save, so the
+       ;; language server tries to re-evaluate the content as it's being
+       ;; shifted around. To avoid this, when enabling eglot mode, remove
+       ;; and re-add the rustic format hook.
+       (when (seq-contains-p before-save-hook #'rustic-before-save-hook)
+         (remove-hook 'before-save-hook #'rustic-before-save-hook t)
+         (add-hook 'before-save-hook #'rustic-before-save-hook 0 t))))
   :config
   (my/eglot-set-rust-analyzer-config)
 
@@ -846,10 +876,23 @@ uses the user's home directory."
 
   (general-def eglot-mode-map
     ;; replace general-purpose find-def and find-ref commmands with
-    ;; LSP versions
+    ;; LSP versimns
     [remap xref-find-definitions] #'citre-peek
     [remap xref-find-references] #'citre-peek-reference))
 
+;; requires `emacs-lsp-booster` to be installed
+(use-package eglot-booster
+  :ensure (:type git :host github :repo "jdtsmith/eglot-booster")
+  :after eglot
+  :config (eglot-booster-mode))
+
+;; syntactic folding for treesitter-derived modes
+(use-package treesit-fold
+  :after evil
+  :ensure (:type git :host github :repo "emacs-tree-sitter/treesit-fold")
+  :hook (emacs-lisp-mode . (lambda () (treesit-parser-create 'elisp)))
+  :config
+  (global-treesit-fold-mode))
 
 ;; -------------------------------------------------------------------
 ;; Envrc
@@ -868,6 +911,18 @@ uses the user's home directory."
 ;; -------------------------------------------------------------------
 ;; Emacs Config
 ;; -------------------------------------------------------------------
+
+(use-package ispell :ensure nil
+  :custom
+  ;; set a dictionary to use for added words and such
+  (ispell-alternate-dictionary (expand-file-name "~/.config/dict/mp.dict"))
+  :config
+  (when (not (file-exists-p ispell-alternate-dictionary))
+    (make-directory (file-name-directory ispell-alternate-dictionary) t)
+    (with-temp-buffer
+      ;; see http://aspell.net/man-html/Format-of-the-Personal-and-Replacement-Dictionaries.html
+      (insert "personal_ws-1.1 en 0\n")
+      (write-file ispell-alternate-dictionary))))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
@@ -893,6 +948,8 @@ uses the user's home directory."
   (winner-dont-bind-my-keys t)
   ;; tracks window history for undo/redo
   (winner-mode t)
+  :mode
+  ("\\.env\\'" . bash-ts-mode)
   :hook
   (bash-ts-mode . flymake-mode)
   (emacs-lisp-mode . flymake-mode)
