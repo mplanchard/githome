@@ -48,6 +48,9 @@
         # HACK: for some reason this, unlike hte other sessionVariables, is getting
         # overridden in my shells. Set it manually.
         export EDITOR=emacsclient
+        # Setting this env var to the empty string makes it so that emacs
+        # will start a daemon if none is running when trying to execute emacsclient
+        export ALTERNATE_EDITOR=
         vterm_printf(){
           if [ -n "$TMUX" ] && ([ "''${TERM%%-*}" = "tmux" ] || [ "''${TERM%%-*}" = "screen" ] ); then
               # Tell tmux to pass the escape sequences through
@@ -93,6 +96,9 @@
           set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         end
         set -gx EDITOR emacsclient
+        # Setting this env var to the empty string makes it so that emacs
+        # will start a daemon if none is running when trying to execute emacsclient
+        set -gx ALTERNATE_EDITOR ""
 
         function set_aws_profile
           set -gx AWS_PROFILE $argv[1]
@@ -215,7 +221,6 @@
 
     # Install latex packages
     # texlive.enable = true;
-
   };
 
   home.file.gdbinit = {
@@ -242,6 +247,7 @@
     MOZ_DBUS_REMOTE = 1;
     GITLAB_USER = "mplanchard";
     EDITOR = "emacsclient";
+    ALTERNATE_EDITOR = "";
     SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
     GSM_SKIP_SSH_AGENT_WORKAROUND = 1;
   };
@@ -330,7 +336,7 @@
   ];
 } // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
   services = {
-    emacs = { enable = true; };
+    # emacs = { enable = true; };
     gpg-agent = {
       enable = true;
       defaultCacheTtl = 43200;  # 12 hours

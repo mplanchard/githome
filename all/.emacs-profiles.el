@@ -1,2 +1,2 @@
-(("default" . ((user-emacs-directory . "~/.emacs-doom")))
- ("scratch" . ((user-emacs-directory . "~/.emacs-scratch"))))
+(("default" . ((user-emacs-directory . "~/.emacs-scratch")))
+ ("doom" . ((user-emacs-directory . "~/.emacs-doom"))))

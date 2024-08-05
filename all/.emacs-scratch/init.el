@@ -313,6 +313,10 @@ uses the user's home directory."
     "p" #'previous-buffer
     "r" #'revert-buffer
     "s" #'save-buffer
+    "S" (cons "save all buffers" #'(lambda ()
+            (interactive)
+            (let ((current-prefix-arg '(nil)))
+              (call-interactively #'save-some-buffers))))
     "x" #'scratch-buffer)
   (my/help-key-def
     "f" #'describe-function
@@ -727,7 +731,7 @@ uses the user's home directory."
       (ignore rustic-compile-directory-method)
       (call-interactively cmd)))
 
-  (setq rustic-format-on-save t)
+  (setq rustic-format-on-save nil)
 
   ;; rust keybindings
   ;; main map
@@ -805,10 +809,14 @@ uses the user's home directory."
   ;; Define evil-friendly keybindings for interacting with the peek
   (general-evil-define-key '(normal motion visual) 'citre-peek-keymap
     "RET" #'citre-peek-jump
-    "<return>" #'citre-peek-jump
+    "<return>" #'(lambda () (interactive)
+                   (citre-peek-abort)
+                   (evil--jumps-push)
+                   (call-interactively #'xref-find-definitions))
     ;; jump in other window, closing the peek before jumping
     "M-RET" #'(lambda () (interactive)
                 (call-interactively #'citre-peek-abort)
+                (evil--jumps-push)
                 (call-interactively #'xref-find-definitions-other-window))
     "<escape>" #'citre-peek-abort
     "g f" #'citre-peek-through
@@ -842,17 +850,8 @@ uses the user's home directory."
   :hook
   (eglot-managed-mode
    . (lambda ()
-       ;; In the normal order of operations, rustic-mode is enabled
-       ;; prior to eglot mode. This means the eglot hook to tell the
-       ;; language server that the content will change winds up at the
-       ;; front of the hooks list, in front of the rustic format-on-save
-       ;; hook. This means it executes first, prior to the save, so the
-       ;; language server tries to re-evaluate the content as it's being
-       ;; shifted around. To avoid this, when enabling eglot mode, remove
-       ;; and re-add the rustic format hook.
-       (when (seq-contains-p before-save-hook #'rustic-before-save-hook)
-         (remove-hook 'before-save-hook #'rustic-before-save-hook t)
-         (add-hook 'before-save-hook #'rustic-before-save-hook 0 t))))
+       ;; local hook to do format-on-save w/eglot via LS
+       (add-hook 'before-save-hook #'eglot-format-buffer 0 t)))
   :config
   (my/eglot-set-rust-analyzer-config)
 
@@ -923,6 +922,11 @@ uses the user's home directory."
       ;; see http://aspell.net/man-html/Format-of-the-Personal-and-Replacement-Dictionaries.html
       (insert "personal_ws-1.1 en 0\n")
       (write-file ispell-alternate-dictionary))))
+
+;; Run the server so that we can just use `emacsclient` as EDITOR
+(use-package server :ensure nil
+  :config
+  (unless (server-running-p) (server-start)))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
