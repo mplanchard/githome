@@ -574,12 +574,41 @@ uses the user's home directory."
     "6" #'digit-argument
     "7" #'digit-argument
     "8" #'digit-argument
-    "9" #'digit-argument))
+    "9" #'digit-argument)
+
+  ;; no I don't want to stash while viewing a diff, what is wrong with you
+  (general-evil-define-key '(normal visual motion) 'magit-diff-mode-map
+    "z b" #'evil-scroll-line-to-bottom
+    "z t" #'evil-scroll-line-to-top
+    "z z" #'evil-scroll-line-to-center))
 
 ;; TODO deal with removal of insert-assigned-pullreqs &c:
 ;; https://github.com/magit/forge/issues/676
 (use-package forge :ensure t
-  :after magit)
+  :after magit
+  :config
+  ;; re-add support for assigned & review requests at top level of status
+  ;; buffer without additional filtering. See https://github.com/magit/forge/issues/676
+  (defun my/forge-insert-assigned-pullreqs ()
+    "Insert assigned pullreqs to the magit status buffer."
+    (forge-insert-topics 'assigned-pullreqs "Assigned pull requests"
+      (lambda (repo)
+        (and-let* ((me (ghub--username repo)))
+          (forge--topics-spec :type 'pullreq :active t :assignee me)))))
+  (defun my/forge-insert-review-requests ()
+    "Insert requested reviews to the magit status buffer."
+    (forge-insert-topics 'reviewer-pullreqs "Review requests"
+      (lambda (repo)
+        (and-let* ((me (ghub--username repo)))
+          (forge--topics-spec :type 'pullreq :active t :reviewer me)))))
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'my/forge-insert-assigned-pullreqs
+                          #'forge-insert-pullreqs)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'my/forge-insert-review-requests
+                          #'my/forge-insert-assigned-pullreqs))
+
+(use-package transient :ensure t)
 
 ;; better diff highlighting
 (use-package magit-delta :ensure t
@@ -889,7 +918,11 @@ uses the user's home directory."
 (use-package treesit-fold
   :after evil
   :ensure (:type git :host github :repo "emacs-tree-sitter/treesit-fold")
-  :hook (emacs-lisp-mode . (lambda () (treesit-parser-create 'elisp)))
+  :hook
+  (emacs-lisp-mode . (lambda () (treesit-parser-create 'elisp)))
+  ;; won't need once https://github.com/brotzeit/rustic/issues/571 is fixed
+  (rustic-mode . (lambda () (treesit-parser-create 'rust)))
+  (rust-mode . (lambda () (treesit-parser-create 'rust)))
   :config
   (global-treesit-fold-mode))
 
@@ -933,17 +966,21 @@ uses the user's home directory."
   :custom
   ;; relative line numbers
   (display-line-numbers-type 'relative)
-  ;; don't word wrap by default
-  (truncate-lines t)
+  ;; smaller fringe on left, no fringe on right
+  (fringe-mode '(3 . 0))
   (global-display-fill-column-indicator-mode t)
   ;; don't show the startup screen
   (inhibit-startup-screen t)
+  ;; show line numbers in modeline
+  (line-number-mode t)
   ;; don't display the menu bar
   (menu-bar-mode nil)
   ;; use spaces instead of tabs when pressing tab
   (indent-tabs-mode nil)
   ;; show tooltips in the echo area rather than as separate frames
   (tooltip-mode nil)
+  ;; don't word wrap by default
+  (truncate-lines t)
   ;; type 'y' or 'n' instaed of 'yes' or 'no'
   (use-short-answers t)
   ;; when going "off" the screen, wrap around to the other side
