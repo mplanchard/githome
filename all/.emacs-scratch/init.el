@@ -44,6 +44,23 @@ Prior to calling, pulse the region between BEG and END."
   (pulse-momentary-highlight-region beg end)
   (apply orig-fn beg end args))
 
+(defun my/delete-visited-file ()
+  "Delete the file visited by the current buffer, asking for confirmation."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (if (and file
+             (y-or-n-p (format "Delete file: %s? " file)))
+        (if (vc-backend file)
+            ;; if in a git repo, use vc-delete-file to also handle
+            ;; marking as deleted in git & syncing
+            (funcall-interactively #'vc-delete-file file)
+          ;; otherwise just delete it and the visiting buffer
+          (progn
+            (funcall-interactively #'delete-file file)
+            (kill-buffer)))
+      ;; Give some indication that we did nothing
+      (message "Buffer is not currently visiting a file"))))
+
 ;; Split windows and then balance them
 (defun my/split-and-balance ()
   "Split window horizontally and rebalance the group."
@@ -100,12 +117,11 @@ Prior to calling, pulse the region between BEG and END."
 ;; Define this ahead of time to avoid an error when running term-toggle
 ;; due to its defining a dynamic variable that has already been lexically
 ;; scoped in the function below
-(defvar toggle-term-last-used)
 (defun my/toggle-term-project ()
   "Toggle a project-specific terminal.
 
 If in a project, toggles a project-specific terminal in the project root,
-creating a new one if one has not yet been created. If not in a project,
+creating a new one if one has not yet been created.  If not in a project,
 uses the value of `default-directory'.  If `default-directory' is nil,
 uses the user's home directory."
   (interactive)
@@ -122,16 +138,12 @@ uses the user's home directory."
        ;; a "last used" terminal value for toggle-term, which it will
        ;; use to determine which vterm instance to use
        (term-popup-name
-        (format "*%s-popup*"
+        (format "%s-popup"
                 (or (when
                         (project-current)
                       (project-name (project-current)))
-                    "vterm")))
-       ;; set toggle-term-last-used to ensure the toggle-term-toggle
-       ;; command opens the appropriate terminal
-       (toggle-term-last-used `(,term-popup-name . vterm)))
-    (ignore toggle-term-last-used)  ;; avoid lexical binding warning
-    (call-interactively #'toggle-term-toggle)))
+                    "vterm"))))
+    (funcall-interactively #'toggle-term-find term-popup-name "vterm")))
 
 (defun my/vterm-new ()
   "Create a new vterm in the current buffer."
@@ -325,8 +337,10 @@ uses the user's home directory."
     "m" #'describe-mode
     "v" #'describe-variable)
   (my/file-key-def
+    "D" (cons "delete file" #'my/delete-visited-file)
     "f" #'find-file
-    "r" #'recentf)
+    "r" #'recentf
+    "R" #'rename-visited-file)
   (my/git-key-def
     "." #'magit-file-dispatch
     "[" #'diff-hl-previous-hunk
@@ -454,7 +468,8 @@ uses the user's home directory."
 
 (use-package toggle-term :ensure t
   :defer t
-  :commands (toggle-term-toggle)
+  :after (vterm)
+  :commands (toggle-term-toggle toggle-term-find toggle-term--set-last-used)
   :custom
   ;; make it a little bigger
   (toggle-term-size 35)
@@ -514,6 +529,8 @@ uses the user's home directory."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package wgrep :ensure t)
+
 ;; Use broader matching rather than the default tab completion
 (use-package orderless :ensure t
   :init
@@ -546,6 +563,9 @@ uses the user's home directory."
 ;; -------------------------------------------------------------------
 ;; Version Control (git)
 ;; -------------------------------------------------------------------
+
+(use-package git-timemachine :ensure t)
+(use-package git-link :ensure t)
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t
@@ -608,6 +628,9 @@ uses the user's home directory."
                           #'my/forge-insert-review-requests
                           #'my/forge-insert-assigned-pullreqs))
 
+;; need to have elpaca manage these b/c I guess forge/magit aren't
+;; great about getting updated dependencies
+(use-package ghub :ensure t)
 (use-package transient :ensure t)
 
 ;; better diff highlighting
@@ -819,6 +842,8 @@ uses the user's home directory."
 
 (use-package svelte-mode :ensure t)
 
+(use-package terraform-mode :ensure t)
+
 ;; Show flymake errors in the sideline
 (use-package sideline-flymake :ensure t
   :defer t
@@ -837,11 +862,13 @@ uses the user's home directory."
   :config
   ;; Define evil-friendly keybindings for interacting with the peek
   (general-evil-define-key '(normal motion visual) 'citre-peek-keymap
-    "RET" #'citre-peek-jump
-    "<return>" #'(lambda () (interactive)
-                   (citre-peek-abort)
+    ;; jump to definition, ensuring we push to the evil stack before jumping
+    "RET" #'(lambda () (interactive)
                    (evil--jumps-push)
-                   (call-interactively #'xref-find-definitions))
+                   (call-interactively #'citre-peek-jump))
+    "<return>" #'(lambda () (interactive)
+                   (evil--jumps-push)
+                   (call-interactively #'citre-peek-jump))
     ;; jump in other window, closing the peek before jumping
     "M-RET" #'(lambda () (interactive)
                 (call-interactively #'citre-peek-abort)
@@ -849,7 +876,7 @@ uses the user's home directory."
                 (call-interactively #'xref-find-definitions-other-window))
     "<escape>" #'citre-peek-abort
     "g f" #'citre-peek-through
-    "g F" #'citre-peek-through-reference
+    "g r" #'citre-peek-through-reference
     "C-k" #'citre-peek-prev-line
     "C-j" #'citre-peek-next-line
     "C-h" #'citre-peek-chain-backward
@@ -872,6 +899,9 @@ uses the user's home directory."
   :hook
   (emacs-startup . breadcrumb-mode))
 
+(defvar-local my/eglot-format-p t
+  "Whether to use eglot for automatic formatting.")
+
 (use-package eglot :ensure nil
   :after (general evil citre)
   :custom
@@ -880,7 +910,11 @@ uses the user's home directory."
   (eglot-managed-mode
    . (lambda ()
        ;; local hook to do format-on-save w/eglot via LS
-       (add-hook 'before-save-hook #'eglot-format-buffer 0 t)))
+       (add-hook
+        'before-save-hook
+        #'(lambda () (when my/eglot-format-p (eglot-format-buffer)))
+        0
+        t)))
   :config
   (my/eglot-set-rust-analyzer-config)
 
@@ -925,6 +959,10 @@ uses the user's home directory."
   (rust-mode . (lambda () (treesit-parser-create 'rust)))
   :config
   (global-treesit-fold-mode))
+
+(use-package treesit :ensure nil
+  :config
+  (add-to-list 'treesit-load-name-override-list '(terraform "libtree-sitter-hcl" "tree_sitter_hcl")))
 
 ;; -------------------------------------------------------------------
 ;; Envrc
