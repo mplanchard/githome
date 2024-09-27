@@ -46,7 +46,7 @@ in
 
           # This is the actual pre-start thing. I guess it reads a config
           # file that they store in /opt/CrowdStrike/falconstore
-          ${crowdstrike-falcon-sensor}/opt/falconctl -g --cid
+          ${crowdstrike-falcon-sensor}/opt/falconctl -f -s --cid=38E9E0099F8643ECB3DB133113DE8B0D-47
 
           # Again, even though they're creating this shit, subsequent programs
           # weren't able to access, so let anybody read the store.

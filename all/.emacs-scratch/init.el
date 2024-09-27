@@ -143,7 +143,7 @@ uses the user's home directory."
                         (project-current)
                       (project-name (project-current)))
                     "vterm"))))
-    (funcall-interactively #'toggle-term-find term-popup-name "vterm")))
+    (funcall-interactively 'toggle-term-find term-popup-name "vterm")))
 
 (defun my/vterm-new ()
   "Create a new vterm in the current buffer."
@@ -287,6 +287,9 @@ uses the user's home directory."
   (defvar my/buffer-map (make-sparse-keymap))
   (general-create-definer my/buffer-key-def :keymaps 'my/buffer-map)
 
+  (defvar my/error-map (make-sparse-keymap))
+  (general-create-definer my/error-map-key-def :keymaps 'my/error-map)
+
   (defvar my/file-map (make-sparse-keymap))
   (general-create-definer my/file-key-def :keymaps 'my/file-map)
 
@@ -330,12 +333,11 @@ uses the user's home directory."
             (let ((current-prefix-arg '(nil)))
               (call-interactively #'save-some-buffers))))
     "x" #'scratch-buffer)
-  (my/help-key-def
-    "f" #'describe-function
-    "k" #'describe-key
-    "i" #'info
-    "m" #'describe-mode
-    "v" #'describe-variable)
+  (my/error-map-key-def
+    "]" #'flymake-goto-next-error
+    "[" #'flymake-goto-prev-error
+    "x" #'consult-flymake
+    "X" #'flymake-show-project-diagnostics)
   (my/file-key-def
     "D" (cons "delete file" #'my/delete-visited-file)
     "f" #'find-file
@@ -352,6 +354,12 @@ uses the user's home directory."
     "s" #'diff-hl-stage-dwim
     "S" #'diff-hl-show-hunk
     "u" #'diff-hl-unstage)
+  (my/help-key-def
+    "f" #'describe-function
+    "k" #'describe-key
+    "i" #'info
+    "m" #'describe-mode
+    "v" #'describe-variable)
   (my/open-key-def
     "t" (cons "toggle terminal" #'my/toggle-term-project)
     ;; use an existing one if present otherwise open a new one
@@ -387,6 +395,7 @@ uses the user's home directory."
     "SPC" (cons "project-find-file" #'project-find-file)
     "/" (cons "search" #'consult-ripgrep)
     "b" (cons "buffer" my/buffer-map)
+    "e" (cons "errors" my/error-map)
     "f" (cons "file" my/file-map)
     "g" (cons "git" my/git-map)
     "h" (cons "help" help-map)
@@ -421,6 +430,7 @@ uses the user's home directory."
    evil-want-C-u-scroll t
    ;; no need to delay before interpreting esc sequences as such
    evil-esc-delay 0
+   evil-respect-visual-line-mode t
    ;; don't treat "going right at end of line" or "left at beginning of line" as
    ;; errors (and thus to terminate macro recording/replay)
    evil-kbd-macro-suppress-motion-error t
@@ -468,8 +478,7 @@ uses the user's home directory."
 
 (use-package toggle-term :ensure t
   :defer t
-  :after (vterm)
-  :commands (toggle-term-toggle toggle-term-find toggle-term--set-last-used)
+  :commands (toggle-term-toggle toggle-term-find)
   :custom
   ;; make it a little bigger
   (toggle-term-size 35)
@@ -569,12 +578,23 @@ uses the user's home directory."
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t
-  :defer t
-  :commands (magit-status magit-file-dispatch)
-  :hook (magit-mode . (lambda () (line-number-mode -1)))
+  :commands (magit magit-status magit-file-dispatch)
+  :hook
+  (magit-mode . (lambda () (line-number-mode -1)))
+  (magit-status-mode
+   . (lambda ()
+       ;; remove hooks that contribute to laggy inputs in magit status buffer
+       (remove-hook 'post-command-hook 'magit-section-post-command-hook t)
+       (remove-hook 'pre-command-hook 'magit-section-pre-command-hook t)))
   :init
   (setq forge-add-default-bindings nil)
   :config
+  (setq
+   ;; don't save things for me
+   magit-save-repository-buffers nil)
+
+  (add-to-list 'magit-section-initial-visibility-alist '(unstaged . show))
+
   (general-define-key
    ;; prevent magit from overriding my leader key
    :keymaps 'magit-mode-map
@@ -730,6 +750,15 @@ uses the user's home directory."
 ;;   :after lsp-mode)
 
 (use-package prettier-js :ensure t)
+
+;; TODO need to set this up to set local vars automatically:
+;; // Local Variables:
+;; // rmsbolt-command: "cargo rustc -p lib_domain --"
+;; // rmsbolt-default-directory: "/home/matthew/s/spec-protect"
+;; // rmsbolt-disassemble: nil
+;; // End:
+;; (use-package rmsbolt :ensure t
+;;   :commands (rmsbolt rmsbolt-compile))
 
 (use-package rustic :ensure t
   :defer t
@@ -928,7 +957,8 @@ uses the user's home directory."
     "A" #'eglot-code-action-quickfix
     "j" (cons "jump to symbol" #'consult-eglot-symbols)
     "r" #'eglot-rename
-    "x" (cons "diagnostics" #'consult-flymake))
+    "x" (cons "diagnostics" #'consult-flymake)
+    "X" (cons "project diagnostics" #'flymake-show-project-diagnostics))
 
   (general-define-key
    :keymaps 'eglot-mode-map
@@ -977,6 +1007,12 @@ uses the user's home directory."
   (emacs-startup . envrc-global-mode)
   (rustic-mode . envrc-global-mode)
   (lsp-before-initialize . envrc-global-mode))
+
+;; -------------------------------------------------------------------
+;; Org, Docs, Etc.
+;; -------------------------------------------------------------------
+
+(use-package pdf-tools :ensure t)
 
 ;; -------------------------------------------------------------------
 ;; Emacs Config
@@ -1048,7 +1084,11 @@ uses the user's home directory."
    ;; don't prompt, just follow symbolic links
    vc-follow-symlinks t
    ;; backup all files to a common directory
-   backup-directory-alist `(("." . ,(concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")))
+   my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
+   backup-directory-alist `(("." . ,my/emacs-backup-directory))
+   ;; include lockfiles
+   lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
+
    ;; add a newline at the end of files when visiting if they don't already have one
    require-final-newline 'visit
    ;; write to the target, not the symlink, when saving a file opened via symlink
@@ -1069,7 +1109,8 @@ uses the user's home directory."
   ;; theme selection
   (load-theme 'modus-vivendi t)
   ;; font settings
-  (set-frame-font "ComicShannsMono Nerd Font Mono" nil t)
+  ;; top fonts: codenewroman, hasklug, comicshans
+  (set-frame-font "CodeNewRoman Nerd Font Mono" nil t)
   ;; height is x10 of usual font size
   (set-face-attribute 'default nil :height 140)
   ;; turn off the toolbar
@@ -1099,6 +1140,9 @@ uses the user's home directory."
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode)))
+
+;; Don't inhibit startup, but go ahead and start the server next time we're idle
+(run-with-idle-timer 1 nil #'(lambda () (unless (server-running-p) (server-start))))
 
 ;; Prevent warnings from the byte-compiler about free variables and
 ;; unresolved functions, since those are a natural part of an init file.

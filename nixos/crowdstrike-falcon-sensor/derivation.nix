@@ -10,11 +10,9 @@
 }:
 let
 
-  # Please keep the version x.y.0.z and do not update to x.y.76.z because the
-  # source of the latter disappears much faster.
-  version = "6.45.0-14203";
+  version = "7.18.0-17106";
 
-  src = ./falcon-sensor_6.45.0-14203_amd64.deb;
+  src = ./falcon-sensor_7.18.0-17106_amd64.deb;
 
 in
 stdenv.mkDerivation {
@@ -74,7 +72,7 @@ stdenv.mkDerivation {
       if $(file "$f" | grep "ELF" | grep -q "executable"); then
         echo "patching $f"
         patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$f"
-        patchelf --set-rpath ${glibc}/lib:${openssl.out.outPath}/lib:${zlib}/lib:${libnl.out.outPath}/lib "$f"
+        patchelf --set-rpath ${glibc}/lib:${openssl.out.outPath}/lib:${zlib}/lib:${libnl.out.outPath}/lib:$out/opt "$f"
       fi
     done
   '';

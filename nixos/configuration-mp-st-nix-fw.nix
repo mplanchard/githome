@@ -93,7 +93,7 @@
   users.users.matthew = {
     isNormalUser = true;
     description = "Matthew Planchard";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
     shell = pkgs.fish;
     packages = with pkgs; [
     #  thunderbird
@@ -146,6 +146,8 @@
   # List services that you want to enable:
 
   services.pcscd.enable = true;
+
+  virtualisation.docker.enable = true;
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
