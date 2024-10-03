@@ -23,7 +23,7 @@
 ;; --------------------------------------------------------------------------------
 
 (defun my/nixos-p ()
-  "Return whether it looks like we are running on NixOS."
+  "Return whether we are running on NixOS."
   (let ((sysinfo (shell-command-to-string "uname -v")))
     (not (eq (cl-search "NixOS" sysinfo) nil))))
 
@@ -195,8 +195,8 @@ uses the user's home directory."
 ;; prevents it from collecting this value via its normal flow.
 ;;
 ;; See https://github.com/progfolio/elpaca/issues/222 for more info.
-(if (my/nixos-p)
-    (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
+;; (if (my/nixos-p)
+;;     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
 ;; Everything from here is copied directly from the elpaca readme.
 (defvar elpaca-installer-version 0.7)
@@ -499,10 +499,39 @@ uses the user's home directory."
 ;; Completion, Search, Help
 ;; -------------------------------------------------------------------
 
+(use-package ace-window :ensure t
+  :after general
+  :config
+  (my/window-key-def
+    "g" #'ace-window
+    "/" #'ace-swap-window))
+
+(use-package avy :ensure t
+  :after (embark general)
+  :config
+  (defun avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
+
+  (my/go-key-def
+    "s /" #'avy-goto-char-timer
+    "s k" #'evil-avy-goto-line-above
+    "s j" #'evil-avy-goto-line-below
+    "s r" #'avy-resume
+    "s y y" #'avy-kill-ring-save-whole-line
+    "s Y" #'avy-kill-ring-save-region))
+
 ;; Completion framework
 (use-package vertico :ensure t
-  :init
-  (vertico-mode)
+  :after general
+  :init (vertico-mode)
   :config
   (general-def vertico-map
     "C-j" #'vertico-next
@@ -573,11 +602,16 @@ uses the user's home directory."
 ;; Version Control (git)
 ;; -------------------------------------------------------------------
 
-(use-package git-timemachine :ensure t)
+(use-package git-timemachine :ensure t
+  :after magit)
 (use-package git-link :ensure t)
+
+;; magit requires newer versions of some internal packages
+(use-package transient :ensure t)
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t
+  :after transient
   :commands (magit magit-status magit-file-dispatch)
   :hook
   (magit-mode . (lambda () (line-number-mode -1)))
@@ -650,11 +684,12 @@ uses the user's home directory."
 
 ;; need to have elpaca manage these b/c I guess forge/magit aren't
 ;; great about getting updated dependencies
-(use-package ghub :ensure t)
-(use-package transient :ensure t)
+;; (use-package ghub :ensure t)
+;; (use-package transient :ensure t)
 
 ;; better diff highlighting
 (use-package magit-delta :ensure t
+  :after magit
   :hook (magit-mode . magit-delta-mode))
 
 ;; gutter highlights for changed regions, plus operations on those hunks
@@ -931,7 +966,10 @@ uses the user's home directory."
 (defvar-local my/eglot-format-p t
   "Whether to use eglot for automatic formatting.")
 
-(use-package eglot :ensure nil
+;; upgrade internal package as dep of dev eglot
+(use-package eldoc :ensure t)
+(use-package jsonrpc :ensure t)
+(use-package eglot :ensure t
   :after (general evil citre)
   :custom
   (eglot-report-progress t)
@@ -972,6 +1010,13 @@ uses the user's home directory."
     [remap xref-find-definitions] #'citre-peek
     [remap xref-find-references] #'citre-peek-reference))
 
+;; adds support for expand macro and other stuff
+(use-package eglot-x
+  :ensure (:type git :host github :repo "nemethf/eglot-x")
+  :after eglot
+  :config
+  (eglot-x-setup))
+
 ;; requires `emacs-lsp-booster` to be installed
 (use-package eglot-booster
   :ensure (:type git :host github :repo "jdtsmith/eglot-booster")
@@ -991,8 +1036,14 @@ uses the user's home directory."
   (global-treesit-fold-mode))
 
 (use-package treesit :ensure nil
+  :custom
+  (treesit-font-lock-level 4)
   :config
   (add-to-list 'treesit-load-name-override-list '(terraform "libtree-sitter-hcl" "tree_sitter_hcl")))
+
+(use-package yasnippet :ensure t
+  :config
+  (yas-global-mode 1))
 
 ;; -------------------------------------------------------------------
 ;; Envrc

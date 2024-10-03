@@ -47,7 +47,7 @@
       initExtra = ''
         # HACK: for some reason this, unlike hte other sessionVariables, is getting
         # overridden in my shells. Set it manually.
-        export EDITOR=emacsclient
+        export EDITOR="emacsclient -c"
         # Setting this env var to the empty string makes it so that emacs
         # will start a daemon if none is running when trying to execute emacsclient
         export ALTERNATE_EDITOR=
@@ -95,7 +95,7 @@
           set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
           set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         end
-        set -gx EDITOR emacsclient
+        set -gx EDITOR "emacsclient -c"
         # Setting this env var to the empty string makes it so that emacs
         # will start a daemon if none is running when trying to execute emacsclient
         set -gx ALTERNATE_EDITOR ""
@@ -136,7 +136,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacs-git;
+      package = pkgs.emacs;
       # automatically install vterm so we don't need to compile it in doom
       extraPackages = epkgs: with epkgs; [
         vterm
@@ -246,7 +246,7 @@
     MOZ_ENABLE_WAYLAND = 1;
     MOZ_DBUS_REMOTE = 1;
     GITLAB_USER = "mplanchard";
-    EDITOR = "emacsclient";
+    EDITOR = "emacsclient -c";
     ALTERNATE_EDITOR = "";
     SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
     GSM_SKIP_SSH_AGENT_WORKAROUND = 1;
@@ -324,7 +324,7 @@
 
     (makeDesktopItem {
       name = "org-protocol";
-      exec = "emacsclient %u";
+      exec = "emacsclient -c %u";
       comment = "Org protocol";
       desktopName = "org-protocol";
       type = "Application";
