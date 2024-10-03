@@ -32,7 +32,7 @@ hmConfig // {
     # };
   };
   services = hmConfig.services or {} // {
-    emacs = { enable = true; };
+    # emacs = { enable = true; };
     gpg-agent = {
       enable = true;
       defaultCacheTtl = 43200;  # 12 hours
