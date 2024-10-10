@@ -3,6 +3,9 @@
 
 {
   home.stateVersion = "22.11";
+  programs.firefox = {
+    enable = true;
+  };
   # The general thing seems to be that if you want home-manager to manage
   # a program's config, use it as`programs.whatever` or `services.whatever`.
   # If you just want it available, stick it in packages.

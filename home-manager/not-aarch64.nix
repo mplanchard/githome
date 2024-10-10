@@ -2,9 +2,9 @@
 
 hmConfig // {
   programs = hmConfig . programs or {} // {
-    firefox = {
-      enable = true;
-    };
+    # firefox = {
+    #   enable = true;
+    # };
 
     nix-index = {
       enable = true;
