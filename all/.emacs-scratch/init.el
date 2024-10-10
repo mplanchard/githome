@@ -577,17 +577,29 @@ uses the user's home directory."
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
-;; In-buffer completion-at-point (i.e. completion popup)
-;; By the same author as vertico
-(use-package corfu :ensure t
+;; Company is much faster with eglot than corfu, for whatever reason.
+;; See refs:
+;; - https://github.com/joaotavora/eglot/discussions/993
+;; - https://github.com/SystemCrafters/crafted-emacs/issues/369
+;; - https://github.com/joaotavora/eglot/discussions/1127
+(use-package company :ensure t
   :custom
-  (corfu-auto t)
-  (corfu-auto-delay 0.05)
+  (company-idle-delay (lambda () (if (company-in-string-or-comment) 0.2 0)))
   :init
-  (global-corfu-mode)
-  :config
-  ;; use shift-tab to insert a separator for orderless style completion
-  (general-def 'corfu-mode-map "<backtab>" #'corfu-insert-separator))
+  (global-company-mode))
+
+;; ;; In-buffer completion-at-point (i.e. completion popup)
+;; ;; By the same author as vertico
+;; (use-package corfu :ensure t
+;;   :custom
+;;   (corfu-auto t)
+;;   (corfu-auto-delay 0.1)
+;;   (corfu-max-width 240)
+;;   :init
+;;   (global-corfu-mode)
+;;   :config
+;;   ;; use shift-tab to insert a separator for orderless style completion
+;;   (general-def 'corfu-mode-map "<backtab>" #'corfu-insert-separator))
 
 ;; More fully-featured help information when running help commands
 (use-package helpful :ensure t
@@ -627,7 +639,11 @@ uses the user's home directory."
    ;; don't save things for me
    magit-save-repository-buffers nil)
 
+  ;; get section info with magit-describe-section
   (add-to-list 'magit-section-initial-visibility-alist '(unstaged . show))
+  (add-to-list 'magit-section-initial-visibility-alist '(untracked . show))
+  (add-to-list 'magit-section-initial-visibility-alist '(reviewer-pullreqs . show))
+  (add-to-list 'magit-section-initial-visibility-alist '(assigned-pullreqs . show))
 
   (general-define-key
    ;; prevent magit from overriding my leader key
@@ -967,7 +983,9 @@ uses the user's home directory."
   "Whether to use eglot for automatic formatting.")
 
 ;; upgrade internal package as dep of dev eglot
-(use-package eldoc :ensure t)
+(use-package eldoc :ensure t
+  :custom
+  (eldoc-echo-area-use-multiline-p 10))
 (use-package jsonrpc :ensure t)
 (use-package eglot :ensure t
   :after (general evil citre)
@@ -1015,7 +1033,8 @@ uses the user's home directory."
   :ensure (:type git :host github :repo "nemethf/eglot-x")
   :after eglot
   :config
-  (eglot-x-setup))
+  (eglot-x-setup)
+  (setq eglot-x-enable-snippet-text-edit nil))
 
 ;; requires `emacs-lsp-booster` to be installed
 (use-package eglot-booster
@@ -1041,6 +1060,7 @@ uses the user's home directory."
   :config
   (add-to-list 'treesit-load-name-override-list '(terraform "libtree-sitter-hcl" "tree_sitter_hcl")))
 
+;; used for certain eglot-x functionality
 (use-package yasnippet :ensure t
   :config
   (yas-global-mode 1))
