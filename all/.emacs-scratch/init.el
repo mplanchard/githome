@@ -1058,7 +1058,25 @@ uses the user's home directory."
   :custom
   (treesit-font-lock-level 4)
   :config
-  (add-to-list 'treesit-load-name-override-list '(terraform "libtree-sitter-hcl" "tree_sitter_hcl")))
+  (add-to-list 'treesit-load-name-override-list '(terraform "libtree-sitter-hcl" "tree_sitter_hcl"))
+  ;; tree-sitter-enabled programming language modes
+  ;; note: rust-mode support is configured via the rustic package options
+  (add-to-list 'auto-mode-alist '("\\.c\\'" . c-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cpp\\'" . c++-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.[Dd]ockerfile\\'" . dockerfile-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go.mod\\'" . go-mod-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.sh\\'" . bash-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode)))
 
 ;; used for certain eglot-x functionality
 (use-package yasnippet :ensure t
@@ -1105,6 +1123,10 @@ uses the user's home directory."
 (use-package server :ensure nil
   :config
   (unless (server-running-p) (server-start)))
+
+(use-package org :ensure nil
+  :custom
+  (org-startup-indented t))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
@@ -1193,24 +1215,7 @@ uses the user's home directory."
   ;; turn off scroll bars
   (scroll-bar-mode -1)
   ;; laod customizations
-  (load custom-file)
-  ;; tree-sitter-enabled programming language modes
-  ;; note: rust-mode support is configured via the rustic package options
-  (add-to-list 'auto-mode-alist '("\\.c\\'" . c-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cpp\\'" . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.[Dd]ockerfile\\'" . dockerfile-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.go.mod\\'" . go-mod-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.sh\\'" . bash-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode)))
+  (load custom-file))
 
 ;; Don't inhibit startup, but go ahead and start the server next time we're idle
 (run-with-idle-timer 1 nil #'(lambda () (unless (server-running-p) (server-start))))
