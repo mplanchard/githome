@@ -273,6 +273,7 @@
     emacs-lsp-booster
     emacs-all-the-icons-fonts
     unstable.fd
+    file
     findutils
     fira-code
     fontconfig
@@ -317,6 +318,7 @@
     texlive.combined.scheme-full
     tmux
     tokei
+    tree
     unzip
     wget
     which

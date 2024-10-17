@@ -12,7 +12,7 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-darwin.url = "github:LnL7/nix-darwin"; 
+    nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     # standard, device-specific hardware tweaks
@@ -76,6 +76,8 @@
 
     in
     rec {
+      packages.x86_64-linux.secureframe-agent = pkgs.x86_64-linux.callPackage (import ./nixos/secureframe-agent) { };
+
       x86-linux-gnome =
         let
           system = "x86_64-linux";
@@ -177,6 +179,7 @@
             ./nixos/configuration-mp-st-nix-fw.nix
             nixos-hardware.nixosModules.framework-13th-gen-intel
             ./nixos/crowdstrike-falcon-sensor/module.nix
+            ./nixos/secureframe-agent/module.nix
             home-manager.nixosModules.home-manager {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
