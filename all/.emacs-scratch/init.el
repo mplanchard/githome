@@ -44,6 +44,17 @@ Prior to calling, pulse the region between BEG and END."
   (pulse-momentary-highlight-region beg end)
   (apply orig-fn beg end args))
 
+(defun my/copy-relative-file-path ()
+  "Copy the path to the current file, relative to the project root if applicable."
+  (interactive)
+  (let ((project (project-current))
+        (fname (buffer-file-name)))
+    (let ((relname (if (and project fname)
+                       (file-relative-name fname (project-root project))
+                     (buffer-file-name))))
+      (kill-new relname)
+      (message relname))))
+
 (defun my/delete-visited-file ()
   "Delete the file visited by the current buffer, asking for confirmation."
   (interactive)
@@ -893,7 +904,10 @@ uses the user's home directory."
 
   ;; bindings that operate in the scope of the workspace
   (my/rust-package-key-def
-   "t" my/rust-package-test-map)
+    "t" my/rust-package-test-map
+    "C" (cons
+         "run clippy"
+         #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-clippy))))
   (my/rust-test-key-def
    "a" #'rustic-cargo-test-run
    "t" #'rustic-cargo-current-test
@@ -922,7 +936,16 @@ uses the user's home directory."
 
 (use-package svelte-mode :ensure t)
 
+(use-package flymake-eslint :ensure t)
+
+(use-package shfmt :ensure t
+  :hook (sh-mode . #'shfmt-on-save-mode))
+
 (use-package terraform-mode :ensure t)
+
+(use-package paredit :ensure t)
+
+(use-package makefile-executor :ensure t)
 
 ;; Show flymake errors in the sideline
 (use-package sideline-flymake :ensure t
@@ -982,6 +1005,13 @@ uses the user's home directory."
 (defvar-local my/eglot-format-p t
   "Whether to use eglot for automatic formatting.")
 
+;; (define-derived-mode deno-ts-mode typescript-ts-mode "Deno"
+;;   "A major mode for Deno files."
+;;   (add-to-list
+;;    'eglot-server-programs '(deno-ts-mode
+;;                             . ("deno" "lsp")))
+;;   (add-to-list 'auto-mode-alist '("\\.deno\\.ts" . deno-ts-mode)))
+
 ;; upgrade internal package as dep of dev eglot
 (use-package eldoc :ensure t
   :custom
@@ -1002,6 +1032,11 @@ uses the user's home directory."
         t)))
   :config
   (my/eglot-set-rust-analyzer-config)
+
+  (add-to-list 'eglot-server-programs
+               `(typescript-ts-mode . ,(eglot-alternatives
+                                        '(("typescript-language-server" "--stdio")
+                                          ("deno" "lsp")))))
 
   (defvar my/eglot-map (make-sparse-keymap))
   (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
@@ -1144,6 +1179,8 @@ uses the user's home directory."
   (menu-bar-mode nil)
   ;; use spaces instead of tabs when pressing tab
   (indent-tabs-mode nil)
+  ;; smaller tabs
+  (tab-width 4)
   ;; show tooltips in the echo area rather than as separate frames
   (tooltip-mode nil)
   ;; don't word wrap by default
