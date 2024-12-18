@@ -1,6 +1,6 @@
 ;;; init.el --- MP's Emacs Config -*- lexical-binding: t; -*-
 
-;;; Commentary:
+;; Commentary:
 
 ;; This is my from-scratch Emacs config.  I am coming from Doom, so some
 ;; aspects of Doom are mirrored here.  In general, the config attempts to:
@@ -210,7 +210,7 @@ uses the user's home directory."
 ;;     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
 ;; Everything from here is copied directly from the elpaca readme.
-(defvar elpaca-installer-version 0.7)
+(defvar elpaca-installer-version 0.8)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -227,18 +227,18 @@ uses the user's home directory."
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
-                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                 ,(plist-get order :repo) ,repo))))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
           (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
@@ -335,6 +335,7 @@ uses the user's home directory."
     "b" #'consult-project-buffer
     "B" #'consult-buffer
     "d" #'kill-current-buffer
+    "i" #'ibuffer
     "n" #'next-buffer
     "p" #'previous-buffer
     "r" #'revert-buffer
@@ -424,7 +425,8 @@ uses the user's home directory."
     "c" #'comment-dwim
     "d" #'xref-find-definitions
     "r" #'xref-find-references
-    "g" #'evil-goto-first-line))
+    "g" #'evil-goto-first-line
+    "v" #'evil-visual-restore))
 
 ;; Modal editing
 (use-package evil :ensure t
@@ -636,6 +638,7 @@ uses the user's home directory."
 (use-package magit :ensure t
   :after transient
   :commands (magit magit-status magit-file-dispatch)
+  :custom (magit-wip-mode t)
   :hook
   (magit-mode . (lambda () (line-number-mode -1)))
   (magit-status-mode
@@ -735,92 +738,32 @@ uses the user's home directory."
 ;; in emacs, via Nix. If not using nix, consider using treessit-auto
 ;; or a similar package to ease installation of tree-sitter grammars
 
-;; TODO delete if eglot keeps working well
-;; (use-package lsp-mode :ensure t
-;;   :defer t
-;;   :commands (lsp-deferred lsp-mode)
-;;   :config
-;;   (setq
-;;    gc-cons-threshold (* 100 1024 1024) ; 100 MB
-;;    read-process-output-max (* 3 1024 1024) ; 3 MB
-;;    lsp-headerline-breadcrumb-icons-enable nil
-;;    lsp-headerline-breadcrumb-enable-diagnostics nil
-;;    lsp-idle-delay 1
-;;    lsp-lens-enable nil
-;;    lsp-rust-all-features t
-;;    lsp-rust-all-targets t
-;;    ;; rust-analyzer automatically adds --all-targets and --workspace w/current config
-;;    lsp-rust-analyzer-cargo-watch-args ["--all-features" "--benches" "--tests"]
-;;    lsp-rust-analyzer-cargo-watch-command "clippy"
-;;    lsp-rust-analyzer-check-all-targets t
-;;    lsp-rust-analyzer-display-chaining-hints t
-;;    lsp-rust-analyzer-display-closure-return-type-hints t
-;;    lsp-rust-analyzer-display-parameter-hints t
-;;    lsp-rust-clippy-preference "on"
-
-;;    ;; Show function signatures while writing functions and types for the thing at point
-;;    lsp-signature-auto-activate t
-;;    ;; I like the function signatures while writing functions, but don't like
-;;    ;; the we way the docs make the little buffer at the bottom pop up distractingly.
-;;    lsp-signature-render-documentation nil)
-
-;;   (defvar my/code-map (make-sparse-keymap))
-;;   (general-create-definer my/code-key-def :keymaps 'my/code-map)
-;;   (defvar my/code-find-map (make-sparse-keymap))
-;;   (general-create-definer my/code-find-def :keymaps 'my/code-find-map)
-
-;;   (my/code-key-def
-;;     "/" (cons "find symbol in file" #'consult-lsp-file-symbols)
-;;     "a" #'lsp-execute-code-action
-;;     "j" (cons "jump to symbol" #'consult-lsp-symbols)
-;;     "r" #'lsp-rename
-;;     "x" (cons "diagnostics" #'consult-lsp-diagnostics))
-;;   (my/leader-key-def
-;;     "c" (cons "code" my/code-map))
-
-;;   ;; use lsp lookup when in lsp mode for shift-K
-;;   (general-def lsp-mode-map
-;;     [remap evil-lookup] #'lsp-describe-thing-at-point)
-
-;;   ;; :hook (((rustic-mode typescript-ts-mode) . lsp-inlay-hints-mode)
-;;   ;;        ((rustic-mode typescript-ts-mode) . lsp-deferred))
-;;   )
-
-;; (use-package lsp-ui :ensure t
-;;   :after lsp-mode
-;;   :config
-;;   (setq
-;;    lsp-ui-sideline-show-diagnostics t
-;;    lsp-ui-peek-enable t
-;;    lsp-ui-peek-show-directory t
-;;    ;; always show a preview before jumping to definition
-;;    lsp-ui-peek-always-show t
-
-;;    lsp-ui-doc-header t
-;;    lsp-ui-doc-position 'top
-;;    lsp-ui-doc-alignment 'window
-;;    lsp-ui-doc-include-signature t
-;;    lsp-ui-doc-show-with-mouse nil
-;;    lsp-ui-doc-include-signature t)
-;;   (general-def lsp-ui-mode-map
-;;     ;; replace general-purpose find-def and find-ref commmands with
-;;     ;; LSP versions
-;;     [remap xref-find-definitions] #'lsp-ui-peek-find-definitions
-;;     [remap xref-find-references] #'lsp-ui-peek-find-references))
-
-;; (use-package consult-lsp :ensure t
-;;   :after lsp-mode)
-
 (use-package prettier-js :ensure t)
 
-;; TODO need to set this up to set local vars automatically:
-;; // Local Variables:
-;; // rmsbolt-command: "cargo rustc -p lib_domain --"
-;; // rmsbolt-default-directory: "/home/matthew/s/spec-protect"
-;; // rmsbolt-disassemble: nil
-;; // End:
-;; (use-package rmsbolt :ensure t
-;;   :commands (rmsbolt rmsbolt-compile))
+(use-package rainbow-delimiters :ensure t)
+
+(use-package janet-ts-mode
+  :ensure (:type git :host github :repo "sogaiu/janet-ts-mode"))
+
+(use-package flycheck :ensure t)
+
+(use-package flycheck-janet
+  :ensure (:type git :host github :repo "sogaiu/flycheck-janet"))
+
+(use-package sideline :ensure t
+  :hook ((flymake-mode . sideline-mode)
+         (flycheck-mode . sideline-mode))
+  :config
+  (setq sideline-backends-right '(sideline-flycheck sideline-flymake)
+        sideline-truncate t))
+
+(use-package sideline-flycheck :ensure t
+  :hook (flycheck-mode . sideline-flycheck-setup))
+(use-package sideline-flymake :ensure t)
+
+(use-package ajrepl
+  :after janet-ts-mode
+  :ensure (:type git :host github :repo "sogaiu/ajrepl"))
 
 (use-package rustic :ensure t
   :defer t
@@ -894,7 +837,7 @@ uses the user's home directory."
   (my/rust-package-test-key-def
    "a" (cons
         "run all tests"
-        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test-run)))
+        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test)))
    "t" (cons
         "run current test"
         #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-current-test)))
@@ -938,23 +881,13 @@ uses the user's home directory."
 
 (use-package flymake-eslint :ensure t)
 
-(use-package shfmt :ensure t
-  :hook (sh-mode . #'shfmt-on-save-mode))
+(use-package shfmt :ensure t)
 
 (use-package terraform-mode :ensure t)
 
 (use-package paredit :ensure t)
 
 (use-package makefile-executor :ensure t)
-
-;; Show flymake errors in the sideline
-(use-package sideline-flymake :ensure t
-  :defer t
-  :hook (flymake-mode . sideline-mode)
-  :init
-  (setq
-   sideline-flymake-display-mode 'point
-   sideline-backends-right '(sideline-flymake)))
 
 (use-package citre :ensure t
   :custom
@@ -1004,13 +937,6 @@ uses the user's home directory."
 
 (defvar-local my/eglot-format-p t
   "Whether to use eglot for automatic formatting.")
-
-;; (define-derived-mode deno-ts-mode typescript-ts-mode "Deno"
-;;   "A major mode for Deno files."
-;;   (add-to-list
-;;    'eglot-server-programs '(deno-ts-mode
-;;                             . ("deno" "lsp")))
-;;   (add-to-list 'auto-mode-alist '("\\.deno\\.ts" . deno-ts-mode)))
 
 ;; upgrade internal package as dep of dev eglot
 (use-package eldoc :ensure t
@@ -1139,6 +1065,15 @@ uses the user's home directory."
 (use-package pdf-tools :ensure t)
 
 ;; -------------------------------------------------------------------
+;; Appearance
+;; -------------------------------------------------------------------
+
+(use-package doom-themes :ensure t)
+(use-package gruvbox-theme :ensure t)
+(use-package modus-themes :ensure t)
+(use-package zenburn-theme :ensure t)
+
+;; -------------------------------------------------------------------
 ;; Emacs Config
 ;; -------------------------------------------------------------------
 
@@ -1165,6 +1100,7 @@ uses the user's home directory."
 
 ;; Emacs settings
 (use-package emacs :ensure nil
+  :after (gruvbox)
   :custom
   ;; relative line numbers
   (display-line-numbers-type 'relative)
@@ -1236,8 +1172,7 @@ uses the user's home directory."
    ;; set custom file to a file in the chemacs profile dir
    custom-file (file-name-concat my/user-init-dir "custom.el"))
 
-  ;; theme selection
-  (load-theme 'modus-vivendi t)
+  (load-theme 'gruvbox-dark-hard t)
   ;; font settings
   ;; top fonts: codenewroman, hasklug, comicshans
   (set-frame-font "CodeNewRoman Nerd Font Mono" nil t)
