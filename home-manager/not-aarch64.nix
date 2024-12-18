@@ -16,7 +16,7 @@ hmConfig // {
 
   home = hmConfig . home or {} // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
-      unstable._1password
+      unstable._1password-cli
       unstable._1password-gui
       appimage-run
       dmidecode

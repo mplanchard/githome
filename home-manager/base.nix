@@ -1,5 +1,5 @@
 # standard home-manager config that's the same on all machines
-{ pkgs, unstable, ... }:
+{ pkgs, unstable, previous, ... }:
 
 {
   home.stateVersion = "22.11";
@@ -155,6 +155,7 @@
             tree-sitter-graphql
             tree-sitter-hcl
             tree-sitter-html
+            tree-sitter-janet-simple
             tree-sitter-javascript
             tree-sitter-jsdoc
             tree-sitter-json
@@ -290,7 +291,8 @@
     unstable.iosevka-comfy.comfy-motion
     unstable.iosevka-comfy.comfy-motion-fixed
     ispell
-    janet
+    unstable.janet
+    unstable.jpm
     jq
     lsof
     mu.mu4e
@@ -325,7 +327,7 @@
     yarn
     unstable.zed-editor
     zip
-    zoom-us
+    previous.zoom-us
 
     (makeDesktopItem {
       name = "org-protocol";

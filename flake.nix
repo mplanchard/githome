@@ -2,14 +2,15 @@
   description = "System config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/release-24.05";
+    nixpkgs.url = "nixpkgs/release-24.11";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
+    nixpkgs-previous.url = "nixpkgs/release-24.05";
 
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
 
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin.url = "github:LnL7/nix-darwin";
@@ -31,6 +32,7 @@
       nixos-hardware,
       nixpkgs,
       nixpkgs-unstable,
+      nixpkgs-previous,
       ...
   }:
     let
@@ -68,10 +70,17 @@
         }
       );
 
-      combineHomeManagerModules = pkgs: unstable: modules:
+      previous = forAllSystems (system:
+        import nixpkgs-previous {
+          inherit system overlays;
+          config.allowUnfree = true;
+        }
+      );
+
+      combineHomeManagerModules = pkgs: unstable: previous: modules:
         pkgs.lib.foldl
-          (config: module: module { inherit pkgs unstable; hmConfig = config; })
-          ((pkgs.lib.head modules) { inherit pkgs unstable; })
+          (config: module: module { inherit pkgs unstable previous; hmConfig = config; })
+          ((pkgs.lib.head modules) { inherit pkgs unstable previous; })
           (pkgs.lib.tail modules);
 
     in
@@ -83,9 +92,10 @@
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
           systemUnstable = unstable.x86_64-linux;
+          systemPrevious = previous.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable systemPrevious [
             (import ./home-manager/base.nix)
             (import ./home-manager/linux.nix)
             (import ./home-manager/not-aarch64.nix)
@@ -111,9 +121,10 @@
           system = "x86_64-linux";
           systemPkgs = pkgs.x86_64-linux;
           systemUnstable = unstable.x86_64-linux;
+          systemPrevious = previous.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable systemPrevious [
             (import ./home-manager/base.nix)
             (import ./home-manager/linux.nix)
             (import ./home-manager/not-aarch64.nix)
@@ -138,9 +149,10 @@
           system = "aarch64-darwin";
           systemPkgs = pkgs.aarch64-darwin;
           systemUnstable = unstable.aarch64-darwin;
+          systemPrevious = previous.x86_64-linux;
         in
         rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable [
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable systemPrevious [
             (import ./home-manager/base.nix)
             (import ./home-manager/email.nix)
           ];

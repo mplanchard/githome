@@ -3,9 +3,9 @@
 hmConfig // {
   home = hmConfig.home or {} // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
-      gnome.dconf-editor
-      gnome.gnome-shell-extensions
-      gnome.gnome-tweaks
+      dconf-editor
+      gnome-shell-extensions
+      gnome-tweaks
       gnomeExtensions.appindicator
       pavucontrol
     ];
@@ -18,7 +18,7 @@ hmConfig // {
   # Eventually nixos will switch to using gcr-ssh-agent and we can just disable
   # that service.
   xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
-     ${pkgs.lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
+     ${pkgs.lib.fileContents "${pkgs.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
      Hidden=true
    '';
 }
