@@ -565,6 +565,8 @@ uses the user's home directory."
   (xref-show-xrefs-function #'consult-xref)
   :commands (consult-project-buffer consult-buffer consult-project-buffer))
 
+(use-package consult-todo :ensure t)
+
 ;; Right-click contextual interface via the keyboard, essentially
 (use-package embark :ensure t
   :init
@@ -712,10 +714,7 @@ uses the user's home directory."
                           #'my/forge-insert-review-requests
                           #'my/forge-insert-assigned-pullreqs))
 
-;; need to have elpaca manage these b/c I guess forge/magit aren't
-;; great about getting updated dependencies
-;; (use-package ghub :ensure t)
-;; (use-package transient :ensure t)
+(use-package magit-todos :ensure t)
 
 ;; better diff highlighting
 (use-package magit-delta :ensure t
@@ -868,6 +867,12 @@ uses the user's home directory."
    :prefix my/leader-key
    "m" my/rust-map)
 
+  (general-define-key
+   :keymaps 'prog-mode-map
+   :states '(insert)
+   ;; When pressing return, continue comments if writing comments
+   "<return>" #'indent-new-comment-line)
+
   (general-evil-define-key '(insert) 'sql-interactive-mode-map
     ;; shift-return to insert a newline instead of submitting
     "<S-return>" #'newline
@@ -888,6 +893,10 @@ uses the user's home directory."
 (use-package paredit :ensure t)
 
 (use-package makefile-executor :ensure t)
+
+(use-package hl-todo :ensure t
+  :hook
+  (prog-mode . hl-todo-mode))
 
 (use-package citre :ensure t
   :custom
@@ -1135,6 +1144,7 @@ uses the user's home directory."
   (bash-ts-mode . flymake-mode)
   (emacs-lisp-mode . flymake-mode)
   (prog-mode . flymake-mode)
+  (prog-mode . electric-pair-mode)
   (before-save . delete-trailing-whitespace)
   :config
   (setq
