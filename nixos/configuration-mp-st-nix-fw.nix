@@ -94,15 +94,19 @@
     #media-session.enable = true;
   };
 
-  # Enable suspend-then-hibernate
+  # https://www.man7.org/linux/man-pages/man5/systemd-sleep.conf.5.html
   systemd.sleep.extraConfig = ''
-    # Doesn't work on gnome, so we set suspend mode to disk below to enable hybrid sleep
-    suspend=suspend-then-hibernate
-    HibernateDelaySec=3600
-    AllowHibernation=yes
-    AllowSuspendThenHibernate=yes
-    SuspendMode=disk
-    SuspendMode=suspend
+    HibernateDelaySec=3600s
+    SuspendState=mem
+  '';
+
+  # https://manpages.debian.org/testing/systemd/logind.conf.5.en.html
+  services.logind.extraConfig = ''
+    HandleSuspendKey=suspend-then-hibernate
+    HandleLidSwitch=suspend-then-hibernate
+    HandleLidSwitchExternalPower=suspend-then-hibernate
+    IdleAction=suspend-then-hibernate
+    SleepOperation=suspend-then-hibernate hybrid-sleep suspend hibernate
   '';
 
   # Enable touchpad support (enabled default in most desktopManager).
