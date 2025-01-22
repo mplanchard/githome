@@ -125,37 +125,6 @@ Prior to calling, pulse the region between BEG and END."
       (while-let ((sibling (window-next-sibling)))
         (delete-window sibling)))))
 
-;; Define this ahead of time to avoid an error when running term-toggle
-;; due to its defining a dynamic variable that has already been lexically
-;; scoped in the function below
-(defun my/toggle-term-project ()
-  "Toggle a project-specific terminal.
-
-If in a project, toggles a project-specific terminal in the project root,
-creating a new one if one has not yet been created.  If not in a project,
-uses the value of `default-directory'.  If `default-directory' is nil,
-uses the user's home directory."
-  (interactive)
-  (let*
-      ;; set default-directory, which is used by vterm when determining
-      ;; where to open a terminal
-      ((default-directory
-        (or (when
-                (project-current)
-              (project-root (project-current)))
-            default-directory
-            "~"))
-       ;; create a name for the terminal popup, which allows us to set
-       ;; a "last used" terminal value for toggle-term, which it will
-       ;; use to determine which vterm instance to use
-       (term-popup-name
-        (format "%s-popup"
-                (or (when
-                        (project-current)
-                      (project-name (project-current)))
-                    "vterm"))))
-    (funcall-interactively 'toggle-term-find term-popup-name "vterm")))
-
 (defun my/vterm-new ()
   "Create a new vterm in the current buffer."
   (interactive)
@@ -195,6 +164,67 @@ uses the user's home directory."
   (evil-shift-left evil-visual-beginning evil-visual-end)
   (evil-normal-state)
   (evil-visual-restore))
+
+(defvar my/popterm-shell-fn #'eat-project
+  "The function to run after opening the popterm window.")
+
+(defvar my/popterm-split-position 'below
+  "One of `'below', `'above', `'left', or `'right', relative to the frame.")
+
+(defvar my/popterm-size -20
+  "The size of the new popterm window.
+
+If `my/popterm-split-position' is `'below' or `'above', this means the
+number of lines to devote to the popterm window, if negative, or the
+number of lines to keep reserved for the pre-split window, if positive.
+
+If `my/popterm-split-position' is `'left'` or `'right', this means
+the number of columns to devote to the popterm window, if negative, or
+the number of columns to reserve for the pre-split window, if positive.")
+
+(defun my/popterm-buffer-name ()
+  "Get a buffer name for the popterm."
+  (let* ((proj (project-current))
+         (proj-name (when proj (project-name proj)))
+         (term-buffer-name (if proj-name
+                               (format " *%s-popterm*" proj-name)
+                             " *popterm*")))
+    term-buffer-name))
+
+(defun my/popterm-show ()
+  "Create a new popterm with the specified `POPTERM-FN'."
+  (let* ((term-buffer-name (my/popterm-buffer-name))
+         (term-buffer (get-buffer term-buffer-name))
+         (term-window (split-window (frame-root-window)
+                                    my/popterm-size
+                                    my/popterm-split-position)))
+    (select-window term-window)
+    (if term-buffer
+        (set-window-buffer term-window term-buffer)
+      (call-interactively my/popterm-shell-fn)
+      ;; For whatever reason this extra call seems necessasry to avoid
+      ;; accidentally renaming the buffer we were in prior to creating
+      ;; the new window.
+      (select-window term-window)
+      (rename-buffer term-buffer-name))))
+
+(defun my/popterm-hide ()
+  "Hide the popterm window if it is showing."
+  (let* ((term-buffer-name (my/popterm-buffer-name))
+         (term-window (get-buffer-window term-buffer-name)))
+    (when term-window
+      (select-window term-window)
+      (bury-buffer)
+      (delete-window))))
+
+(defun my/popterm-toggle ()
+  "Toggle a project terminal."
+  (interactive)
+  (let* ((term-buffer-name (my/popterm-buffer-name))
+         (term-window (get-buffer-window term-buffer-name)))
+    (if term-window
+        (my/popterm-hide)
+      (my/popterm-show))))
 
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
@@ -334,7 +364,9 @@ uses the user's home directory."
   (my/buffer-key-def
     "b" #'consult-project-buffer
     "B" #'consult-buffer
-    "d" #'kill-current-buffer
+    ;; note: `kill-current-buffer' leaves the buffer around in the buffer
+    ;; list sometimes for some reason, but this works reliably.
+    "d" #'(lambda () (interactive) (kill-buffer (current-buffer)))
     "i" #'ibuffer
     "n" #'next-buffer
     "p" #'previous-buffer
@@ -373,10 +405,10 @@ uses the user's home directory."
     "m" #'describe-mode
     "v" #'describe-variable)
   (my/open-key-def
-    "t" (cons "toggle terminal" #'my/toggle-term-project)
+    "t" (cons "toggle terminal" #'my/popterm-toggle)
     ;; use an existing one if present otherwise open a new one
     ";" (cons "last terminal" #'vterm)
-    "T" (cons "new terminal" #'my/vterm-new))
+    "T" (cons "new terminal" #'eat-project))
   (my/project-key-def
     "b" #'consult-project-buffer
     "p" #'project-switch-project)
@@ -475,6 +507,8 @@ uses the user's home directory."
 ;; Terminal and Adjacent
 ;; -------------------------------------------------------------------
 
+(use-package eat :ensure t)
+
 ;; Terminal
 (use-package vterm :ensure t
   :defer t
@@ -488,17 +522,6 @@ uses the user's home directory."
     :states 'insert
     "C-j" #'(lambda () (interactive) (vterm-send-key "<down>"))
     "C-k" #'(lambda () (interactive) (vterm-send-key "<up>"))))
-
-(use-package toggle-term :ensure t
-  :defer t
-  :commands (toggle-term-toggle toggle-term-find)
-  :custom
-  ;; make it a little bigger
-  (toggle-term-size 35)
-  :config
-  (setq
-   ;; set vterm as last-used so "toggle" will use it on startup
-   toggle-term-last-used '("*vterm-popup*" . vterm)))
 
 ;; Pull PATH from default shell into emacs. Very useful in nix environments.
 (use-package exec-path-from-shell
