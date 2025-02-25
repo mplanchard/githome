@@ -25,6 +25,8 @@
 [pull]
 	ff = only
 [fetch]
+    # No sense not pruning remote stuff that no longer exists whenever
+    # we fetch
 	prune = true
     pruneTags = true
     all = true
