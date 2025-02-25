@@ -1,3 +1,6 @@
+[core]
+    # Improve status perf on big repos especially
+    fsmonitor = true
 [commit]
 	gpgsign = true
 [user]
@@ -13,7 +16,7 @@
 [github]
 	user = mplanchard
 [merge]
-	conflictstyle = diff3
+	conflictstyle = zdiff3
 [pager]
 	diff = delta
 	log = delta
@@ -23,11 +26,28 @@
 	ff = only
 [fetch]
 	prune = true
+    pruneTags = true
+    all = true
 [push]
 	default = current
+[rebase]
+    autoSquash = ture
+    autoStash = true
+    updateRefs = true
 [rerere]
 	enabled = true
 	autoupdate = true
+[branch]
+    sort = -committerdate
+[tag]
+    sort = version:refname
+[diff]
+    # Better diff algorithm
+    algorithm = histogram
+    # Better coloration of moved lines
+    colorMoved = plain
+    # Spend extra time calculation file renames
+    renames = true
 [ineractive]
 	diffFilter = delta --color-only
 [alias]

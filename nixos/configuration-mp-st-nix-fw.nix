@@ -143,7 +143,11 @@
   programs.fish.enable = true;
 
   # Install firefox.
-  programs.firefox.enable = true;
+  programs.firefox = {
+    enable = true;
+    package = pkgs.firefox;
+    nativeMessagingHosts.packages = [ pkgs.firefoxpwa ];
+  };
 
   # Allow unfree packages
   # nixpkgs.config.allowUnfree = true;
@@ -153,6 +157,7 @@
   environment.systemPackages = with pkgs; [
     curl
     git
+    firefoxpwa
     stow
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget

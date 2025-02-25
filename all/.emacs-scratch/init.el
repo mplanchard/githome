@@ -125,12 +125,34 @@ Prior to calling, pulse the region between BEG and END."
       (while-let ((sibling (window-next-sibling)))
         (delete-window sibling)))))
 
-(defun my/vterm-new ()
+(defun my/vterm-new-here ()
   "Create a new vterm in the current buffer."
   (interactive)
   ;; always open a new one rather than trying to find existing one
   (let ((current-prefix-arg '(nil)))
     (call-interactively #'vterm)))
+
+(defun my/vterm-project (&optional arg)
+  "Create a new vterm instance in the project root or switch to an existing one.
+
+If not in a project, uses the current directory.
+
+Passes `ARG' to `vterm':
+- A nonnumeric prefix arg creates a new session.
+- A numeric prefix args switches to a session with that number or creates it.
+- A string prefix arg creates a new session with the specified buffer name."
+  (interactive "P")
+  ;; Avoid "defining as dynamic an already lexical var" error
+  (defvar vterm-buffer-name)
+  (let* ((default-directory (or (project-root (project-current)) default-directory))
+         (vterm-buffer-name (format "%s-vterm" (or (project-name (project-current)) "general"))))
+    (ignore vterm-buffer-name)
+    (vterm arg)))
+
+(defun my/vterm-project-new ()
+  "Create a new vterm instance in the project root."
+  (interactive)
+  (my/vterm-project '(nil)))
 
 (defun my/eglot-set-rust-analyzer-config ()
   "Set rust-analyzer config for eglot."
@@ -165,7 +187,7 @@ Prior to calling, pulse the region between BEG and END."
   (evil-normal-state)
   (evil-visual-restore))
 
-(defvar my/popterm-shell-fn #'eat-project
+(defvar my/popterm-shell-fn #'my/vterm-project
   "The function to run after opening the popterm window.")
 
 (defvar my/popterm-split-position 'below
@@ -225,6 +247,12 @@ the number of columns to reserve for the pre-split window, if positive.")
     (if term-window
         (my/popterm-hide)
       (my/popterm-show))))
+
+(defun my/restart-server ()
+  "Restart the Emacs server, forcing it to be associated with the current process."
+  (interactive)
+  (when (server-running-p) (server-force-delete))
+  (server-start))
 
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
@@ -406,9 +434,7 @@ the number of columns to reserve for the pre-split window, if positive.")
     "v" #'describe-variable)
   (my/open-key-def
     "t" (cons "toggle terminal" #'my/popterm-toggle)
-    ;; use an existing one if present otherwise open a new one
-    ";" (cons "last terminal" #'vterm)
-    "T" (cons "new terminal" #'eat-project))
+    "T" (cons "terminal here" #'my/vterm-project))
   (my/project-key-def
     "b" #'consult-project-buffer
     "p" #'project-switch-project)
@@ -507,7 +533,9 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;; Terminal and Adjacent
 ;; -------------------------------------------------------------------
 
-(use-package eat :ensure t)
+(use-package eat :ensure t
+  :config
+  (evil-collection-eat-setup))
 
 ;; Terminal
 (use-package vterm :ensure t
@@ -859,7 +887,7 @@ the number of columns to reserve for the pre-split window, if positive.")
   (my/rust-package-test-key-def
    "a" (cons
         "run all tests"
-        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test)))
+        #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-test-run)))
    "t" (cons
         "run current test"
         #'(lambda () (interactive) (my/rustic-call-in-crate-ctx #'rustic-cargo-current-test)))
@@ -1077,6 +1105,20 @@ the number of columns to reserve for the pre-split window, if positive.")
   (yas-global-mode 1))
 
 ;; -------------------------------------------------------------------
+;; LLMs
+;; -------------------------------------------------------------------
+
+(use-package gptel :ensure t
+  :config
+  (setq
+   gptel-model 'mistral-nemo:latest
+   gptel-backend (gptel-make-ollama
+                  "Ollama"
+                  :host "localhost:11434"
+                  :stream t
+                  :models '(mistral-nemo:latest))))
+
+;; -------------------------------------------------------------------
 ;; Envrc
 ;; -------------------------------------------------------------------
 
@@ -1095,6 +1137,62 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;; -------------------------------------------------------------------
 
 (use-package pdf-tools :ensure t)
+
+;; -------------------------------------------------------------------
+;; Email
+;; -------------------------------------------------------------------
+
+;; installed via nix
+(use-package mu4e :ensure nil
+  :config
+  (setq
+   ;; set emacs default mail variables
+   mail-user-agent 'mu4e-user-agent
+   read-mail-command 'mu4e
+   ;; settings that apply to gnus mode and mu4e
+   message-send-mail-function 'smtpmail-send-it
+   smtpmail-default-smtp-server "smtp.gmail.com"
+   smtpmail-smtp-server "smtp.gmail.com"
+   smtpmail-local-domain "gmail.com"
+   smtpmail-smtp-service 587
+   ;; mu4e settings
+   mu4e-use-fancy-chars t
+   mu4e-maildir-shortcuts '((:maildir "/gmail/Inbox" :key ?g)
+                            (:maildir "/spectrust/Inbox" :key ?s))
+   mu4e-contexts `(,(make-mu4e-context
+                     :name "Gmail"
+                     :enter-func (lambda () (mu4e-message "Entering Gmail Context"))
+                     :match-func (lambda (msg)
+                                   (when msg
+                                     (string-match-p "/gmail/.*" (mu4e-message-field msg :maildir))))
+                     :vars `((user-mail-address . "msplanchard@gmail.com")
+                             (user-full-name . "Matthew Planchard")
+                             (mu4e-refile-folder . "/gmail/[Gmail]/All Mail")
+                             (mu4e-sent-folder . "/gmail/[Gmail]/Sent Mail")
+                             (mu4e-drafts-folder . "/gmail/[Gmail]/Drafts")
+                             (mu4e-trash-folder . "/gmail/[Gmail]/Trash")))
+                   ,(make-mu4e-context
+                     :name "Spec"
+                     :enter-func (lambda () (mu4e-message "Entering Spec Context"))
+                     :match-func (lambda (msg)
+                                   (when msg
+                                     (string-match-p "/spectrust/.*" (mu4e-message-field msg :maildir))))
+                     :vars `((user-mail-address . "matthew@spec-trust.com")
+                             (user-full-name . "Matthew Planchard")
+                             (mu4e-refile-folder . "/spectrust/[Gmail]/All Mail")
+                             (mu4e-sent-folder . "/spectrust/[Gmail]/Sent Mail")
+                             (mu4e-drafts-folder . "/spectrust/[Gmail]/Drafts")
+                             (mu4e-trash-folder . "/spectrust/[Gmail]/Trash"))))))
+
+(use-package org-msg :ensure t
+  :config
+  (setq
+   org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+   org-msg-startup "hidestars indent inlineimages"
+   org-msg-default-alternatives '((new		. (text html))
+				                  (reply-to-html	. (text html))
+				                  (reply-to-text	. (text)))
+   org-msg-convert-citation t))
 
 ;; -------------------------------------------------------------------
 ;; Appearance

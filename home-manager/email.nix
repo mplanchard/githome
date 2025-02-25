@@ -32,6 +32,8 @@ hmConfig // {
         "[Gmail]/Drafts"
         "[Gmail]/Sent Mail"
         "[Gmail]/Starred"
+        "[Gmail]/Trash"
+        # ignore for initial sync, b/c too big
         "[Gmail]/All Mail"
       ];
       # local = {
@@ -50,10 +52,10 @@ hmConfig // {
       enable = true;
       create = "both";
       expunge = "both";
-      patterns = [
-        "*"
-        "![Gmail]/Important"
-      ];
+      # patterns = [
+      #   "*"
+      #   "![Gmail]/Important"
+      # ];
     };
   };
 
