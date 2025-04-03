@@ -1,7 +1,8 @@
 # standard home-manager config that's the same on all machines
 { pkgs, unstable, previous, ... }:
-
 {
+  home.username = "matthew";
+  home.homeDirectory = "/home/matthew";
   home.stateVersion = "22.11";
   programs.firefox = {
     enable = true;
@@ -265,7 +266,7 @@
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
-    cargo
+    # cargo
     chromium
     cmake
     coreutils
@@ -302,6 +303,7 @@
     mu.mu4e
     neovim
     nerdfonts
+    nixfmt-rfc-style
     nodejs
     ollama
     # nodePackages.npm
@@ -314,8 +316,7 @@
     python3Full
     ripgrep
     # rnix-lsp
-    # rustc
-    # rust-analyzer
+    rustup
     scheme-manpages
     shellcheck
     slack

@@ -33,7 +33,7 @@
 [push]
 	default = current
 [rebase]
-    autoSquash = ture
+    autoSquash = true
     autoStash = true
     updateRefs = true
 [rerere]
@@ -42,7 +42,7 @@
 [branch]
     sort = -committerdate
 [tag]
-    sort = version:refname
+    sort = -version:refname
 [diff]
     # Better diff algorithm
     algorithm = histogram

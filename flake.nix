@@ -16,6 +16,10 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    # niri (tiling WM)
+    niri.url = "github:sodiboo/niri-flake";
+    niri.inputs.nixpkgs.follows = "nixpkgs";
+
     # standard, device-specific hardware tweaks
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
@@ -33,6 +37,7 @@
       nixpkgs,
       nixpkgs-unstable,
       nixpkgs-previous,
+      niri,
       ...
   }:
     let
@@ -103,17 +108,16 @@
             (import ./home-manager/gnome.nix)
           ];
 
-          homeManager = (home-manager.lib.homeManagerConfiguration (
-            {
-              inherit system;
+          homeManager = (home-manager.lib.homeManagerConfiguration  {
+              # inherit system;
               pkgs = systemPkgs;
-              homeDirectory = "/home/matthew";
-              username = "matthew";
-              # This is the home manager config. The attrset should be the same format
-              # as what you find in home-manager's documentation for what you'd put in
-              # a home.nix file.
-              configuration = homeManagerConfig;
-            })).activationPackage;
+              # configuration = homeManagerConfig;
+              modules = [
+                ({...}: homeManagerConfig)
+                # niri.homeModules.config
+                # ./home-manager/niri.nix
+              ];
+            });
         };
 
       mp-mininix =
@@ -131,17 +135,6 @@
             (import ./home-manager/email.nix)
             (import ./home-manager/kde.nix)
           ];
-          homeManager = (home-manager.lib.homeManagerConfiguration (
-            {
-              inherit system;
-              pkgs = systemPkgs;
-              homeDirectory = "/home/matthew";
-              username = "matthew";
-              # This is the home manager config. The attrset should be the same format
-              # as what you find in home-manager's documentation for what you'd put in
-              # a home.nix file.
-              configuration = homeManagerConfig;
-            })).activationPackage;
         };
 
       mp-st-m1 =
@@ -156,17 +149,6 @@
             (import ./home-manager/base.nix)
             (import ./home-manager/email.nix)
           ];
-          homeManager = (home-manager.lib.homeManagerConfiguration (
-            {
-              inherit system;
-              pkgs = systemPkgs;
-              homeDirectory = "/Users/matthew";
-              username = "matthew";
-              # This is the home manager config. The attrset should be the same format
-              # as what you find in home-manager's documentation for what you'd put in
-              # a home.nix file.
-              configuration = homeManagerConfig;
-            })).activationPackage;
         };
 
       darwinConfigurations = {
@@ -183,6 +165,35 @@
         };
       };
 
+      homeConfigurations = {
+        "matthew@mp-st-nix-fw" =
+        let
+          system = "x86_64-linux";
+          systemPkgs = pkgs.x86_64-linux;
+          systemUnstable = unstable.x86_64-linux;
+          systemPrevious = previous.x86_64-linux;
+        in
+        rec {
+          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable systemPrevious [
+            (import ./home-manager/base.nix)
+            (import ./home-manager/linux.nix)
+            (import ./home-manager/not-aarch64.nix)
+            (import ./home-manager/email.nix)
+            (import ./home-manager/gnome.nix)
+          ];
+
+          homeManager = (home-manager.lib.homeManagerConfiguration  {
+              # inherit system;
+              pkgs = systemPkgs;
+              configuration = homeManagerConfig;
+              modules = [
+                ({...}: homeManagerConfig)
+                # niri.homeModules.config
+                # ./home-manager/niri.nix
+              ];
+            });
+        }.homeManager;
+      };
       nixosConfigurations = {
         mp-st-nix-fw = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
@@ -192,11 +203,30 @@
             nixos-hardware.nixosModules.framework-13th-gen-intel
             ./nixos/crowdstrike-falcon-sensor/module.nix
             ./nixos/secureframe-agent/module.nix
-            home-manager.nixosModules.home-manager {
+            home-manager.nixosModules.home-manager
+            {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
+            }
+            {
               home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
             }
+            {
+              home-manager.users.matthew = (import ./home-manager/niri.nix);
+            }
+            niri.nixosModules.niri
+            ({pkgs, ...}: {
+              nixpkgs.overlays = [ niri.overlays.niri ];
+              programs.niri.enable = true;
+              environment.variables.NIXOS_OZONE_WL = "1";
+              environment.systemPackages = with pkgs; [
+                wl-clipboard
+                wayland-utils
+                xwayland-satellite
+                xdg-desktop-portal-gtk
+              ];
+              # systemd.user.services.niri.wants =
+            })
             ./nixos/gnome.nix
           ];
         };

@@ -3,10 +3,8 @@
 let
   xkbOptions = [
     "altwin:swap_lalt_lwin"
-    "caps:ctrl_modifier"
+    "caps:ctrl_shifted_capslock"
     "compose:rctrl"
-    "shift:both_capslock"
-    "terminate:ctrl_alt_bksp"
   ];
 in
 {

@@ -228,7 +228,11 @@ the number of columns to reserve for the pre-split window, if positive.")
       ;; accidentally renaming the buffer we were in prior to creating
       ;; the new window.
       (select-window term-window)
-      (rename-buffer term-buffer-name))))
+      (rename-buffer term-buffer-name))
+    ;; Don't allow other things to override the window
+    ;; (set-window-dedicated-p (selected-window) t)
+    ;; Prevent splitting of the term window
+    (set-frame-parameter nil 'unsplittable t)))
 
 (defun my/popterm-hide ()
   "Hide the popterm window if it is showing."
@@ -704,7 +708,9 @@ the number of columns to reserve for the pre-split window, if positive.")
   :config
   (setq
    ;; don't save things for me
-   magit-save-repository-buffers nil)
+   magit-save-repository-buffers nil
+   magit-list-refs-sortby "-committerdate"
+   magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
 
   ;; get section info with magit-describe-section
   (add-to-list 'magit-section-initial-visibility-alist '(unstaged . show))
@@ -913,7 +919,7 @@ the number of columns to reserve for the pre-split window, if positive.")
 
   ;; add rust map to the m prefix on the leader key
   (general-define-key
-   :keymaps 'rust-mode-map
+   :keymaps '(rust-mode-map rust-ts-mode-map)
    :states '(normal visual motion)
    :prefix my/leader-key
    "m" my/rust-map)
@@ -1023,6 +1029,9 @@ the number of columns to reserve for the pre-split window, if positive.")
                `(typescript-ts-mode . ,(eglot-alternatives
                                         '(("typescript-language-server" "--stdio")
                                           ("deno" "lsp")))))
+
+  (add-to-list 'eglot-server-programs
+               `(sql-mode . ("postgrestools" "lsp-proxy")))
 
   (defvar my/eglot-map (make-sparse-keymap))
   (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
