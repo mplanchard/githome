@@ -92,6 +92,8 @@
     rec {
       packages.x86_64-linux.secureframe-agent = pkgs.x86_64-linux.callPackage (import ./nixos/secureframe-agent) { };
 
+      packages.x86_64-linux.nnd = pkgs.x86_64-linux.callPackage ./pkgs/nnd.nix { };
+
       x86-linux-gnome =
         let
           system = "x86_64-linux";

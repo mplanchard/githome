@@ -15,6 +15,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.luks.devices.cryptroot.device = "/dev/disk/by-uuid/92ee2217-f2f0-4de6-ae0d-97e89e0706f2";
 
+  hardware.keyboard.uhk.enable = true;
+
   networking.hostName = "mp-st-nix-fw"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -126,7 +128,7 @@
   users.users.matthew = {
     isNormalUser = true;
     description = "Matthew Planchard";
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "input" ];
     shell = pkgs.fish;
     packages = with pkgs; [
     #  thunderbird
@@ -164,14 +166,17 @@
   ];
 
   security.polkit.enable = true;
-  services.udev.extraRules = ''
-    # Ultimate Hacking Keyboard rules
-    # These are the udev rules for accessing the USB interfaces of the UHK as non-root users.
-    # Copy this file to /etc/udev/rules.d and physically reconnect the UHK afterwards.
-    SUBSYSTEM=="input", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", GROUP="input", MODE="0660"
-    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
-    KERNEL=="hidraw*", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
-  '';
+  # services.udev.packages = with pkgs; [
+  #   uhk-dev-rules
+  # ];
+  # services.udev.extraRules = ''
+  #   # Ultimate Hacking Keyboard rules
+  #   # These are the udev rules for accessing the USB interfaces of the UHK as non-root users.
+  #   # Copy this file to /etc/udev/rules.d and physically reconnect the UHK afterwards.
+  #   SUBSYSTEM=="input", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", GROUP="input", MODE="0660"
+  #   SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+  #   KERNEL=="hidraw*", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+  # '';
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

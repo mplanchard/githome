@@ -29,3 +29,4 @@ all/.doom.d/custom.el
 
 # nix output symlinks
 **/result
+.aider*

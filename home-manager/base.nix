@@ -35,13 +35,6 @@
       };
     };
 
-    zsh.enable = true;
-    zsh.profileExtra = ''
-        if [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
-           source "$HOME/.nix-profile/etc/profile.d/nix.sh"
-        fi
-    '';
-
     bash = {
       enable = true;
       profileExtra = ''
@@ -50,6 +43,9 @@
         fi
       '';
       initExtra = ''
+        # Bind ctrl-backspace / ctrl-H to backward-kill word
+        bind \cH backward-kill-word
+
         # HACK: for some reason this, unlike hte other sessionVariables, is getting
         # overridden in my shells. Set it manually.
         export EDITOR="emacsclient"
@@ -85,6 +81,17 @@
       shellAliases = {
         iam = "set_profile";
       };
+    };
+
+    bat.enable = true;
+
+    direnv = {
+      enable = true;
+      enableBashIntegration = true;
+      enableZshIntegration = true;
+      # seems to be auto-enabled for fish if direnv is enabled
+      # enableFishIntegration = true;
+      nix-direnv.enable = true;
     };
 
     fish = {
@@ -123,19 +130,8 @@
       '';
     };
 
-    bat.enable = true;
-
     eza = {
       enable = true;
-    };
-
-    direnv = {
-      enable = true;
-      enableBashIntegration = true;
-      enableZshIntegration = true;
-      # seems to be auto-enabled for fish if direnv is enabled
-      # enableFishIntegration = true;
-      nix-direnv.enable = true;
     };
 
     # Always want emacs, this assumes the emacs overlay is present on pkgs
@@ -151,6 +147,7 @@
             tree-sitter-clojure
             tree-sitter-comment
             tree-sitter-cpp
+            tree-sitter-css
             tree-sitter-dockerfile
             tree-sitter-elisp
             tree-sitter-fish
@@ -183,6 +180,8 @@
       ];
     };
 
+    ghostty.enable = true;
+
     # letting home manager do this ensures that both nix-installed
     # and regular stuff is available to `info`.
     info.enable = true;
@@ -194,7 +193,15 @@
       generateCaches = true;
     };
 
-    # nushell.enable = true;
+    nushell.enable = true;
+
+    readline = {
+      enable = true;
+      bindings = {
+        "\\C-\\b" = "backward-kill-word";
+        "\\C-\\d" = "backward-kill-word";
+      };
+    };
 
     # Always install ssh
     ssh = {
@@ -225,6 +232,13 @@
         nix_shell.pure_msg = "pure ";
       };
     };
+
+    zsh.enable = true;
+    zsh.profileExtra = ''
+        if [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
+           source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+        fi
+    '';
 
     # Install latex packages
     # texlive.enable = true;
@@ -263,6 +277,7 @@
   xdg.enable = true;
 
   home.packages = with pkgs; [
+    unstable.aider-chat-full
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
@@ -286,12 +301,16 @@
     fzf
     gawk
     gcc
+    ghostty
     git
     gnugrep
     gnumake
     hack-font
     html-tidy
     htop
+    (hunspellWithDicts [
+      hunspellDicts.en_US-large
+    ])
     unstable.iosevka-comfy.comfy
     unstable.iosevka-comfy.comfy-motion
     unstable.iosevka-comfy.comfy-motion-fixed
@@ -327,6 +346,7 @@
     tmux
     tokei
     tree
+    unstable.uhk-agent
     unzip
     wget
     which

@@ -3,6 +3,7 @@
 hmConfig // {
   home = hmConfig.home or {} // {
     packages = with pkgs; hmConfig . home.packages or [] ++ [
+      (callPackage ../pkgs/nnd.nix { })
       gnupg
       # krita
       # libreoffice

@@ -72,6 +72,13 @@ Prior to calling, pulse the region between BEG and END."
       ;; Give some indication that we did nothing
       (message "Buffer is not currently visiting a file"))))
 
+(defun my/kill-buffer (arg)
+  "Kill the current buffer, or with a prefix argument ARG, ask which buffer to kill."
+  (interactive "P")
+  (if arg
+      (call-interactively #'kill-buffer)
+    (kill-buffer (current-buffer))))
+
 ;; Split windows and then balance them
 (defun my/split-and-balance ()
   "Split window horizontally and rebalance the group."
@@ -144,7 +151,7 @@ Passes `ARG' to `vterm':
   (interactive "P")
   ;; Avoid "defining as dynamic an already lexical var" error
   (defvar vterm-buffer-name)
-  (let* ((default-directory (or (project-root (project-current)) default-directory))
+  (let* ((default-directory (or (project-root (project-current)) default-directory "~"))
          (vterm-buffer-name (format "%s-vterm" (or (project-name (project-current)) "general"))))
     (ignore vterm-buffer-name)
     (vterm arg)))
@@ -187,61 +194,50 @@ Passes `ARG' to `vterm':
   (evil-normal-state)
   (evil-visual-restore))
 
-(defvar my/popterm-shell-fn #'my/vterm-project
+(defvar my/popterm-shell-fn #'vterm-mode
   "The function to run after opening the popterm window.")
 
-(defvar my/popterm-split-position 'below
-  "One of `'below', `'above', `'left', or `'right', relative to the frame.")
+(defvar my/popterm-major-mode 'vterm-mode
+  "Major mode for the shell terminal.
 
-(defvar my/popterm-size -20
-  "The size of the new popterm window.
+Used to chceck if it needs to be invoked when swapping to the buffer.")
 
-If `my/popterm-split-position' is `'below' or `'above', this means the
-number of lines to devote to the popterm window, if negative, or the
-number of lines to keep reserved for the pre-split window, if positive.
+(defvar my/popterm-split-position bottom
+  "One of `bottom', `top', `left', or `right', relative to the frame.")
 
-If `my/popterm-split-position' is `'left'` or `'right', this means
-the number of columns to devote to the popterm window, if negative, or
-the number of columns to reserve for the pre-split window, if positive.")
+(defvar my/popterm-size 25
+  "The size of the new popterm window.")
 
 (defun my/popterm-buffer-name ()
   "Get a buffer name for the popterm."
   (let* ((proj (project-current))
          (proj-name (when proj (project-name proj)))
          (term-buffer-name (if proj-name
-                               (format " *%s-popterm*" proj-name)
-                             " *popterm*")))
+                               (format "*%s-popterm*" proj-name)
+                             "*popterm*")))
     term-buffer-name))
 
 (defun my/popterm-show ()
   "Create a new popterm with the specified `POPTERM-FN'."
   (let* ((term-buffer-name (my/popterm-buffer-name))
-         (term-buffer (get-buffer term-buffer-name))
-         (term-window (split-window (frame-root-window)
-                                    my/popterm-size
-                                    my/popterm-split-position)))
-    (select-window term-window)
-    (if term-buffer
-        (set-window-buffer term-window term-buffer)
-      (call-interactively my/popterm-shell-fn)
-      ;; For whatever reason this extra call seems necessasry to avoid
-      ;; accidentally renaming the buffer we were in prior to creating
-      ;; the new window.
-      (select-window term-window)
-      (rename-buffer term-buffer-name))
-    ;; Don't allow other things to override the window
-    ;; (set-window-dedicated-p (selected-window) t)
-    ;; Prevent splitting of the term window
-    (set-frame-parameter nil 'unsplittable t)))
+         (term-buffer (get-buffer-create term-buffer-name))
+         (term-window (display-buffer-in-side-window
+                       term-buffer
+                       `((side . bottom)
+                         (window-height . ,my/popterm-size)
+                         (preserve-size . (t . t))))))
+    (pop-to-buffer term-buffer)
+    (unless (eq major-mode my/popterm-major-mode)
+      (let ((default-directory (or (project-root (project-current)) default-directory "~")))
+        (funcall my/popterm-shell-fn)))))
 
 (defun my/popterm-hide ()
   "Hide the popterm window if it is showing."
   (let* ((term-buffer-name (my/popterm-buffer-name))
          (term-window (get-buffer-window term-buffer-name)))
     (when term-window
-      (select-window term-window)
-      (bury-buffer)
-      (delete-window))))
+      (bury-buffer (my/popterm-buffer-name))
+      (delete-window term-window))))
 
 (defun my/popterm-toggle ()
   "Toggle a project terminal."
@@ -272,12 +268,12 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;;     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
 ;; Everything from here is copied directly from the elpaca readme.
-(defvar elpaca-installer-version 0.8)
+(defvar elpaca-installer-version 0.10)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
+                              :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -287,7 +283,7 @@ the number of columns to reserve for the pre-split window, if positive.")
   (add-to-list 'load-path (if (file-exists-p build) build repo))
   (unless (file-exists-p repo)
     (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
+    (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
                   ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
@@ -352,6 +348,11 @@ the number of columns to reserve for the pre-split window, if positive.")
    :prefix-map 'my/go-map
    :prefix "g")
 
+  ;; no confirm on default buffer kill key sequence, unless prefix
+  ;; arg supplied
+  (general-define-key
+   "C-x k" #'my/kill-buffer)
+
   (general-create-definer my/go-key-def
     :keymaps 'my/go-map)
   (general-create-definer my/leader-key-def
@@ -398,7 +399,7 @@ the number of columns to reserve for the pre-split window, if positive.")
     "B" #'consult-buffer
     ;; note: `kill-current-buffer' leaves the buffer around in the buffer
     ;; list sometimes for some reason, but this works reliably.
-    "d" #'(lambda () (interactive) (kill-buffer (current-buffer)))
+    "d" (cons "kill buffer" #'my/kill-buffer)
     "i" #'ibuffer
     "n" #'next-buffer
     "p" #'previous-buffer
@@ -421,6 +422,7 @@ the number of columns to reserve for the pre-split window, if positive.")
     "R" #'rename-visited-file)
   (my/git-key-def
     "." #'magit-file-dispatch
+    ";" #'magit-dispatch
     "[" #'diff-hl-previous-hunk
     "]" #'diff-hl-next-hunk
     "g" #'magit-status
@@ -483,6 +485,9 @@ the number of columns to reserve for the pre-split window, if positive.")
     ":" (cons "execute" #'execute-extended-command)
     "u" (cons "prefix" #'universal-argument))
 
+  (general-def universal-argument-map
+    "SPC u" #'universal-argument-more)
+
   (my/go-key-def
     "c" #'comment-dwim
     "d" #'xref-find-definitions
@@ -528,6 +533,13 @@ the number of columns to reserve for the pre-split window, if positive.")
      "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
   :init
   (evil-collection-init))
+
+(use-package evil-keypad
+  :ensure (:type git :host github :repo "achyudh/evil-keypad")
+  :after evil
+  :config
+  (setq evil-keypad-activation-trigger (kbd ","))
+  (evil-keypad-global-mode 1))
 
 (use-package evil-surround :ensure t
   :config
@@ -620,7 +632,9 @@ the number of columns to reserve for the pre-split window, if positive.")
   (xref-show-xrefs-function #'consult-xref)
   :commands (consult-project-buffer consult-buffer consult-project-buffer))
 
-(use-package consult-todo :ensure t)
+(use-package consult-todo
+  :after consult
+  :ensure t)
 
 ;; Right-click contextual interface via the keyboard, essentially
 (use-package embark :ensure t
@@ -686,14 +700,18 @@ the number of columns to reserve for the pre-split window, if positive.")
 
 (use-package git-timemachine :ensure t
   :after magit)
-(use-package git-link :ensure t)
 
-;; magit requires newer versions of some internal packages
+(use-package git-link :ensure t
+  :config
+  (setq git-link-use-commit t
+        git-link-use-single-line-number nil
+        git-link-default-branch "dev"))
+
+;; Some issue w/magit's melpa declaration not getting the right transient idk
 (use-package transient :ensure t)
 
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t
-  :after transient
   :commands (magit magit-status magit-file-dispatch)
   :custom (magit-wip-mode t)
   :hook
@@ -747,7 +765,9 @@ the number of columns to reserve for the pre-split window, if positive.")
 
 ;; TODO deal with removal of insert-assigned-pullreqs &c:
 ;; https://github.com/magit/forge/issues/676
-(use-package forge :ensure t
+(use-package forge
+  ;; :ensure t
+  :ensure (:type git :host github :repo "magit/forge")
   :after magit
   :config
   ;; re-add support for assigned & review requests at top level of status
@@ -771,7 +791,8 @@ the number of columns to reserve for the pre-split window, if positive.")
                           #'my/forge-insert-review-requests
                           #'my/forge-insert-assigned-pullreqs))
 
-(use-package magit-todos :ensure t)
+(use-package magit-todos :ensure t
+  :after magit)
 
 ;; better diff highlighting
 (use-package magit-delta :ensure t
@@ -793,6 +814,11 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;; tree-sitter being installed. I am installing that, including support
 ;; in emacs, via Nix. If not using nix, consider using treessit-auto
 ;; or a similar package to ease installation of tree-sitter grammars
+
+
+(use-package editorconfig :ensure t
+  :config
+  (editorconfig-mode 1))
 
 (use-package prettier-js :ensure t)
 
@@ -817,29 +843,42 @@ the number of columns to reserve for the pre-split window, if positive.")
   :hook (flycheck-mode . sideline-flycheck-setup))
 (use-package sideline-flymake :ensure t)
 
+(use-package string-inflection :ensure t)
+
 (use-package ajrepl
   :after janet-ts-mode
   :ensure (:type git :host github :repo "sogaiu/ajrepl"))
 
+(use-package spinner :ensure t)
+(use-package xterm-color :ensure t)
 (use-package rustic :ensure t
   :defer t
   :mode ("\\.rs\\'" . rustic-mode)
 
   :hook
+  (rustic-compilation-mode . (lambda () (display-line-numbers-mode -1)))
   ;; fix jumping to test errors and go-to-error in test output.
   ;; reported as bug here: https://github.com/brotzeit/rustic/issues/573
-  (rustic-compilation-mode . (lambda () (display-line-numbers-mode -1)))
-  (rustic-cargo-test-mode
-   . (lambda () (add-to-list 'compilation-error-regexp-alist
-                             `(,(rx "thread '"
-                                    (one-or-more (not "'"))
-                                    "' panicked at "
-                                    (group (one-or-more not-newline))
-                                    ":"
-                                    (group (one-or-more digit))
-                                    ":"
-                                    (group (one-or-more digit)))
-                               1 2 3))))
+  ;; (rustic-cargo-test-mode
+  ;;  . (lambda ()
+  ;;      (add-to-list 'compilation-error-regexp-alist
+  ;;                   `(,(rx "thread '"
+  ;;                          (one-or-more (not "'"))
+  ;;                          "' panicked at "
+  ;;                          (group (one-or-more not-newline))
+  ;;                          ":"
+  ;;                          (group (one-or-more digit))
+  ;;                          ":"
+  ;;                          (group (one-or-more digit)))
+  ;;                     1 2 3))
+  ;;      (add-to-list 'compilation-error-regexp-alist
+  ;;                   `(,(rx "--> "
+  ;;                          (group (one-or-more (not ":")))
+  ;;                          ":"
+  ;;                          (group (one-or-more digit))
+  ;;                          ":"
+  ;;                          (group (one-or-more digit)))
+  ;;                     1 2 3))))https://gitlab.com/spectrust-inc/spec-protect/-/blob/dev/platform/integration-station/src/client/mod.rs#L28
   (rustic-mode . (lambda () (set-fill-column 80)))
 
   :custom
@@ -994,7 +1033,7 @@ the number of columns to reserve for the pre-split window, if positive.")
               :after (lambda () (evil-force-normal-state))
               '((name . "citre-force-normal-mode"))))
 
-(use-package consult-eglot :ensure t)
+(use-package consult-eglot :after consult :ensure t)
 
 (use-package breadcrumb :ensure t
   :defer t
@@ -1117,15 +1156,34 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;; LLMs
 ;; -------------------------------------------------------------------
 
+(defvar my--openai-api-key)
+(defun my/get-openai-api-key ()
+  "Get an openai api key.  Lazily initiated to avoid parsing twice."
+  (if (boundp 'my--openai-api-key)
+      my--openai-api-key
+    (setq my--openai-api-key (auth-source-pick-first-password :host "api.openai.com"))))
+
 (use-package gptel :ensure t
   :config
-  (setq
-   gptel-model 'mistral-nemo:latest
-   gptel-backend (gptel-make-ollama
-                  "Ollama"
-                  :host "localhost:11434"
-                  :stream t
-                  :models '(mistral-nemo:latest))))
+  ;; (setq
+  ;;  gptel-model 'mistral-nemo:latest
+  ;;  gptel-backend (gptel-make-ollama
+  ;;                 "Ollama"
+  ;;                 :host "localhost:11434"
+  ;;                 :stream t
+  ;;                 :models '(mistral-nemo:latest)))
+  )
+
+(use-package aider :ensure t
+  :config
+  (setenv "OPENAI_API_KEY" (my/get-openai-api-key))
+  (aider-magit-setup-transients)
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+
+(use-package chatgpt-shell :ensure t
+  :config
+  (setq chatgpt-shell-openai-key (my/get-openai-api-key)
+        chatgpt-shell-model-version "o4-mini"))
 
 ;; -------------------------------------------------------------------
 ;; Envrc
@@ -1146,6 +1204,42 @@ the number of columns to reserve for the pre-split window, if positive.")
 ;; -------------------------------------------------------------------
 
 (use-package pdf-tools :ensure t)
+
+;; -------------------------------------------------------------------
+;; General Editing
+;; -------------------------------------------------------------------
+
+;; Make undo/redo more intuitive
+(use-package undo-fu :ensure t
+  :after (evil general)
+  :config (setq evil-undo-system 'undo-fu
+                undo-fu-allow-undo-in-region t))
+
+;; Visualize undo tree. Note that evil-collection gives it non-default
+;; keybindings, in [brackets]:
+;;
+;;  f [l]   to go forward
+;;  b [h]   to go backward
+;;
+;;  n [C-j]   to go to the node below when at a branch point
+;;  p [C-k]  to go to the node above
+;;
+;;  a [H]   to go back to the last branching point
+;;  w [L]  to go forward to the next branching point
+;;
+;;  e [unbound]  to go forward to the end/tip of the branch
+;;  l [unbound]  to go to the last saved node
+;;  r [unbound]  to go to the next saved node
+;;
+;;  m   to mark the current node for diff
+;;  u   to unmark the marked node
+;;  d   to show a diff between the marked (or parent) and current nodes
+;;
+;;  q   to quit, you can also type C-g
+;;
+;;  C-c C-s (or whatever binding you used for save-buffer)
+;;      to save the buffer at the current undo state
+(use-package vundo :ensure t)
 
 ;; -------------------------------------------------------------------
 ;; Email
@@ -1277,40 +1371,45 @@ the number of columns to reserve for the pre-split window, if positive.")
   (prog-mode . electric-pair-mode)
   (before-save . delete-trailing-whitespace)
   :config
-  (setq
-   ;; I've got to get away from these confounded relatives, hanging on the bell all day
-   ;; never giving me a moment's peace
-   ring-bell-function #'ignore
-   ;; keep it secret, keep it safe
-   auth-sources '("~/.authinfo.gpg")
-   ;; trigger completion-at-point with TAB
-   tab-always-indent 'complete
-   ;; hide commands from M-x that don't apply to the current mode
-   read-extended-command-predicate #'command-completion-default-include-p
-   ;; don't prompt, just follow symbolic links
-   vc-follow-symlinks t
-   ;; backup all files to a common directory
-   my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
-   backup-directory-alist `(("." . ,my/emacs-backup-directory))
-   ;; include lockfiles
-   lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
+  ;; make the target selection smarter in dired, e.g. automatically
+  ;; target other open dired buffer for copy
+  (setq dired-dwim-target t
+        ;; I've got to get away from these confounded relatives, hanging on the bell all day
+        ;; never giving me a moment's peace
+        ring-bell-function #'ignore
+        ;; keep it secret, keep it safe
+        auth-sources '("~/.authinfo.gpg")
+        ;; trigger completion-at-point with TAB
+        tab-always-indent 'complete
+        ;; hide commands from M-x that don't apply to the current mode
+        read-extended-command-predicate #'command-completion-default-include-p
+        ;; don't prompt, just follow symbolic links
+        vc-follow-symlinks t
+        ;; backup all files to a common directory
+        my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
+        backup-directory-alist `(("." . ,my/emacs-backup-directory))
+        ;; include lockfiles
+        lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
 
-   ;; add a newline at the end of files when visiting if they don't already have one
-   require-final-newline 'visit
-   ;; write to the target, not the symlink, when saving a file opened via symlink
-   file-preserve-symlinks-on-save t
-   ;; don't tell me every time auto-saving happens
-   auto-save-no-message t
-   ;; don't recenter every time I scroll offscreen, only if jumping a huge distance
-   scroll-conservatively 50
-   ;; show matching parenthesis when cursor is either inside or outside the other paren
-   show-paren-when-point-inside-paren t
-   ;; chemacs-aware user init directory
-   my/user-init-dir (if (boundp 'chemacs-profile)
-			(alist-get 'user-emacs-directory chemacs-profile)
-		      (file-name-directory (user-init-file)))
-   ;; set custom file to a file in the chemacs profile dir
-   custom-file (file-name-concat my/user-init-dir "custom.el"))
+        ;; add a newline at the end of files when visiting if they don't already have one
+        require-final-newline 'visit
+        ;; write to the target, not the symlink, when saving a file opened via symlink
+        file-preserve-symlinks-on-save t
+        ;; don't tell me every time auto-saving happens
+        auto-save-no-message t
+        ;; don't recenter every time I scroll offscreen, only if jumping a huge distance
+        scroll-conservatively 50
+        ;; show matching parenthesis when cursor is either inside or outside the other paren
+        show-paren-when-point-inside-paren t
+        ;; chemacs-aware user init directory
+        my/user-init-dir (if (boundp 'chemacs-profile)
+			                 (alist-get 'user-emacs-directory chemacs-profile)
+		                   (file-name-directory (user-init-file)))
+        ;; set custom file to a file in the chemacs profile dir
+        custom-file (file-name-concat my/user-init-dir "custom.el")
+        undo-limit 67108864 ;; 64 mb
+        undo-strong-limit 100663296 ;; 96 mb
+        undo-outer-limit 1006632960) ;; 960 mb
 
   (load-theme 'gruvbox-dark-hard t)
   ;; font settings

@@ -1,6 +1,7 @@
 { lib, pkgs, ... }:
 
 let
+  # https://gist.github.com/jatcwang/ae3b7019f219b8cdc6798329108c9aee
   xkbOptions = [
     "altwin:swap_lalt_lwin"
     "caps:ctrl_shifted_capslock"
