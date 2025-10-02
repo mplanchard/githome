@@ -34,6 +34,11 @@
   (let ((config-date (match-string 1 system-configuration-options)))
     (car (read-from-string config-date))))
 
+(defun my/find-note ()
+  "Run `find-file' in `org-directory'."
+  (interactive)
+  (ido-find-file-in-dir org-directory))
+
 ;; Used for highlight-on-yank for evil mode
 ;; Cribbed from https://blog.meain.io/2020/emacs-highlight-yanked/
 (defun my/evil-yank-advice (orig-fn beg end &rest args)
@@ -151,8 +156,12 @@ Passes `ARG' to `vterm':
   (interactive "P")
   ;; Avoid "defining as dynamic an already lexical var" error
   (defvar vterm-buffer-name)
-  (let* ((default-directory (or (project-root (project-current)) default-directory "~"))
-         (vterm-buffer-name (format "%s-vterm" (or (project-name (project-current)) "general"))))
+  (let* ((default-directory (if (project-current)
+                                (project-root (project-current))
+                              (or default-directory "~")))
+         (vterm-buffer-name (format
+                             "%s-vterm"
+                             (or (project-name (project-current)) "general"))))
     (ignore vterm-buffer-name)
     (vterm arg)))
 
@@ -202,10 +211,10 @@ Passes `ARG' to `vterm':
 
 Used to chceck if it needs to be invoked when swapping to the buffer.")
 
-(defvar my/popterm-split-position bottom
+(defvar my/popterm-split-position 'bottom
   "One of `bottom', `top', `left', or `right', relative to the frame.")
 
-(defvar my/popterm-size 25
+(defvar my/popterm-size 22
   "The size of the new popterm window.")
 
 (defun my/popterm-buffer-name ()
@@ -228,7 +237,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
                          (preserve-size . (t . t))))))
     (pop-to-buffer term-buffer)
     (unless (eq major-mode my/popterm-major-mode)
-      (let ((default-directory (or (project-root (project-current)) default-directory "~")))
+      (let ((default-directory (if (project-current)
+                                   (project-root (project-current))
+                                 (or default-directory "~"))))
         (funcall my/popterm-shell-fn)))))
 
 (defun my/popterm-hide ()
@@ -373,6 +384,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (defvar my/help-map (make-sparse-keymap))
   (general-create-definer my/help-key-def :keymaps 'my/help-map)
 
+  (defvar my/notes-map (make-sparse-keymap))
+  (general-create-definer my/notes-key-def :keymaps 'my/notes-map)
+
   (defvar my/open-map (make-sparse-keymap))
   (general-create-definer my/open-key-def :keymaps 'my/open-map)
 
@@ -438,6 +452,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
     "i" #'info
     "m" #'describe-mode
     "v" #'describe-variable)
+  (my/notes-key-def
+    "f" #'my/find-note)
   (my/open-key-def
     "t" (cons "toggle terminal" #'my/popterm-toggle)
     "T" (cons "terminal here" #'my/vterm-project))
@@ -475,6 +491,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
     "f" (cons "file" my/file-map)
     "g" (cons "git" my/git-map)
     "h" (cons "help" help-map)
+    "n" (cons "notes" my/notes-map)
     "o" (cons "open" my/open-map)
     "p" (cons "project" my/project-map)
     "q" (cons "quit" my/quit-map)
@@ -1329,6 +1346,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package org :ensure nil
   :custom
+  (org-export-headline-levels 5)
   (org-startup-indented t))
 
 ;; Emacs settings
