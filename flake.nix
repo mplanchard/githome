@@ -204,7 +204,7 @@
             ./nixos/configuration-mp-st-nix-fw.nix
             nixos-hardware.nixosModules.framework-13th-gen-intel
             ./nixos/crowdstrike-falcon-sensor/module.nix
-            ./nixos/secureframe-agent/module.nix
+            # ./nixos/secureframe-agent/module.nix
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;

@@ -5,15 +5,16 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-mp-st-nix-fw.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-mp-st-nix-fw.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.initrd.luks.devices.cryptroot.device = "/dev/disk/by-uuid/92ee2217-f2f0-4de6-ae0d-97e89e0706f2";
+  boot.initrd.luks.devices.cryptroot.device =
+    "/dev/disk/by-uuid/92ee2217-f2f0-4de6-ae0d-97e89e0706f2";
 
   hardware.keyboard.uhk.enable = true;
 
@@ -122,16 +123,24 @@
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
-    trusted-users = [ "root" "matthew" ];
+    trusted-users = [
+      "root"
+      "matthew"
+    ];
   };
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.matthew = {
     isNormalUser = true;
     description = "Matthew Planchard";
-    extraGroups = [ "networkmanager" "wheel" "docker" "input" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "docker"
+      "input"
+    ];
     shell = pkgs.fish;
     packages = with pkgs; [
-    #  thunderbird
+      #  thunderbird
     ];
   };
 
@@ -157,15 +166,44 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    clamav
     curl
-    git
     firefoxpwa
+    git
+    libpwquality
     stow
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
   ];
 
+  services.clamav.daemon.enable = true;
+  services.clamav.updater.enable = true;
+
   security.polkit.enable = true;
+  security.pam.services.passwd.rules.password.pwquality = {
+    control = "required";
+    modulePath = "${pkgs.libpwquality.lib}/lib/security/pam_pwquality.so";
+    # order BEFORE pam_unix.so
+    order = config.security.pam.services.passwd.rules.password.unix.order - 10;
+    # https://manpages.ubuntu.com/manpages/jammy/man5/pwquality.conf.5.html
+    settings = {
+      retry = 3;
+      # min length of pw
+      minlen = 8;
+      # difference from old pw
+      difok = 6;
+      # "credit" for digits in pw, if negative is min digits
+      dcredit = -1;
+      # uppercase credit, if negative is min ucase chars
+      ucredit = 1;
+      # other chars, if negative is min other chars (special chars)
+      ocredit = -1;
+      # lowercase credit, if negative is min lcase chars
+      lcredit = 1;
+      enforce_for_root = true;
+    };
+  };
+
   # services.udev.packages = with pkgs; [
   #   uhk-dev-rules
   # ];
@@ -200,6 +238,7 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  networking.nftables.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
