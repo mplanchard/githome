@@ -5,7 +5,7 @@
 , tree
 }:
 let
-  version = "1.0";
+  version = "1.38.1";
   src = ./secureframe-agent.deb;
   secureframe-agent = stdenv.mkDerivation {
     name = "secureframe-agent-${version}";
