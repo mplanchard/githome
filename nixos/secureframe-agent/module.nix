@@ -9,7 +9,7 @@ in
       description = "Secureframe Agent";
 
       wantedBy = ["multi-user.target"];
-      after = ["local-fs.target"];
+      after = ["local-fs.target" "network-online.target"];
       conflicts = ["shutdown.target"];
       before = ["shutdown.target"];
 
