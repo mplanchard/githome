@@ -55,7 +55,6 @@
     extraPortals = [
       # for zoom
       pkgs.xdg-desktop-portal
-      pkgs.xdg-desktop-portal-kde
       pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal-gnome
     ];
@@ -175,6 +174,8 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
   ];
+
+  services.fwupd.enable = true;
 
   services.clamav.daemon.enable = true;
   services.clamav.updater.enable = true;

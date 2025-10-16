@@ -41,7 +41,7 @@ hmConfig // {
       maxCacheTtl = 43200;
       maxCacheTtlSsh = 43200;
       enableSshSupport = true;
-      pinentryPackage = pkgs.pinentry-gnome3;
+      pinentry.package = pkgs.pinentry-gnome3;
       # extraConfig = ''
       #   allow-emacs-pinentry
       #   allow-loopback-pinentry

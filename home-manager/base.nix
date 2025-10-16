@@ -321,7 +321,20 @@
     lsof
     mu.mu4e
     neovim
-    nerdfonts
+    nerd-fonts.code-new-roman
+    nerd-fonts.envy-code-r
+    nerd-fonts.hack
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.monofur
+    nerd-fonts.monoid
+    nerd-fonts.mononoki
+    nerd-fonts.ubuntu-mono
+    nerd-fonts.ubuntu-sans
+    nerd-fonts.recursive-mono
+    nerd-fonts.sauce-code-pro
+    nerd-fonts.space-mono
+    nerd-fonts.tinos
+    nerd-fonts.zed-mono
     nixfmt-rfc-style
     nodejs
     ollama
@@ -377,7 +390,7 @@
       maxCacheTtl = 43200;
       maxCacheTtlSsh = 43200;
       enableSshSupport = true;
-      pinentryPackage = pkgs.pinentry-gnome3;
+      pinentry.package = pkgs.pinentry-gnome3;
       # extraConfig = ''
       #   allow-emacs-pinentry
       #   allow-loopback-pinentry

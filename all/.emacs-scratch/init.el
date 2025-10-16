@@ -1432,7 +1432,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (load-theme 'gruvbox-dark-hard t)
   ;; font settings
   ;; top fonts: codenewroman, hasklug, comicshans
-  (set-frame-font "CodeNewRoman Nerd Font Mono" nil t)
+  (set-frame-font "SauceCodePro Nerd Font" nil t)
   ;; height is x10 of usual font size
   (set-face-attribute 'default nil :height 140)
   ;; turn off the toolbar

@@ -13,7 +13,7 @@ pkgsStatic.rustPlatform.buildRustPackage rec {
   nativeBuildInputs = [ pkgsStatic.musl.dev ];
   buildType = "dbgo";
 
-  cargoHash = "sha256-x5YmGEzGOZqV0peaqlfEGMwf6aVAJ4JymduIL5Cgiw4=";
+  cargoHash = "sha256-Iwipxy0xKDyFLMmdB2FQve6DULX+46Pi9rOaK0bDTB0=";
 
   RUSTFLAGS = "-Cforce-unwind-tables=yes -Cforce-frame-pointers=yes -Ctarget-feature=+avx2";
 
