@@ -75,6 +75,7 @@
         export GITHUB_TOKEN=$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
         export ANTHROPIC_API_KEY=$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')
         export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
+        export CROWDSTRIKE_CID="$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
         set_profile() {
             export AWS_PROFILE="$1"
         }
@@ -108,6 +109,7 @@
           set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
           set -gx ANTHROPIC_API_KEY "$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')"
           set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
+          set -gx CROWDSTRIKE_CID "$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
         end
         set -gx EDITOR "emacsclient"
         # Setting this env var to the empty string makes it so that emacs
