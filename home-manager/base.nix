@@ -73,6 +73,7 @@
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
         export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
         export GITHUB_TOKEN=$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
+        export ANTHROPIC_API_KEY=$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')
         export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         set_profile() {
             export AWS_PROFILE="$1"
@@ -105,6 +106,7 @@
           set PWS "$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")"
           set -gx GITLAB_TOKEN "$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')"
           set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
+          set -gx ANTHROPIC_API_KEY "$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')"
           set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         end
         set -gx EDITOR "emacsclient"
@@ -281,6 +283,8 @@
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
+    unstable.claude-code
+    unstable.claude-code-acp
     # cargo
     chromium
     cmake
@@ -289,14 +293,14 @@
     delta
     discord
     # direnv
-    unstable.element-desktop
+    # element-desktop
     emacs-lsp-booster
     emacs-all-the-icons-fonts
     unstable.fd
     file
     findutils
     fira-code
-    unstable.firefoxpwa
+    firefoxpwa
     fontconfig
     fzf
     gawk
@@ -364,7 +368,7 @@
     wget
     which
     yarn
-    unstable.zed-editor
+    # unstable.zed-editor
     zip
     previous.zoom-us
 

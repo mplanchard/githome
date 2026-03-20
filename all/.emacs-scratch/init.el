@@ -22,6 +22,13 @@
 ;; My own, my precious
 ;; --------------------------------------------------------------------------------
 
+(defvar my/config-file (or load-file-name buffer-file-name))
+
+(defun my/open-config-file ()
+  "Open the Emacs config file."
+  (interactive)
+  (find-file my/config-file))
+
 (defun my/nixos-p ()
   "Return whether we are running on NixOS."
   (let ((sysinfo (shell-command-to-string "uname -v")))
@@ -175,16 +182,20 @@ Passes `ARG' to `vterm':
   (let ((rust-analyzer-config
          '("rust-analyzer"
            :initializationOptions
-           (:cargo
+           (:assist (:emitMustUse t)
+            :cargo
             ;; use --all-features, build in different target dir to avoid
             ;; recompilation at the expense of disk space
-            (:features "all" :targetDir t)
+            (:features "all" :targetDir t :allTargets t)
             :check
             ;; use clippy
-            (:command "clippy" :extraArgs ["--benches" "--tests"])
+            (:workspace :json-false :command "clippy" :extraArgs ["--benches" "--tests"])
+            :diagnostics (:styleLints (:enable t))
+            :files
+            (:watcher "server" :exclude [".git" ".confluent" ".data" "target" "node_modules"])
             :inlayHints
-            (:closureReturnTypeHints
-             (:enable t))))))
+            (:closureCaptureHints (:enable t)
+             :closureReturnTypeHints (:enable t))))))
     (add-to-list
      'eglot-server-programs
      `((rustic-mode rust-ts-mode rust-mode) . ,rust-analyzer-config))))
@@ -279,7 +290,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;;     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
 ;; Everything from here is copied directly from the elpaca readme.
-(defvar elpaca-installer-version 0.10)
+(defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -314,7 +325,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
@@ -453,7 +464,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
     "m" #'describe-mode
     "v" #'describe-variable)
   (my/notes-key-def
-    "f" #'my/find-note)
+    "f" #'my/find-note
+    "F" #'org-roam-node-find)
   (my/open-key-def
     "t" (cons "toggle terminal" #'my/popterm-toggle)
     "T" (cons "terminal here" #'my/vterm-project))
@@ -464,7 +476,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
     "i" #'info-apropos)
   (my/toggle-key-def
     ;; word wrap, essentially
-    "w" #'toggle-truncate-lines)
+    "w" #'visual-line-mode)
   (my/window-key-def
     "=" #'balance-windows
     "d" #'delete-window
@@ -546,8 +558,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :custom
   ;; don't interfere w/my leader key
   (evil-collection-key-blacklist
-   `(,my/leader-key
-     "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
+   `(,my/leader-key "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
   :init
   (evil-collection-init))
 
@@ -557,6 +568,14 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :config
   (setq evil-keypad-activation-trigger (kbd ","))
   (evil-keypad-global-mode 1))
+
+(use-package evil-numbers :ensure t
+  :after evil
+  :config
+  (general-evil-define-key '(normal motion visual) '(global)
+    ;; jump to definition, ensuring we push to the evil stack before jumping
+    "g =" #'evil-numbers/inc-at-pt
+    "g -" #'evil-numbers/dec-at-pt))
 
 (use-package evil-surround :ensure t
   :config
@@ -727,10 +746,13 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; Some issue w/magit's melpa declaration not getting the right transient idk
 (use-package transient :ensure t)
 
+(use-package cond-let :ensure t)
+
 ;; Magit (VC commands) and forge (interaction with forges)
 (use-package magit :ensure t
   :commands (magit magit-status magit-file-dispatch)
   :custom (magit-wip-mode t)
+  :after cond-let
   :hook
   (magit-mode . (lambda () (line-number-mode -1)))
   (magit-status-mode
@@ -832,6 +854,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; in emacs, via Nix. If not using nix, consider using treessit-auto
 ;; or a similar package to ease installation of tree-sitter grammars
 
+(use-package bats-mode :ensure t)
 
 (use-package editorconfig :ensure t
   :config
@@ -1180,6 +1203,13 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
       my--openai-api-key
     (setq my--openai-api-key (auth-source-pick-first-password :host "api.openai.com"))))
 
+(defvar my--anthropic-api-key)
+(defun my/get-anthropic-api-key ()
+  "Get an anthropic api key.  Lazily initiated to avoid parsing twice."
+  (if (boundp 'my--anthropic-api-key)
+      my--anthropic-api-key
+    (setq my--anthropic-api-key (auth-source-pick-first-password :host "api.anthropic.com"))))
+
 (use-package gptel :ensure t
   :config
   ;; (setq
@@ -1194,13 +1224,30 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package aider :ensure t
   :config
   (setenv "OPENAI_API_KEY" (my/get-openai-api-key))
+  (setenv "ANTHROPIC_API_KEY" (my/get-anthropic-api-key))
   (aider-magit-setup-transients)
-  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+  (global-set-key (kbd "C-c a") 'aider-transient-menu)
+  (general-def aider-comint-mode-map
+    :states '(normal visual motion)
+    "SPC" nil)
+  (general-def aider-prompt-mode-map
+    :states '(normal visual motion)
+    "SPC" nil))
 
 (use-package chatgpt-shell :ensure t
   :config
   (setq chatgpt-shell-openai-key (my/get-openai-api-key)
-        chatgpt-shell-model-version "o4-mini"))
+        chatgpt-shell-anthropic-key (my/get-anthropic-api-key)
+        chatgpt-shell-anthropic-thinking nil
+        chatgpt-shell-model-version "claude-4-opus-20250514"))
+
+(use-package agent-shell :ensure t
+  :config
+  (setq
+   agent-shell-anthropic-claude-acp-command '("claude-code-acp")
+   agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
+   agent-shell-anthropic-claude-environment
+        (agent-shell-make-environment-variables :inherit-env t)))
 
 ;; -------------------------------------------------------------------
 ;; Envrc
@@ -1219,6 +1266,13 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; -------------------------------------------------------------------
 ;; Org, Docs, Etc.
 ;; -------------------------------------------------------------------
+
+(use-package org-roam :ensure t
+  :custom
+  (org-roam-directory (file-truename org-directory))
+  :config
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode))
 
 (use-package pdf-tools :ensure t)
 
@@ -1315,6 +1369,12 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
    org-msg-convert-citation t))
 
 ;; -------------------------------------------------------------------
+;; Other
+;; -------------------------------------------------------------------
+
+(use-package csv-mode :ensure t)
+
+;; -------------------------------------------------------------------
 ;; Appearance
 ;; -------------------------------------------------------------------
 
@@ -1345,9 +1405,17 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (unless (server-running-p) (server-start)))
 
 (use-package org :ensure nil
+  :config
+  (add-to-list 'org-export-backends 'md)
   :custom
   (org-export-headline-levels 5)
   (org-startup-indented t))
+
+;; Use a better system to ensure buffer names are unique, vs like
+;; mod.rs <1> and so on.
+(use-package uniquify :ensure nil
+  :config
+  (setq uniquify-buffer-name-style 'forward))
 
 ;; Emacs settings
 (use-package emacs :ensure nil

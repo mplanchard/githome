@@ -14,6 +14,7 @@ linux/.config/fontconfig/conf.d/*-hm-default-fonts.conf
 **/.gnupg/
 **/.ssh/
 !**/.ssh/config
+nixos/secrets.nix
 
 # Tool-related stuff that can have keys
 **/.aws/

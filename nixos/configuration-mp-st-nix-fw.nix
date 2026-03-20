@@ -30,6 +30,7 @@
 
   # Set your time zone.
   time.timeZone = "America/New_York";
+  # time.timeZone = "America/Chicago";
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -226,7 +227,7 @@
   };
 
   # List services that you want to enable:
-
+  services.flatpak.enable = true;
   services.pcscd.enable = true;
 
   virtualisation.docker.enable = true;
