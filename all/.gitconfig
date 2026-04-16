@@ -44,6 +44,7 @@
 [tag]
     sort = -version:refname
 [diff]
+    external = difft
     # Better diff algorithm
     algorithm = histogram
     # Better coloration of moved lines

@@ -1,39 +1,47 @@
-{ hmConfig, pkgs, ... }:
+{ pkgs, unstable, ... }:
 
-hmConfig // {
-  home = hmConfig.home or {} // {
-    packages = with pkgs; hmConfig . home.packages or [] ++ [
-      (callPackage ../pkgs/nnd.nix { })
+{
+  home = {
+    packages = with pkgs; [
+      # (callPackage ../pkgs/nnd.nix { })
+      appimage-run
+      dmidecode
       gnupg
       # krita
       # libreoffice
+      libinput-gestures
       maestral-gui
       powertop
       tlp # power management
+      unstable.signal-desktop
+      xdg-utils
+      xorg.xev
+      zulip
     ];
   };
   # Custom services
-  systemd.user.services = hmConfig.systemd.user.services or {} // {
-    # dropbox = {
-    #   Install = {
-    #     WantedBy = [ "graphical-session.target" ];
-    #   };
-    #   Unit = {
-    #     Description = "dropbox";
-    #   };
-    #   Service = {
-    #     ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
-    #     ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
-    #     KillMode = "control-group"; # upstream recommends process
-    #     Restart = "on-failure";
-    #     PrivateTmp = true;
-    #     ProtectSystem = "full";
-    #     Nice = 10;
-    #   };
-    # };
-  };
-  services = hmConfig.services or {} // {
-    # emacs = { enable = true; };
+  # systemd.user.services = hmConfig.systemd.user.services or {} // {
+  #   # dropbox = {
+  #   #   Install = {
+  #   #     WantedBy = [ "graphical-session.target" ];
+  #   #   };
+  #   #   Unit = {
+  #   #     Description = "dropbox";
+  #   #   };
+  #   #   Service = {
+  #   #     ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
+  #   #     ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
+  #   #     KillMode = "control-group"; # upstream recommends process
+  #   #     Restart = "on-failure";
+  #   #     PrivateTmp = true;
+  #   #     ProtectSystem = "full";
+  #   #     Nice = 10;
+  #   #   };
+  #   # };
+  # };
+
+  services = {
+    # dropbox.enable = true;
     gpg-agent = {
       enable = true;
       defaultCacheTtl = 43200;  # 12 hours

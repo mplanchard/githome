@@ -1,10 +1,9 @@
-{ hmConfig, pkgs, unstable, ... }:
+{ pkgs, unstable, ... }:
 
 with pkgs.lib.debug;
 # Email configuration.
-hmConfig // {
-
-  programs = hmConfig . programs or {} // {
+{
+  programs = {
     mbsync = {
       enable = true;
     };
@@ -59,6 +58,13 @@ hmConfig // {
     };
   };
 
+  services = {
+    mbsync = {
+      enable = true;
+      postExec = "${pkgs.mu}/bin/mu index";
+    };
+  };
+
   # accounts.email.accounts.protonmail = {
   #   address = "inbox@mplanchard.com";
   #   maildir.path = "protonmail";
@@ -70,11 +76,4 @@ hmConfig // {
   #     expunge = "both";
   #   };
   # };
-} // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-  services = hmConfig . services or {} // {
-    mbsync = {
-      enable = true;
-      postExec = "${pkgs.mu}/bin/mu index";
-    };
-  };
 }

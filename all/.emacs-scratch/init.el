@@ -270,11 +270,28 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
         (my/popterm-hide)
       (my/popterm-show))))
 
+(defun my/reverse-region (beg end)
+ "Reverse characters between BEG and END."
+ (interactive "r")
+ (let ((region (buffer-substring beg end)))
+   (delete-region beg end)
+   (insert (nreverse region))))
+
 (defun my/restart-server ()
   "Restart the Emacs server, forcing it to be associated with the current process."
   (interactive)
   (when (server-running-p) (server-force-delete))
   (server-start))
+
+(defun zone-choose (pgm)
+  "Choose a PGM to run for `zone'."
+  (interactive
+   (list
+    (completing-read
+     "Program: "
+     (mapcar 'symbol-name zone-programs))))
+  (let ((zone-programs (vector (intern pgm))))
+    (zone)))
 
 ;; --------------------------------------------------------------------------------
 ;; ELPACA INSTALL
@@ -289,16 +306,16 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; (if (my/nixos-p)
 ;;     (setq elpaca-core-date (list (my/nixos/get-emacs-build-date))))
 
-;; Everything from here is copied directly from the elpaca readme.
-(defvar elpaca-installer-version 0.11)
+;; Everything here is copied directly from elpaca README.
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
                               :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
        (default-directory repo))
@@ -846,6 +863,53 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (prog-mode . global-diff-hl-mode)
   (emacs-startup . global-diff-hl-mode))
 
+(use-package difftastic :ensure t
+  :config
+  (difftastic-bindings-mode)
+  (general-evil-define-key '(normal visual motion) 'difftastic-mode-map
+    "<tab>" #'difftastic-toggle-chunk
+    "C-j" #'difftastic-next-chunk
+    "C-k" #'difftastic-previous-chunk
+    "C-n" #'difftastic-next-file
+    "C-p" #'difftastic-previous-file
+    "r" #'difftastic-rerun
+    "C-]" #'forward-sexp
+    "C-[" #'backward-sexp))
+
+;; -------------------------------------------------------------------
+;; Infrastructure
+;; -------------------------------------------------------------------
+
+;; /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+;; (setq tramp-own-remo)
+
+;; (use-package tramp)
+
+;; (use-package inheritenv :ensure t)
+
+
+;; (use-package kubernetes :ensure t
+;;   :after inheritenv
+;;   :config
+;;   (add-to-list 'envrc-supported-tramp-methods "kubernetes")
+;;   (inheritenv-add-advice #'kubernetes-tramp-find-file)
+;;   (inheritenv-add-advice #'kubernetes-tramp-dired)
+;;   (inheritenv-add-advice #'kubernetes-overview)
+;;   (inheritenv-add-advice #'kubernetes-kubectl)
+;;   (inheritenv-add-advice #'kubernetes-kubectl-await)
+;;   (inheritenv-add-advice #'kubernetes-kubectl-await-command)
+;;   (inheritenv-add-advice #'kubernetes-kubectl-await-on-async)
+;;   ;; :hook
+;;   ;; (kubernetes-mode
+;;   ;;  . (lambda ()
+;;   ;;      (setenv "AWS_PROFILE" (or (getenv "AWS_PROFILE") "mfa"))
+;;   ;;      (setenv "PATH" (getenv "PATH"))
+;;   ;;      (envrc-allow)
+;;   ;;      (setq kubernetes-kubectl-executable (or (executable-find "kubectl") "kubectl"))
+;;   ;;      (setq tramp-kubernetes-program (or (executable-find "kubectl") "kubectl"))))
+;;   )
+;; (use-package kubernetes-evil :ensure t :after kubernetes)
+
 ;; -------------------------------------------------------------------
 ;; Programming
 ;; -------------------------------------------------------------------
@@ -858,7 +922,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package editorconfig :ensure t
   :config
-  (editorconfig-mode 1))
+  (editorconfig-mode))
 
 (use-package prettier-js :ensure t)
 
@@ -875,12 +939,13 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package sideline :ensure t
   :hook ((flymake-mode . sideline-mode)
          (flycheck-mode . sideline-mode))
-  :config
-  (setq sideline-backends-right '(sideline-flycheck sideline-flymake)
+  :init
+  (setq sideline-backends-right '(sideline-flymake)
         sideline-truncate t))
 
 (use-package sideline-flycheck :ensure t
   :hook (flycheck-mode . sideline-flycheck-setup))
+
 (use-package sideline-flymake :ensure t)
 
 (use-package string-inflection :ensure t)
@@ -897,36 +962,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
   :hook
   (rustic-compilation-mode . (lambda () (display-line-numbers-mode -1)))
-  ;; fix jumping to test errors and go-to-error in test output.
-  ;; reported as bug here: https://github.com/brotzeit/rustic/issues/573
-  ;; (rustic-cargo-test-mode
-  ;;  . (lambda ()
-  ;;      (add-to-list 'compilation-error-regexp-alist
-  ;;                   `(,(rx "thread '"
-  ;;                          (one-or-more (not "'"))
-  ;;                          "' panicked at "
-  ;;                          (group (one-or-more not-newline))
-  ;;                          ":"
-  ;;                          (group (one-or-more digit))
-  ;;                          ":"
-  ;;                          (group (one-or-more digit)))
-  ;;                     1 2 3))
-  ;;      (add-to-list 'compilation-error-regexp-alist
-  ;;                   `(,(rx "--> "
-  ;;                          (group (one-or-more (not ":")))
-  ;;                          ":"
-  ;;                          (group (one-or-more digit))
-  ;;                          ":"
-  ;;                          (group (one-or-more digit)))
-  ;;                     1 2 3))))https://gitlab.com/spectrust-inc/spec-protect/-/blob/dev/platform/integration-station/src/client/mod.rs#L28
   (rustic-mode . (lambda () (set-fill-column 80)))
 
-  :custom
-  (rustic-lsp-client 'eglot)
-  (rustic-lsp-setup-p nil)
-  (rustic-compile-directory-method #'rustic-buffer-workspace)
-  (rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets")
-  (rustic-format-trigger 'on-compile)
   ;; derive the underlying rust-mode that backs rustic-mode from rust-ts-mode
   ;; note: currently seems to break "current test" determination
   ;; (rust-mode-treesitter-derive t)
@@ -938,9 +975,22 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   ;; eglot, since eglot is built in and rustic is deferred), this can
   ;; wind up at the front of the eglot config list, ahead of custom
   ;; config. So, delete it.
-  (setq eglot-server-programs
-        (cl-remove '(rustic-mode :language-id "rust") eglot-server-programs
-                   :test 'equal :key 'car))
+  (setq
+   rustic-lsp-client 'eglot
+   rustic-lsp-setup-p nil
+   rustic-compile-directory-method #'rustic-buffer-workspace
+   rustic-default-clippy-arguments "--workspace --benches --tests --all-features --all-targets"
+   rustic-format-trigger 'on-compile
+   eglot-server-programs (cl-remove
+                          '(rustic-mode :language-id "rust")
+                          eglot-server-programs
+                          :test 'equal
+                          :key 'car)
+  ;; Fix jumping to test errors and go-to-error in test output.
+  ;; See PR here: https://github.com/emacs-rustic/rustic/pull/126
+   rustic-compilation-panic '("thread '[^']+'\\(?: ([0-9]+)\\)? panicked at \\([^\n]+\\):\\([0-9]+\\):\\([0-9]+\\):"
+                              1 2 3)
+   rustic-format-on-save nil)
 
   (defun my/rustic-call-in-crate-ctx (cmd)
     "Call CMD in the crate context rather than the workspace context."
@@ -951,8 +1001,6 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
       ;; interactive call.
       (ignore rustic-compile-directory-method)
       (call-interactively cmd)))
-
-  (setq rustic-format-on-save nil)
 
   ;; rust keybindings
   ;; main map
@@ -1020,7 +1068,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package svelte-mode :ensure t)
 
-(use-package flymake-eslint :ensure t)
+;; (use-package flymake-eslint :ensure t)
 
 (use-package shfmt :ensure t)
 
@@ -1073,7 +1121,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
               :after (lambda () (evil-force-normal-state))
               '((name . "citre-force-normal-mode"))))
 
-(use-package consult-eglot :after consult :ensure t)
+(use-package consult-eglot :ensure t
+  :after (consult eglot))
 
 (use-package breadcrumb :ensure t
   :defer t
@@ -1083,12 +1132,12 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (defvar-local my/eglot-format-p t
   "Whether to use eglot for automatic formatting.")
 
-;; upgrade internal package as dep of dev eglot
-(use-package eldoc :ensure t
+(use-package eldoc :ensure nil
   :custom
   (eldoc-echo-area-use-multiline-p 10))
-(use-package jsonrpc :ensure t)
-(use-package eglot :ensure t
+
+;; (use-package flymake :ensure t)
+(use-package eglot :ensure nil
   :after (general evil citre)
   :custom
   (eglot-report-progress t)
@@ -1133,7 +1182,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
   (general-def eglot-mode-map
     ;; replace general-purpose find-def and find-ref commmands with
-    ;; LSP versimns
+    ;; LSP versions
     [remap xref-find-definitions] #'citre-peek
     [remap xref-find-references] #'citre-peek-reference))
 
@@ -1149,7 +1198,11 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package eglot-booster
   :ensure (:type git :host github :repo "jdtsmith/eglot-booster")
   :after eglot
-  :config (eglot-booster-mode))
+  :config
+  ;; (eglot-booster-mode)
+  ;; See https://github.com/blahgeek/emacs-lsp-booster/issues/43
+  ;; and https://github.com/jdtsmith/eglot-booster?tab=readme-ov-file#io-only
+  (setq eglot-booster-io-only t))
 
 ;; syntactic folding for treesitter-derived modes
 (use-package treesit-fold
@@ -1210,29 +1263,29 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
       my--anthropic-api-key
     (setq my--anthropic-api-key (auth-source-pick-first-password :host "api.anthropic.com"))))
 
-(use-package gptel :ensure t
-  :config
-  ;; (setq
-  ;;  gptel-model 'mistral-nemo:latest
-  ;;  gptel-backend (gptel-make-ollama
-  ;;                 "Ollama"
-  ;;                 :host "localhost:11434"
-  ;;                 :stream t
-  ;;                 :models '(mistral-nemo:latest)))
-  )
+;; (use-package gptel :ensure t
+;;   :config
+;;   ;; (setq
+;;   ;;  gptel-model 'mistral-nemo:latest
+;;   ;;  gptel-backend (gptel-make-ollama
+;;   ;;                 "Ollama"
+;;   ;;                 :host "localhost:11434"
+;;   ;;                 :stream t
+;;   ;;                 :models '(mistral-nemo:latest)))
+;;   )
 
-(use-package aider :ensure t
-  :config
-  (setenv "OPENAI_API_KEY" (my/get-openai-api-key))
-  (setenv "ANTHROPIC_API_KEY" (my/get-anthropic-api-key))
-  (aider-magit-setup-transients)
-  (global-set-key (kbd "C-c a") 'aider-transient-menu)
-  (general-def aider-comint-mode-map
-    :states '(normal visual motion)
-    "SPC" nil)
-  (general-def aider-prompt-mode-map
-    :states '(normal visual motion)
-    "SPC" nil))
+;; (use-package aider :ensure t
+;;   :config
+;;   (setenv "OPENAI_API_KEY" (my/get-openai-api-key))
+;;   (setenv "ANTHROPIC_API_KEY" (my/get-anthropic-api-key))
+;;   (aider-magit-setup-transients)
+;;   (global-set-key (kbd "C-c a") 'aider-transient-menu)
+;;   (general-def aider-comint-mode-map
+;;     :states '(normal visual motion)
+;;     "SPC" nil)
+;;   (general-def aider-prompt-mode-map
+;;     :states '(normal visual motion)
+;;     "SPC" nil))
 
 (use-package chatgpt-shell :ensure t
   :config
@@ -1244,7 +1297,6 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package agent-shell :ensure t
   :config
   (setq
-   agent-shell-anthropic-claude-acp-command '("claude-code-acp")
    agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
    agent-shell-anthropic-claude-environment
         (agent-shell-make-environment-variables :inherit-env t)))
@@ -1311,6 +1363,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;;  C-c C-s (or whatever binding you used for save-buffer)
 ;;      to save the buffer at the current undo state
 (use-package vundo :ensure t)
+
+;; treesitter-supported expand-region
+(use-package expreg :ensure t)
 
 ;; -------------------------------------------------------------------
 ;; Email
@@ -1383,6 +1438,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package modus-themes :ensure t)
 (use-package zenburn-theme :ensure t)
 
+;; (use-package doom-modeline :ensure t
+;;   :init (doom-modeline-mode 1))
+
 ;; -------------------------------------------------------------------
 ;; Emacs Config
 ;; -------------------------------------------------------------------
@@ -1419,7 +1477,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 ;; Emacs settings
 (use-package emacs :ensure nil
-  :after (gruvbox)
+  :after (gruvbox-theme modus-themes)
   :custom
   ;; relative line numbers
   (display-line-numbers-type 'relative)
@@ -1497,12 +1555,12 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
         undo-strong-limit 100663296 ;; 96 mb
         undo-outer-limit 1006632960) ;; 960 mb
 
-  (load-theme 'gruvbox-dark-hard t)
+  (load-theme 'modus-vivendi-deuteranopia t)
   ;; font settings
   ;; top fonts: codenewroman, hasklug, comicshans
   (set-frame-font "SauceCodePro Nerd Font" nil t)
   ;; height is x10 of usual font size
-  (set-face-attribute 'default nil :height 140)
+  (set-face-attribute 'default nil :height 130)
   ;; turn off the toolbar
   (tool-bar-mode -1)
   ;; save minibuffer history

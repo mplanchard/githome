@@ -12,6 +12,7 @@
   # a program's config, use it as`programs.whatever` or `services.whatever`.
   # If you just want it available, stick it in packages.
   programs = {
+    home-manager.enable = true;
     alacritty = {
       enable = true;
       settings = {
@@ -76,6 +77,7 @@
         export ANTHROPIC_API_KEY=$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')
         export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
         export CROWDSTRIKE_CID="$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
+        export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine cachix\.com/ { print $NF }')"
         set_profile() {
             export AWS_PROFILE="$1"
         }
@@ -110,6 +112,7 @@
           set -gx ANTHROPIC_API_KEY "$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')"
           set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
           set -gx CROWDSTRIKE_CID "$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
+          set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine cachix\.com/ { print $NF }')"
         end
         set -gx EDITOR "emacsclient"
         # Setting this env var to the empty string makes it so that emacs
@@ -209,8 +212,9 @@
 
     # Always install ssh
     ssh = {
+      enableDefaultConfig = true;
       enable = true;
-      serverAliveInterval = 60;
+      # serverAliveInterval = 60;
       matchBlocks = {
         "gitlab" = {
           host = "gitlab.com";
@@ -285,14 +289,15 @@
     (aspellWithDicts (dicts: with dicts; [ en en-computers en-science ]))
     bottom
     cachix
+    unstable.claude-agent-acp
     unstable.claude-code
-    unstable.claude-code-acp
     # cargo
     chromium
     cmake
     coreutils
     curl
     delta
+    unstable.difftastic
     discord
     # direnv
     # element-desktop
@@ -314,9 +319,9 @@
     hack-font
     html-tidy
     htop
-    (hunspellWithDicts [
-      hunspellDicts.en_US-large
-    ])
+    (hunspell.withDicts (dicts: [
+      dicts.en_US-large
+    ]))
     unstable.iosevka-comfy.comfy
     unstable.iosevka-comfy.comfy-motion
     unstable.iosevka-comfy.comfy-motion-fixed
@@ -348,13 +353,14 @@
     openssh
     pandoc
     pass
-    pinentry
+    # pinentry
     # pinentry-curses
+    pinentry-gnome3
     procps
-    python3Full
+    python3Minimal
     ripgrep
     # rnix-lsp
-    rustup
+    # rustup
     scheme-manpages
     shellcheck
     slack
@@ -372,7 +378,8 @@
     yarn
     # unstable.zed-editor
     zip
-    previous.zoom-us
+    # previous.zoom-us
+    zoom-us
 
     (makeDesktopItem {
       name = "org-protocol";
@@ -386,23 +393,25 @@
       categories = [ "System" ];
     })
   ];
-} // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-  services = {
-    # emacs = { enable = true; };
-    gpg-agent = {
-      enable = true;
-      defaultCacheTtl = 43200;  # 12 hours
-      defaultCacheTtlSsh = 43200;
-      maxCacheTtl = 43200;
-      maxCacheTtlSsh = 43200;
-      enableSshSupport = true;
-      pinentry.package = pkgs.pinentry-gnome3;
-      # extraConfig = ''
-      #   allow-emacs-pinentry
-      #   allow-loopback-pinentry
-      #   pinentry-program /etc/profiles/per-user/matthew/bin/pinentry
-      # '';
-      # pinentryFlavor = "gnome3";
-    };
-  };
 }
+# // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+#   services = {
+#     dropbox.enable = true;
+#     # emacs = { enable = true; };
+#     gpg-agent = {
+#       enable = true;
+#       defaultCacheTtl = 43200;  # 12 hours
+#       defaultCacheTtlSsh = 43200;
+#       maxCacheTtl = 43200;
+#       maxCacheTtlSsh = 43200;
+#       enableSshSupport = true;
+#       pinentry.package = pkgs.pinentry-gnome3;
+#       # extraConfig = ''
+#       #   allow-emacs-pinentry
+#       #   allow-loopback-pinentry
+#       #   pinentry-program /etc/profiles/per-user/matthew/bin/pinentry
+#       # '';
+#       # pinentryFlavor = "gnome3";
+#     };
+#   };
+# }

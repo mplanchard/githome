@@ -69,8 +69,8 @@
   };
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -103,13 +103,13 @@
   '';
 
   # https://manpages.debian.org/testing/systemd/logind.conf.5.en.html
-  services.logind.extraConfig = ''
-    HandleSuspendKey=suspend-then-hibernate
-    HandleLidSwitch=suspend-then-hibernate
-    HandleLidSwitchExternalPower=suspend-then-hibernate
-    IdleAction=suspend-then-hibernate
-    SleepOperation=suspend-then-hibernate hybrid-sleep suspend hibernate
-  '';
+  services.logind.settings.Login = {
+    HandleSuspendKey = "suspend-then-hibernate";
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleLidSwitchExternalPower = "suspend-then-hibernate";
+    IdleAction = "suspend-then-hibernate";
+    SleepOperation = "suspend-then-hibernate hybrid-sleep suspend hibernate";
+  };
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;

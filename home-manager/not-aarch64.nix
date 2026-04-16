@@ -1,32 +1,20 @@
-{ hmConfig, pkgs, unstable, ... }:
+{ pkgs, unstable, ... }:
 
-hmConfig // {
-  programs = hmConfig . programs or {} // {
-    # firefox = {
-    #   enable = true;
-    # };
-
+{
+  programs = {
     nix-index = {
       enable = true;
-      # Enable once I get bash config into home manager
       enableBashIntegration = true;
       enableZshIntegration = true;
     };
   };
 
-  home = hmConfig . home or {} // {
-    packages = with pkgs; hmConfig . home.packages or [] ++ [
+  home = {
+    packages = with pkgs; [
       unstable._1password-cli
       unstable._1password-gui
-      appimage-run
-      dmidecode
-      dropbox
-      libinput-gestures
+      # dropbox
       niv
-      unstable.signal-desktop
-      xdg-utils
-      xorg.xev
-      zulip
     ];
   };
 

@@ -1,8 +1,19 @@
 {
   description = "System config";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://niri.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
+    ];
+  };
+
   inputs = {
-    nixpkgs.url = "nixpkgs/release-25.05";
+    nixpkgs.url = "nixpkgs/release-25.11";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     nixpkgs-previous.url = "nixpkgs/release-24.05";
 
@@ -10,7 +21,7 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
 
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin.url = "github:LnL7/nix-darwin";
@@ -19,6 +30,19 @@
     # niri (tiling WM)
     niri.url = "github:sodiboo/niri-flake";
     niri.inputs.nixpkgs.follows = "nixpkgs";
+    stasis.url = "github:saltnpepper97/stasis";
+    stasis.inputs.nixpkgs.follows = "nixpkgs";
+
+    # "dank" material shell, wayland desktop shell
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # Necessary package for dms
+    dgop = {
+      url = "github:AvengeMedia/dgop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # standard, device-specific hardware tweaks
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
@@ -38,6 +62,7 @@
       nixpkgs-unstable,
       nixpkgs-previous,
       niri,
+      stasis,
       ...
   }:
     let
@@ -84,15 +109,15 @@
 
       combineHomeManagerModules = pkgs: unstable: previous: modules:
         pkgs.lib.foldl
-          (config: module: module { inherit pkgs unstable previous; hmConfig = config; })
-          ((pkgs.lib.head modules) { inherit pkgs unstable previous; })
+          (config: module: pkgs.callPackage module { inherit unstable previous; hmConfig = config; })
+          (pkgs.callPackage (pkgs.lib.head modules) { inherit pkgs unstable previous; })
           (pkgs.lib.tail modules);
 
     in
     rec {
       packages.x86_64-linux.secureframe-agent = pkgs.x86_64-linux.callPackage (import ./nixos/secureframe-agent) { };
 
-      packages.x86_64-linux.nnd = pkgs.x86_64-linux.callPackage ./pkgs/nnd.nix { };
+      # packages.x86_64-linux.nnd = pkgs.x86_64-linux.callPackage ./pkgs/nnd.nix { };
 
       x86-linux-gnome =
         let
@@ -167,35 +192,10 @@
         };
       };
 
-      homeConfigurations = {
-        "matthew@mp-st-nix-fw" =
-        let
-          system = "x86_64-linux";
-          systemPkgs = pkgs.x86_64-linux;
-          systemUnstable = unstable.x86_64-linux;
-          systemPrevious = previous.x86_64-linux;
-        in
-        rec {
-          homeManagerConfig = combineHomeManagerModules systemPkgs systemUnstable systemPrevious [
-            (import ./home-manager/base.nix)
-            (import ./home-manager/linux.nix)
-            (import ./home-manager/not-aarch64.nix)
-            (import ./home-manager/email.nix)
-            (import ./home-manager/gnome.nix)
-          ];
-
-          homeManager = (home-manager.lib.homeManagerConfiguration  {
-              # inherit system;
-              pkgs = systemPkgs;
-              configuration = homeManagerConfig;
-              modules = [
-                ({...}: homeManagerConfig)
-                # niri.homeModules.config
-                # ./home-manager/niri.nix
-              ];
-            });
-        }.homeManager;
-      };
+      # homeConfigurations = {
+      #   "matthew@mp-st-nix-fw" = home-manager.lib.homeManagerConfiguration {
+      #   }
+      # };
       nixosConfigurations = {
         mp-st-nix-fw = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
@@ -204,24 +204,27 @@
             ./nixos/configuration-mp-st-nix-fw.nix
             nixos-hardware.nixosModules.framework-13th-gen-intel
             ./nixos/crowdstrike-falcon-sensor/module.nix
-            # ./nixos/secureframe-agent/module.nix
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-            }
-            {
-              home-manager.users.matthew = x86-linux-gnome.homeManagerConfig;
-            }
-            {
-              home-manager.users.matthew = (import ./home-manager/niri.nix);
+              home-manager.users.matthew = ./home-manager/mp-st-nix-fw.nix;
+              home-manager.extraSpecialArgs = {
+                inherit inputs;
+                unstable = unstable.x86_64-linux;
+                previous = previous.x86_64-linux;
+              };
             }
             niri.nixosModules.niri
+            # stasis.nixosModules.stasis
             ({pkgs, ...}: {
-              nixpkgs.overlays = [ niri.overlays.niri ];
+              # nixpkgs.overlays = [ niri.overlays.niri ];
+              security.pam.services.swaylock = {};
+              programs.niri.package = pkgs.niri;
               programs.niri.enable = true;
               environment.variables.NIXOS_OZONE_WL = "1";
               environment.systemPackages = with pkgs; [
+                swaylock
                 wl-clipboard
                 wayland-utils
                 xwayland-satellite
