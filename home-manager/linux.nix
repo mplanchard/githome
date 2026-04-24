@@ -10,6 +10,7 @@
       # krita
       # libreoffice
       libinput-gestures
+      maestral
       maestral-gui
       powertop
       tlp # power management
@@ -18,6 +19,24 @@
       xorg.xev
       zulip
     ];
+  };
+
+  systemd.user.services = {
+    maestral = {
+      Install = {
+        WantedBy = ["default.target"];
+      };
+      Unit = {
+        Description = "maestral";
+      };
+      Service = {
+        Type = "notify";
+        NotifyAccess = "exec";
+        ExecStart = "${pkgs.maestral}/bin/maestral start -f";
+        ExecStop = "${pkgs.maestral}/bin/maestral stop";
+        WatchDogSec = "30s";
+      };
+    };
   };
   # Custom services
   # systemd.user.services = hmConfig.systemd.user.services or {} // {

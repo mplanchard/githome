@@ -29,167 +29,176 @@
       includes = {
         enable = true;
         override = false;
+        filesToInclude = [
+          "alttab"
+          "binds"
+          "colors"
+          "cursor"
+          "layout"
+          "outputs"
+          "wpblur"
+        ];
       };
       # enableSpawn = true;
     };
   };
-#   services.stasis = {
-#     enable = true;
-#     extraPathPackages = with pkgs; [
-#       brightnessctl
-#       niri
-#       swaylock
-#     ];
-#     extraConfig = ''
-#       @author "Dustin Pilgrim"
-#       @description "Lightweight feature packed idle manager for Wayland"
+  #   services.stasis = {
+  #     enable = true;
+  #     extraPathPackages = with pkgs; [
+  #       brightnessctl
+  #       niri
+  #       swaylock
+  #     ];
+  #     extraConfig = ''
+  #       @author "Dustin Pilgrim"
+  #       @description "Lightweight feature packed idle manager for Wayland"
 
-#       # Semantics:
-#       # - Everything lives under `default:` (and optional profile blocks).
-#       # - On laptops, Stasis chooses between:
-#       #     `default.ac:` and `default.battery:`
-#       #   depending on current power source.
-#       # - Lid actions live under `default:` (globals) so they apply on BOTH AC and Battery
-#       #   unless a profile overlays/clears them.
+  #       # Semantics:
+  #       # - Everything lives under `default:` (and optional profile blocks).
+  #       # - On laptops, Stasis chooses between:
+  #       #     `default.ac:` and `default.battery:`
+  #       #   depending on current power source.
+  #       # - Lid actions live under `default:` (globals) so they apply on BOTH AC and Battery
+  #       #   unless a profile overlays/clears them.
 
-#       default:
-#         # Optional: listen for loginctl lock/unlock-session signals (default false)
-#         # NOTE: this only updates internal state when lock/unlock signals are received;
-#         # it does not actually run your locker command.
-#         #enable_loginctl true
+  #       default:
+  #         # Optional: listen for loginctl lock/unlock-session signals (default false)
+  #         # NOTE: this only updates internal state when lock/unlock signals are received;
+  #         # it does not actually run your locker command.
+  #         #enable_loginctl true
 
-#         # Optional: listen for session D-Bus inhibit traffic (default true).
-#         # This gate is not browser-only: browsers, Steam, and other desktop apps can
-#         # request inhibit through standard D-Bus/portal paths.
-#         # Browser/media-tab inhibit lives here, not under monitor_media.
-#         # Disable this only if you explicitly do not want D-Bus inhibit requests
-#         # to pause idle progression.
-#         #enable_dbus_inhibit false
+  #         # Optional: listen for session D-Bus inhibit traffic (default true).
+  #         # This gate is not browser-only: browsers, Steam, and other desktop apps can
+  #         # request inhibit through standard D-Bus/portal paths.
+  #         # Browser/media-tab inhibit lives here, not under monitor_media.
+  #         # Disable this only if you explicitly do not want D-Bus inhibit requests
+  #         # to pause idle progression.
+  #         #enable_dbus_inhibit false
 
-#         # Optional: run before suspending (hook).
-#         #
-#         # Behavior:
-#         # - This command runs RIGHT BEFORE the suspend step, and Stasis currently WAITS
-#         #   for it to exit before continuing to suspend.
-#         # - Therefore, a foreground screen locker (e.g. `swaylock -F`, `hyprlock`) will
-#         #   BLOCK suspend unless it daemonizes / returns quickly.
-#         # - Also: do NOT run your locker BOTH here and in `lock_screen.command`.
-#         #   If you already have a lock step, leave `pre_suspend_command` unset.
-#         #
-#         # Good uses:
-#         #   pre_suspend_command "sync"
-#         #   pre_suspend_command "~/.local/bin/my-pre-sleep-hook"
-#         #
-#         # If you do NOT have a lock step and you want "lock right before suspend",
-#         # use a locker that exits immediately (daemon/background), e.g. via a wrapper script.
-#         #pre_suspend_command "sync"
+  #         # Optional: run before suspending (hook).
+  #         #
+  #         # Behavior:
+  #         # - This command runs RIGHT BEFORE the suspend step, and Stasis currently WAITS
+  #         #   for it to exit before continuing to suspend.
+  #         # - Therefore, a foreground screen locker (e.g. `swaylock -F`, `hyprlock`) will
+  #         #   BLOCK suspend unless it daemonizes / returns quickly.
+  #         # - Also: do NOT run your locker BOTH here and in `lock_screen.command`.
+  #         #   If you already have a lock step, leave `pre_suspend_command` unset.
+  #         #
+  #         # Good uses:
+  #         #   pre_suspend_command "sync"
+  #         #   pre_suspend_command "~/.local/bin/my-pre-sleep-hook"
+  #         #
+  #         # If you do NOT have a lock step and you want "lock right before suspend",
+  #         # use a locker that exits immediately (daemon/background), e.g. via a wrapper script.
+  #         #pre_suspend_command "sync"
 
-#         # Non-browser media/audio inhibit only. Browser/media-tab inhibit is handled
-#         # by enable_dbus_inhibit above.
-#         monitor_media true
-#         ignore_remote_media true # ignore remote players (spotify/kdeconnect/etc.)
+  #         # Non-browser media/audio inhibit only. Browser/media-tab inhibit is handled
+  #         # by enable_dbus_inhibit above.
+  #         monitor_media true
+  #         ignore_remote_media true # ignore remote players (spotify/kdeconnect/etc.)
 
-#         # Optional: ignore these media sources for media inhibit (case-insensitive)
-#         #media_blacklist ["spotify"]
+  #         # Optional: ignore these media sources for media inhibit (case-insensitive)
+  #         #media_blacklist ["spotify"]
 
-#         # Debounce window in seconds before starting the plan (default 0)
-#         #debounce_seconds 4
+  #         # Debounce window in seconds before starting the plan (default 0)
+  #         #debounce_seconds 4
 
-#         # Notify when resuming from IPC pause (e.g., `stasis pause 1h`)
-#         #notify_on_unpause true
+  #         # Notify when resuming from IPC pause (e.g., `stasis pause 1h`)
+  #         #notify_on_unpause true
 
-#         # Global gate: notifications before steps only happen if this is true
-#         #notify_before_action true
+  #         # Global gate: notifications before steps only happen if this is true
+  #         #notify_before_action true
 
-#         # App/process inhibit patterns (strings or regex literals)
-#         inhibit_apps [
-#           "vlc"
-#           "mpv"
-#           r"steam_app_.*"
-#         ]
+  #         # App/process inhibit patterns (strings or regex literals)
+  #         inhibit_apps [
+  #           "vlc"
+  #           "mpv"
+  #           r"steam_app_.*"
+  #         ]
 
-#         # -----------------------------
-#         # Prepare sleep command
-#         # -----------------------------
-#         # Shell command to run immediately when logind emits PrepareForSleep(true).
-#         # Unlike `pre_suspend_command`, this triggers when sleep is initiated
-#         # externally (e.g., closing lid, systemctl suspend), not by stasis idle plan.
-#         #
-#         # Examples:
-#         #   prepare_sleep_command "swaylock -f"
-#         # -----------------------------
-#         #prepare_sleep_command ""
+  #         # -----------------------------
+  #         # Prepare sleep command
+  #         # -----------------------------
+  #         # Shell command to run immediately when logind emits PrepareForSleep(true).
+  #         # Unlike `pre_suspend_command`, this triggers when sleep is initiated
+  #         # externally (e.g., closing lid, systemctl suspend), not by stasis idle plan.
+  #         #
+  #         # Examples:
+  #         #   prepare_sleep_command "swaylock -f"
+  #         # -----------------------------
+  #         #prepare_sleep_command ""
 
-#         # -----------------------------
-#         # Lid actions (LAPTOP ONLY)
-#         #
-#         # Shell commands run immediately on lid close or open.
-#         # Lid close/open also pause/resume the plan timers regardless.
-#         #
-#         # These are GLOBAL under `default:` so they apply to BOTH `ac:` and `battery:` plans.
-#         # A profile can override them or clear them (set to "").
-#         #
-#         # Examples:
-#         #   lid_close_action "swaylock"
-#         #   lid_open_action  "brightnessctl set 60%"
-#         # -----------------------------
-#         #lid_close_action "swaylock"
-#         #lid_open_action  ""
+  #         # -----------------------------
+  #         # Lid actions (LAPTOP ONLY)
+  #         #
+  #         # Shell commands run immediately on lid close or open.
+  #         # Lid close/open also pause/resume the plan timers regardless.
+  #         #
+  #         # These are GLOBAL under `default:` so they apply to BOTH `ac:` and `battery:` plans.
+  #         # A profile can override them or clear them (set to "").
+  #         #
+  #         # Examples:
+  #         #   lid_close_action "swaylock"
+  #         #   lid_open_action  "brightnessctl set 60%"
+  #         # -----------------------------
+  #         #lid_close_action "swaylock"
+  #         #lid_open_action  ""
 
-#         # Laptop plan: AC power (relaxed)
-#         ac:
-#           brightness:
-#             timeout 300 # 5 minute(s)
-#             command "${pkgs.brightnessctl}/bin/brightnessctl set 50%"
-#           end
+  #         # Laptop plan: AC power (relaxed)
+  #         ac:
+  #           brightness:
+  #             timeout 300 # 5 minute(s)
+  #             command "${pkgs.brightnessctl}/bin/brightnessctl set 50%"
+  #           end
 
-#           dpms:
-#             timeout 120 # 2 minute(s) after brightness
-#             command "${pkgs.niri}/bin/niri msg action power-off-monitors"
-#             resume_command "${pkgs.niri}/bin/niri msg action power-on-monitors"
-#           end
+  #           dpms:
+  #             timeout 120 # 2 minute(s) after brightness
+  #             command "${pkgs.niri}/bin/niri msg action power-off-monitors"
+  #             resume_command "${pkgs.niri}/bin/niri msg action power-on-monitors"
+  #           end
 
-#           lock_screen:
-#             timeout 180 # 3 minute(s) after dpms
-#             command "${pkgs.swaylock}/bin/swaylock"
+  #           lock_screen:
+  #             timeout 180 # 3 minute(s) after dpms
+  #             command "${pkgs.swaylock}/bin/swaylock"
 
-#             # Optional per-step notification:
-#             # notification "Locking session soon"
-#             # notify_seconds_before 15
-#           end
+  #             # Optional per-step notification:
+  #             # notification "Locking session soon"
+  #             # notify_seconds_before 15
+  #           end
 
-#           suspend:
-#             timeout 600 # 10 minute(s) after lock
-#             command "${pkgs.systemd}/bin/systemctl suspend-then-hibernate"
-#           end
-#         end
+  #           suspend:
+  #             timeout 600 # 10 minute(s) after lock
+  #             command "${pkgs.systemd}/bin/systemctl suspend-then-hibernate"
+  #           end
+  #         end
 
-#         # Laptop plan: Battery power (aggressive)
-#         battery:
-#           brightness:
-#             timeout 30 # 1 minute(s)
-#             command "${pkgs.brightnessctl}/bin/brightnessctl set 30%"
-#           end
+  #         # Laptop plan: Battery power (aggressive)
+  #         battery:
+  #           brightness:
+  #             timeout 30 # 1 minute(s)
+  #             command "${pkgs.brightnessctl}/bin/brightnessctl set 30%"
+  #           end
 
-#           dpms:
-#             timeout 30 # 30 second(s) after brightness
-#             command "${pkgs.niri}/bin/niri msg action power-off-monitors"
-#             resume_command "${pkgs.niri}/bin/niri msg action power-on-monitors"
-#           end
+  #           dpms:
+  #             timeout 30 # 30 second(s) after brightness
+  #             command "${pkgs.niri}/bin/niri msg action power-off-monitors"
+  #             resume_command "${pkgs.niri}/bin/niri msg action power-on-monitors"
+  #           end
 
-#           lock_screen:
-#             timeout 30 # 1 minute(s) after dpms
-#             command "${pkgs.swaylock}/bin/swaylock"
-#           end
+  #           lock_screen:
+  #             timeout 30 # 1 minute(s) after dpms
+  #             command "${pkgs.swaylock}/bin/swaylock"
+  #           end
 
-#           suspend:
-#             timeout 120 # 2 minute(s) after lock
-#             command "${pkgs.systemd}/bin/systemctl suspend-then-hibernate"
-#           end
-#         end
-#       end
-# '';
-#  };
+  #           suspend:
+  #             timeout 120 # 2 minute(s) after lock
+  #             command "${pkgs.systemd}/bin/systemctl suspend-then-hibernate"
+  #           end
+  #         end
+  #       end
+  # '';
+  #  };
   home.packages = with pkgs; [
     brightnessctl
     playerctl
@@ -239,6 +248,7 @@
 
   programs.niri.package = pkgs.niri;
   programs.niri.settings = {
+    input.focus-follows-mouse.enable = false;
     input.keyboard.xkb = {
       options = "ctrl:nocaps,altwin:swap_lalt_lwin,compose:rctrl,shift:both_capslock";
     };
@@ -253,7 +263,10 @@
       # { command = ["mako"]; }
     ];
     switch-events = {
-      lid-close.action.spawn = ["systemctl" "suspend-then-hibernate"];
+      lid-close.action.spawn = [
+        "systemctl"
+        "suspend-then-hibernate"
+      ];
     };
     clipboard.disable-primary = true;
     window-rules = [
@@ -268,6 +281,14 @@
             title = "^Picture-in-Picture$";
           }
         ];
+        open-floating = true;
+      }
+      {
+        matches = [ { app-id = "^(zoom|us.zoom.Zoom)$"; } ];
+        open-floating = true;
+      }
+      {
+        matches = [ { app-id = "^Zoom Workplace$"; } ];
         open-floating = true;
       }
     ];
@@ -295,16 +316,16 @@
 
     #     # };
     #   };
-      # shadow.enable = true;
-      # tab-indicator = {
-      #   position = "top";
-      #   gaps-between-tabs = 10;
+    # shadow.enable = true;
+    # tab-indicator = {
+    #   position = "top";
+    #   gaps-between-tabs = 10;
 
-      #   hide-when-single-tab = true;
-      #   # place-within-column = true;
+    #   hide-when-single-tab = true;
+    #   # place-within-column = true;
 
-      #   # active.color = "red";
-      # };
+    #   # active.color = "red";
+    # };
     # };
     binds = {
       "Mod+T".action.spawn = "ghostty";
@@ -324,19 +345,18 @@
 
       "Print".action.screenshot = [ ];
 
-      "Mod+H".action.focus-column-left = [ ];
-      "Mod+L".action.focus-column-right = [ ];
-      "Mod+J".action.focus-window-down = [ ];
-      "Mod+K".action.focus-window-up = [ ];
+      "Mod+H".action.focus-column-or-monitor-left = [ ];
+      "Mod+L".action.focus-column-or-monitor-right = [ ];
+      "Mod+J".action.focus-window-or-workspace-down = [ ];
+      "Mod+K".action.focus-window-or-workspace-up = [ ];
 
-      "Mod+WheelScrollRight".action.focus-column-right = [ ];
-      "Mod+WheelScrollLeft".action.focus-column-left = [ ];
-      "Mod+Ctrl+WheelScrollRight".action.move-column-right = [ ];
-      "Mod+Ctrl+WheelScrollLeft".action.move-column-left = [ ];
+      "Mod+WheelScrollDown".action.focus-window-or-workspace-down = [ ];
+      "Mod+WheelScrollUp".action.focus-window-or-workspace-up = [ ];
+      "Mod+WheelScrollRight".action.focus-column-or-monitor-right = [ ];
+      "Mod+WheelScrollLeft".action.focus-column-or-monitor-left = [ ];
 
       "Mod+Shift+H".action.focus-monitor-left = [ ];
       "Mod+Shift+L".action.focus-monitor-right = [ ];
-
       "Mod+Shift+J".action.focus-workspace-down = [ ];
       "Mod+Shift+K".action.focus-workspace-up = [ ];
       "Mod+Shift+WheelScrollDown" = {
@@ -347,6 +367,9 @@
         action.focus-workspace-up = [ ];
         cooldown-ms = 150;
       };
+
+      "Mod+Ctrl+WheelScrollRight".action.move-column-right-or-to-monitor-right = [ ];
+      "Mod+Ctrl+WheelScrollLeft".action.move-column-left-or-to-monitor-left = [ ];
       "Mod+Ctrl+WheelScrollDown" = {
         action.move-column-to-workspace-down = [ ];
         cooldown-ms = 150;
@@ -355,20 +378,12 @@
         action.move-column-to-workspace-up = [ ];
         cooldown-ms = 150;
       };
-      "Mod+WheelScrollDown" = {
-        action.move-column-to-workspace-down = [ ];
-        cooldown-ms = 150;
-      };
-      "Mod+WheelScrollUp" = {
-        action.move-column-to-workspace-up = [ ];
-        cooldown-ms = 150;
-      };
 
       "Mod+Shift+Ctrl+J".action.move-column-to-workspace-down = [ ];
       "Mod+Shift+Ctrl+K".action.move-column-to-workspace-up = [ ];
 
-      "Mod+Ctrl+H".action.move-column-left = [ ];
-      "Mod+Ctrl+L".action.move-column-right = [ ];
+      "Mod+Ctrl+H".action.move-column-left-or-to-monitor-left = [ ];
+      "Mod+Ctrl+L".action.move-column-right-or-to-monitor-right = [ ];
       "Mod+Ctrl+J".action.move-window-down = [ ];
       "Mod+Ctrl+K".action.move-window-up = [ ];
 

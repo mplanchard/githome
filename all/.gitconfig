@@ -9,9 +9,9 @@
 	signingkey = BA628A8D7DD99FEDDC83C6C93D77D8F065D3570B
 [include]
 	path = ~/.gitconfig.local
-[includeIf "gitdir:~/s/spec/**"]
+[includeIf "gitdir:~/s/spec/"]
 	path = ~/.gitconfig.spectrust
-[includeIf "gitdir:~/s/spec-protect/**"]
+[includeIf "gitdir:~/s/spec-protect/"]
 	path = ~/.gitconfig.spectrust
 [github]
 	user = mplanchard

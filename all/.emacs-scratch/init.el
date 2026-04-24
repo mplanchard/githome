@@ -550,6 +550,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (evil-lookup-func #'helpful-at-point)
   :init
   (setq
+   ;; let me learn emacs bindings
+   evil-disable-insert-state-bindings t
    ;; use emacs' native redo for C-r
    evil-undo-system #'undo-redo
    ;; make C-u scroll rather than use as prefix arg

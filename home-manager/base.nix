@@ -8,6 +8,39 @@
     enable = true;
     nativeMessagingHosts = [ unstable.firefoxpwa ];
   };
+
+  home.file = {
+    pop-wallpapers = {
+      enable = true;
+      recursive = true;
+      source = "${pkgs.pop-wallpapers}/share/backgrounds/pop";
+      target = ".local/share/backgrounds/pop";
+    };
+    elementary-wallpapers = {
+      enable = true;
+      recursive = true;
+      source = "${pkgs.pantheon.elementary-wallpapers}/share/backgrounds";
+      target = ".local/share/backgrounds/elementary";
+    };
+    cosmic-wallpapers = {
+      enable = true;
+      recursive = true;
+      source = "${pkgs.cosmic-wallpapers}/share/backgrounds/cosmic";
+      target = ".local/share/backgrounds/cosmic";
+    };
+    kde-plasma-wallpapers = {
+      enable = true;
+      recursive = true;
+      source = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers";
+      target = ".local/share/backgrounds/plasma";
+    };
+    system76-wallpapers = {
+      enable = true;
+      recursive = true;
+      source = "${pkgs.system76-wallpapers}/share/backgrounds/system76";
+      target = ".local/share/backgrounds/system76";
+    };
+  };
   # The general thing seems to be that if you want home-manager to manage
   # a program's config, use it as`programs.whatever` or `services.whatever`.
   # If you just want it available, stick it in packages.
@@ -380,6 +413,13 @@
     zip
     # previous.zoom-us
     zoom-us
+
+    # Wallpapers
+    pop-wallpapers
+    system76-wallpapers
+    pantheon.elementary-wallpapers
+    cosmic-wallpapers
+    kdePackages.plasma-workspace-wallpapers
 
     (makeDesktopItem {
       name = "org-protocol";
