@@ -235,6 +235,16 @@
             ./nixos/gnome.nix
           ];
         };
+        smol = nixpkgs.lib.nixosSystem rec {
+          system = "x86_64-linux";
+          pkgs = pkgs.${system};
+          modules = [
+            ./nixos/configuration-smol.nix
+            nixos-hardware.nixosModules.common-cpu-intel
+            home-manager.nixosModules.home-manager
+            ./home-manager/smol
+          ];
+        };
         mp-st-nix = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           pkgs = pkgs.x86_64-linux;

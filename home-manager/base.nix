@@ -255,6 +255,11 @@
           user = "git";
           port = 443;
         };
+        "smol" = {
+          host = "smol.local";
+          user = "matthew";
+          port = 2223;
+        };
       };
     };
 
