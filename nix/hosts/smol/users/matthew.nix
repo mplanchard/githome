@@ -1,5 +1,8 @@
 {
-  matthew = {inputs, lib, config, pkgs, ...}: {
+  pkgs,
+  ...
+}:
+{
     home.username = "matthew";
     home.homeDirectory = "/home/matthew";
     home.stateVersion = "25.11";
@@ -11,8 +14,8 @@
       findutils
       gnumake
       neovim
+      protonvpn-gui
       ripgrep
       vim
     ];
-  };
 }

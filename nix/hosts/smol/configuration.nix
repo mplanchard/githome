@@ -5,28 +5,32 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware.nix
+  ];
 
   # Bootloader.
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
   boot.loader.grub.useOSProber = true;
 
-  networking.hostName = "smol"; # Define your hostname.
+  nix.settings = {
+    trusted-users = [ "matthew" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+  };
+
+  services.xscreensaver.enable = false;
+  security.pam.services.xscreensaver.enable = true;
+
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Enable network manager applet
-  programs.nm-applet.enable = true;
 
   # Set your time zone.
   time.timeZone = "America/New_York";
@@ -85,7 +89,10 @@
   users.users.matthew = {
     isNormalUser = true;
     description = "matthew";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     packages = with pkgs; [
       vim
     ];
@@ -95,13 +102,13 @@
   programs.firefox.enable = true;
 
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  # nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -113,22 +120,6 @@
   # };
 
   # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    ports = [ 2223 ];
-    settings = {
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-      PermitRootLogin = "no";
-      AllowUsers = ["matthew"];
-    };
-  };
-  services.fail2ban.enable = true;
-  users.users.matthew.openssh.authorizedKeys.keys = [
-    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCw9k/MbnhjNCv5xDyP810yiMQZyIyppuFq1SnROj2mYNx7onrOAULc12YeT0MZfoLuaZAGN/BiEZHp41XBmfH+q7lsH1dG2jHNNYxUdAzezLpepkxJsWQGCgjvFWbQiF5WYI0bz/OFs+aaa7bUMjXrYbEiaVMAy+ZJYPqnBywaFKk2PwMJEYF/I+OUoDQi2MRPRXkg4PnCL9OT6tFLI+ljRiaCTDEK5ksuzjX+L5ReBjNFB0EvOtWEDV6N07LO9mFe4wOgCngs7gCFbyT+TqY9IYqnWFlntRMtVrlnIDPj//ngdopLp7Mod3zBRTjAKlvZUa4Y7nXbZgU1yQIDOcUc3KaH87XU0K8ESmLOGWD34Poe9yNODkt4Z97uINPB1UWwbSvbt3yoItVHU8KCK6QdlhKvnPvOHGb1JoKbUOObLgFQ6gTSTZhzxy9EkWSIfu5+gafSvmkEVMllQStmZI8Eepo7bEyY8pSzYn2U6pz+nUyLAb9ZF0qqxfNpg/iEowVJhDzg/VHuKns96F0nOz66EiA91GMyoZQrTFSXQlQnxLZEoaMmj1zlWwIbyQueXiHqzEUd3GNqPkK80ATGYcDZL8gGhqQXWK2r3swPAUQwlNwoLny9Ohh7HWbaLKyVjY3A8kTvsdztIpfOePq+LCRXTyRTcMQ5uPQxwXjPS0102Q== (none)"
-  ];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

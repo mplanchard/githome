@@ -235,14 +235,14 @@
             ./nixos/gnome.nix
           ];
         };
-        smol = nixpkgs.lib.nixosSystem rec {
+        smol = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          pkgs = pkgs.${system};
+          pkgs = pkgs.x86_64-linux;
+          specialArgs = { inherit inputs; };
           modules = [
-            ./nixos/configuration-smol.nix
-            nixos-hardware.nixosModules.common-cpu-intel
             home-manager.nixosModules.home-manager
-            ./home-manager/smol
+            ./nix/hosts/smol
+            nixos-hardware.nixosModules.common-cpu-intel
           ];
         };
         mp-st-nix = nixpkgs.lib.nixosSystem {
