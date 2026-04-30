@@ -549,7 +549,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   ;; make lookup with K more consistently useful
   (evil-lookup-func #'helpful-at-point)
   :init
-  (setq
+  (setopt
    ;; let me learn emacs bindings
    evil-disable-insert-state-bindings t
    ;; use emacs' native redo for C-r
@@ -585,7 +585,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :ensure (:type git :host github :repo "achyudh/evil-keypad")
   :after evil
   :config
-  (setq evil-keypad-activation-trigger (kbd ","))
+  (setopt evil-keypad-activation-trigger (kbd ","))
   (evil-keypad-global-mode 1))
 
 (use-package evil-numbers :ensure t
@@ -694,7 +694,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; Right-click contextual interface via the keyboard, essentially
 (use-package embark :ensure t
   :init
-  (setq prefix-help-command #'embark-prefix-help-command)
+  (setopt prefix-help-command #'embark-prefix-help-command)
   :config
   (general-define-key
    :states '(global normal visual motion emacs insert)
@@ -712,7 +712,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package orderless :ensure t
   :init
   ;; Default config recommended from vertico README
-  (setq completion-styles '(orderless basic)
+  (setopt completion-styles '(orderless basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
@@ -758,9 +758,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package git-link :ensure t
   :config
-  (setq git-link-use-commit t
-        git-link-use-single-line-number nil
-        git-link-default-branch "dev"))
+  (setopt git-link-use-commit t
+          git-link-use-single-line-number nil
+          git-link-default-branch "dev"))
 
 ;; Some issue w/magit's melpa declaration not getting the right transient idk
 (use-package transient :ensure t)
@@ -780,9 +780,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
        (remove-hook 'post-command-hook 'magit-section-post-command-hook t)
        (remove-hook 'pre-command-hook 'magit-section-pre-command-hook t)))
   :init
-  (setq forge-add-default-bindings nil)
+  (setopt forge-add-default-bindings nil)
   :config
-  (setq
+  (setopt
    ;; don't save things for me
    magit-save-repository-buffers nil
    magit-list-refs-sortby "-committerdate"
@@ -942,8 +942,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :hook ((flymake-mode . sideline-mode)
          (flycheck-mode . sideline-mode))
   :init
-  (setq sideline-backends-right '(sideline-flymake)
-        sideline-truncate t))
+  (setopt sideline-backends-right '(sideline-flymake)
+          sideline-truncate t))
 
 (use-package sideline-flycheck :ensure t
   :hook (flycheck-mode . sideline-flycheck-setup))
@@ -977,7 +977,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   ;; eglot, since eglot is built in and rustic is deferred), this can
   ;; wind up at the front of the eglot config list, ahead of custom
   ;; config. So, delete it.
-  (setq
+  (setopt
    rustic-lsp-client 'eglot
    rustic-lsp-setup-p nil
    rustic-compile-directory-method #'rustic-buffer-workspace
@@ -1194,7 +1194,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :after eglot
   :config
   (eglot-x-setup)
-  (setq eglot-x-enable-snippet-text-edit nil))
+  (setopt eglot-x-enable-snippet-text-edit nil))
 
 ;; requires `emacs-lsp-booster` to be installed
 (use-package eglot-booster
@@ -1204,7 +1204,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   ;; (eglot-booster-mode)
   ;; See https://github.com/blahgeek/emacs-lsp-booster/issues/43
   ;; and https://github.com/jdtsmith/eglot-booster?tab=readme-ov-file#io-only
-  (setq eglot-booster-io-only t))
+  (setopt eglot-booster-io-only t))
 
 ;; syntactic folding for treesitter-derived modes
 (use-package treesit-fold
@@ -1291,14 +1291,14 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package chatgpt-shell :ensure t
   :config
-  (setq chatgpt-shell-openai-key (my/get-openai-api-key)
-        chatgpt-shell-anthropic-key (my/get-anthropic-api-key)
-        chatgpt-shell-anthropic-thinking nil
-        chatgpt-shell-model-version "claude-4-opus-20250514"))
+  (setopt chatgpt-shell-openai-key (my/get-openai-api-key)
+          chatgpt-shell-anthropic-key (my/get-anthropic-api-key)
+          chatgpt-shell-anthropic-thinking nil
+          chatgpt-shell-model-version "claude-4-opus-20250514"))
 
 (use-package agent-shell :ensure t
   :config
-  (setq
+  (setopt
    agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
    agent-shell-anthropic-claude-environment
         (agent-shell-make-environment-variables :inherit-env t)))
@@ -1325,7 +1325,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :custom
   (org-roam-directory (file-truename org-directory))
   :config
-  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (setopt org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
   (org-roam-db-autosync-mode))
 
 (use-package pdf-tools :ensure t)
@@ -1337,8 +1337,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; Make undo/redo more intuitive
 (use-package undo-fu :ensure t
   :after (evil general)
-  :config (setq evil-undo-system 'undo-fu
-                undo-fu-allow-undo-in-region t))
+  :config (setopt evil-undo-system 'undo-fu
+                  undo-fu-allow-undo-in-region t))
 
 ;; Visualize undo tree. Note that evil-collection gives it non-default
 ;; keybindings, in [brackets]:
@@ -1376,7 +1376,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; installed via nix
 (use-package mu4e :ensure nil
   :config
-  (setq
+  (setopt
    ;; set emacs default mail variables
    mail-user-agent 'mu4e-user-agent
    read-mail-command 'mu4e
@@ -1417,7 +1417,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
 (use-package org-msg :ensure t
   :config
-  (setq
+  (setopt
    org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
    org-msg-startup "hidestars indent inlineimages"
    org-msg-default-alternatives '((new		. (text html))
@@ -1475,7 +1475,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 ;; mod.rs <1> and so on.
 (use-package uniquify :ensure nil
   :config
-  (setq uniquify-buffer-name-style 'forward))
+  (setopt uniquify-buffer-name-style 'forward))
 
 ;; Emacs settings
 (use-package emacs :ensure nil
@@ -1519,43 +1519,43 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :config
   ;; make the target selection smarter in dired, e.g. automatically
   ;; target other open dired buffer for copy
-  (setq dired-dwim-target t
-        ;; I've got to get away from these confounded relatives, hanging on the bell all day
-        ;; never giving me a moment's peace
-        ring-bell-function #'ignore
-        ;; keep it secret, keep it safe
-        auth-sources '("~/.authinfo.gpg")
-        ;; trigger completion-at-point with TAB
-        tab-always-indent 'complete
-        ;; hide commands from M-x that don't apply to the current mode
-        read-extended-command-predicate #'command-completion-default-include-p
-        ;; don't prompt, just follow symbolic links
-        vc-follow-symlinks t
-        ;; backup all files to a common directory
-        my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
-        backup-directory-alist `(("." . ,my/emacs-backup-directory))
-        ;; include lockfiles
-        lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
+  (setopt dired-dwim-target t
+          ;; I've got to get away from these confounded relatives, hanging on the bell all day
+          ;; never giving me a moment's peace
+          ring-bell-function #'ignore
+          ;; keep it secret, keep it safe
+          auth-sources '("~/.authinfo.gpg")
+          ;; trigger completion-at-point with TAB
+          tab-always-indent 'complete
+          ;; hide commands from M-x that don't apply to the current mode
+          read-extended-command-predicate #'command-completion-default-include-p
+          ;; don't prompt, just follow symbolic links
+          vc-follow-symlinks t
+          ;; backup all files to a common directory
+          my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
+          backup-directory-alist `(("." . ,my/emacs-backup-directory))
+          ;; include lockfiles
+          lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
 
-        ;; add a newline at the end of files when visiting if they don't already have one
-        require-final-newline 'visit
-        ;; write to the target, not the symlink, when saving a file opened via symlink
-        file-preserve-symlinks-on-save t
-        ;; don't tell me every time auto-saving happens
-        auto-save-no-message t
-        ;; don't recenter every time I scroll offscreen, only if jumping a huge distance
-        scroll-conservatively 50
-        ;; show matching parenthesis when cursor is either inside or outside the other paren
-        show-paren-when-point-inside-paren t
-        ;; chemacs-aware user init directory
-        my/user-init-dir (if (boundp 'chemacs-profile)
-			                 (alist-get 'user-emacs-directory chemacs-profile)
-		                   (file-name-directory (user-init-file)))
-        ;; set custom file to a file in the chemacs profile dir
-        custom-file (file-name-concat my/user-init-dir "custom.el")
-        undo-limit 67108864 ;; 64 mb
-        undo-strong-limit 100663296 ;; 96 mb
-        undo-outer-limit 1006632960) ;; 960 mb
+          ;; add a newline at the end of files when visiting if they don't already have one
+          require-final-newline 'visit
+          ;; write to the target, not the symlink, when saving a file opened via symlink
+          file-preserve-symlinks-on-save t
+          ;; don't tell me every time auto-saving happens
+          auto-save-no-message t
+          ;; don't recenter every time I scroll offscreen, only if jumping a huge distance
+          scroll-conservatively 50
+          ;; show matching parenthesis when cursor is either inside or outside the other paren
+          show-paren-when-point-inside-paren t
+          ;; chemacs-aware user init directory
+          my/user-init-dir (if (boundp 'chemacs-profile)
+			                   (alist-get 'user-emacs-directory chemacs-profile)
+		                     (file-name-directory (user-init-file)))
+          ;; set custom file to a file in the chemacs profile dir
+          custom-file (file-name-concat my/user-init-dir "custom.el")
+          undo-limit 67108864 ;; 64 mb
+          undo-strong-limit 100663296 ;; 96 mb
+          undo-outer-limit 1006632960) ;; 960 mb
 
   (load-theme 'modus-vivendi-deuteranopia t)
   ;; font settings
