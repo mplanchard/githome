@@ -8,6 +8,9 @@
     ./configuration.nix
     ./network.nix
     ./users
+    ./transmission.nix
+    ./plex.nix
+    ./server.nix
     inputs.nixos-hardware.nixosModules.common-cpu-intel
   ];
 

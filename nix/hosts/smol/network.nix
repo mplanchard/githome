@@ -1,5 +1,7 @@
 {
   pkgs,
+  lib,
+  config,
   ...
 }:
 let
@@ -102,6 +104,27 @@ in
         {
           # This allows SSH connections into the machine.
           SourcePort = sshPort;
+          Priority = 3;
+          Table = "main";
+        }
+      ]
+      ++ lib.optionals config.services.transmission.enable [
+        {
+          SourcePort = config.services.transmission.settings.rpc_port;
+          Priority = 3;
+          Table = "main";
+        }
+      ]
+      ++ lib.optionals config.services.plex.enable [
+        {
+          SourcePort = 32400;
+          Priority = 3;
+          Table = "main";
+        }
+      ]
+      ++ lib.optionals config.services.static-web-server.enable [
+        {
+          SourcePort = 80;
           Priority = 3;
           Table = "main";
         }

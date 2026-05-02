@@ -229,6 +229,7 @@
   # List services that you want to enable:
   services.flatpak.enable = true;
   services.pcscd.enable = true;
+  services.mozillavpn.enable = true;
 
   virtualisation.docker.enable = true;
 

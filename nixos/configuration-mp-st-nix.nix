@@ -114,7 +114,6 @@ rec {
   # services.xserver.displayManager.sddm.enable = true;
   # services.xserver.desktopManager.plasma5.enable = true;
   # nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
-
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.udev.packages = [ pkgs.gnome.gnome-settings-daemon ];
@@ -262,7 +261,7 @@ rec {
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  
+
   # For KDE Connect
   # networking.firewall.allowedTCPPortRanges = [
   #   {from=1714; to=1764;}
@@ -283,4 +282,3 @@ rec {
   system.stateVersion = "21.11"; # Did you read the comment?
 
 }
-

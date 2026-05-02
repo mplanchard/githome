@@ -1510,16 +1510,38 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (winner-mode t)
   :mode
   ("\\.env\\'" . bash-ts-mode)
-  :hook
-  (bash-ts-mode . flymake-mode)
-  (emacs-lisp-mode . flymake-mode)
-  (prog-mode . flymake-mode)
-  (prog-mode . electric-pair-mode)
-  (before-save . delete-trailing-whitespace)
+  :hook ((bash-ts-mode . flymake-mode)
+         (emacs-lisp-mode . flymake-mode)
+         (prog-mode . flymake-mode)
+         (prog-mode . electric-pair-mode)
+         (prog-mode . flyspell-prog-mode)
+         (before-save . delete-trailing-whitespace))
   :config
   ;; make the target selection smarter in dired, e.g. automatically
   ;; target other open dired buffer for copy
-  (setopt dired-dwim-target t
+  (setq my/emacs-backup-directory
+        (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
+  (setopt delete-selection-mode t
+          dired-auto-revert-buffer t
+          dired-dwim-target t
+          imenu-auto-rescan t
+
+          ;; adjust some resizing settings
+          frame-inhibit-implied-resize t
+          frame-resize-pixelwise t
+          window-resize-pixelwise t
+
+          ;; replace strings of spaces with one space when the mode line is
+          ;; longer than the window
+          mode-line-compact 'long
+
+          ;; generally don't use this, but make it nicer for when it does happen
+          minibuffer-visible-completions t
+          completions-detailed t
+          completions-group t
+
+          compilation-scroll-output 'first-error
+
           ;; I've got to get away from these confounded relatives, hanging on the bell all day
           ;; never giving me a moment's peace
           ring-bell-function #'ignore
@@ -1532,13 +1554,27 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
           ;; don't prompt, just follow symbolic links
           vc-follow-symlinks t
           ;; backup all files to a common directory
-          my/emacs-backup-directory (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups")
-          backup-directory-alist `(("." . ,my/emacs-backup-directory))
+          backup-directory-alist `((".*" . ,my/emacs-backup-directory))
           ;; include lockfiles
           lock-file-name-transforms `(("\\`/.*/\\([^/]+\\)\\'" ,(concat my/emacs-backup-directory "/\\1" ) t))
-
+          pixel-scroll-precision-mode t
           ;; add a newline at the end of files when visiting if they don't already have one
           require-final-newline 'visit
+          ;; allow repeating the final part of some command chords, like for
+          ;; growing and shrinking windows, rather than the entire command chord
+          repeat-mode t
+          ;; if there's non-emacs stuff in the clipboard, save it to the kill
+          ;; ring before replacing it w/something that's killed
+          save-interprogram-paste-before-kill t
+
+          ;; save minibuffer history between sessions
+          savehist-mode t
+          ;; save file location between sessions
+          save-place-mode t
+
+          ;; show directory when prompting for a shell command
+          shell-command-prompt-show-cwd t
+
           ;; write to the target, not the symlink, when saving a file opened via symlink
           file-preserve-symlinks-on-save t
           ;; don't tell me every time auto-saving happens
