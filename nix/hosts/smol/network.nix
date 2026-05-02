@@ -21,6 +21,7 @@ in
   programs.nm-applet.enable = true;
 
   networking.useNetworkd = true; # use systemd-networkd
+
   networking.firewall.allowedUDPPorts = [ wireguardPort ]; # wireguard
 
   # NixOS firewall will block wg traffic because of rpfilter
@@ -100,14 +101,14 @@ in
           To = "${wireguardEndpoint}/32";
           Priority = 5;
         }
-        # rule 3: exclude inbound ssh
-        {
-          # This allows SSH connections into the machine.
-          SourcePort = sshPort;
+      ]
+      ++ (lib.optionals config.services.openssh.enable (
+        lib.lists.forEach config.services.openssh.ports (port: {
+          SourcePort = port;
           Priority = 3;
           Table = "main";
-        }
-      ]
+        })
+      ))
       ++ lib.optionals config.services.transmission.enable [
         {
           SourcePort = config.services.transmission.settings.rpc_port;
