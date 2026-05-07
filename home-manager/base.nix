@@ -46,6 +46,7 @@
   # If you just want it available, stick it in packages.
   programs = {
     home-manager.enable = true;
+
     alacritty = {
       enable = true;
       settings = {

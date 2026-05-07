@@ -1068,7 +1068,21 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 (use-package nix-mode :ensure t
   :mode "\\.nix\\'")
 
-(use-package svelte-mode :ensure t)
+(use-package svelte-mode :ensure t
+  :after eglot
+  :config
+  (setopt svelte-basic-offset 4)
+  (add-to-list 'eglot-server-programs '(typescript-mode . ("svelteserver" "--stdio"))))
+
+(use-package typescript-mode :ensure t)
+
+;; Seems totally broken at the moment
+;; See https://github.com/leafOfTree/svelte-ts-mode/issues/15
+;; (use-package svelte-ts-mode
+;;   :after eglot
+;;   :ensure (:host github :repo "leafOfTree/svelte-ts-mode")
+;;   :config
+;;   (add-to-list 'eglot-server-programs '(svelte-ts-mode . ("svelteserver" "--stdio"))))
 
 ;; (use-package flymake-eslint :ensure t)
 
@@ -1162,6 +1176,13 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
   (add-to-list 'eglot-server-programs
                `(sql-mode . ("postgrestools" "lsp-proxy")))
+
+  (add-to-list 'eglot-server-programs
+               '(LaTeX-mode . ("texlab" "run")))
+
+  (setq-default eglot-workspace-configuration
+                ;; texlab doesn't support config through initialization options, sadly
+                '(:texlab (:build (:onSave t))))
 
   (defvar my/eglot-map (make-sparse-keymap))
   (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
@@ -1328,7 +1349,45 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (setopt org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
   (org-roam-db-autosync-mode))
 
-(use-package pdf-tools :ensure t)
+(use-package pdf-tools :ensure t
+  :hook (pdf-view-mode . (lambda () (display-line-numbers-mode -1)))
+  :config
+  (pdf-tools-install))
+
+
+(use-package auctex :ensure t
+  :after (latex pdf-tools)
+  :hook ((LaTeX-mode . prettify-symbols-mode)
+         (LaTeX-mode . TeX-fold-mode)
+         ;; digestif language server is case-sensitive, doesn't like LaTeX
+         (LaTeX-mode . (lambda () (put 'LaTeX-mode 'eglot-language-id "latex"))))
+  :config
+  (setopt TeX-auto-save t ;; parse on save
+          TeX-parse-self t ;; parse on load
+          TeX-source-correlate-mode t
+          TeX-source-correlate-method 'synctex
+          TeX-source-correlate-start-server nil
+          TeX-save-query nil
+          ;; support new gnome pdf viewer name, in case no evince
+          TeX-view-program-list '(("Papers" ("papers" (mode-io-correlate " -p %(outpage)") " %o") "papers")))
+
+  ;; ;; if papers is in path, use papers over evince
+  ;; (if (executable-find "papers") (add-to-list 'TeX-view-program-selection '(output-pdf "Papers")))
+  ;; but ultimately prefer pdf-tools
+  (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+
+  (setq-default TeX-master nil))
+
+(use-package auctex-cont-latexmk :ensure t
+  :after (auctex latex)
+  :bind
+  (:map LaTeX-mode-map ("C-c k" . auctex-cont-latexmk-toggle)))
+
+(use-package company-auctex :ensure t
+  :after (company auctex)
+  :config (company-auctex-init))
+
 
 ;; -------------------------------------------------------------------
 ;; General Editing
