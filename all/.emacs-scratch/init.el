@@ -1182,7 +1182,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
 
   (setq-default eglot-workspace-configuration
                 ;; texlab doesn't support config through initialization options, sadly
-                '(:texlab (:build (:onSave t))))
+                '(:texlab (:build (:onSave t)
+                           :chktex (:onOpenAndSave t))))
 
   (defvar my/eglot-map (make-sparse-keymap))
   (general-create-definer my/eglot-key-def :keymaps 'my/eglot-map)
