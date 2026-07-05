@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  packages = with pkgs; [
+  home.packages = with pkgs; [
     maestral
     maestral-gui
   ];
