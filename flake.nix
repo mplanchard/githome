@@ -193,7 +193,7 @@
       };
 
       homeConfigurations = {
-        emplanada = home-manager.lib.homeManagerConfiguration {
+        "matthew@emplanada" = home-manager.lib.homeManagerConfiguration {
           pkgs = pkgs.x86_64-linux;
           extraSpecialArgs = {
                 inherit inputs;
@@ -203,7 +203,7 @@
           modules = [
             ./hosts/emplanada
           ];
-        }
+        };
       };
       nixosConfigurations = {
         mp-st-nix-fw = nixpkgs.lib.nixosSystem {
