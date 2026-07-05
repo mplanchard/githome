@@ -192,10 +192,19 @@
         };
       };
 
-      # homeConfigurations = {
-      #   "matthew@mp-st-nix-fw" = home-manager.lib.homeManagerConfiguration {
-      #   }
-      # };
+      homeConfigurations = {
+        emplanada = home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgs.x86_64-linux;
+          extraSpecialArgs = {
+                inherit inputs;
+                unstable = unstable.x86_64-linux;
+                previous = previous.x86_64-linux;
+          };
+          modules = [
+            ./hosts/emplanada
+          ];
+        }
+      };
       nixosConfigurations = {
         mp-st-nix-fw = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";

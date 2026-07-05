@@ -5,6 +5,7 @@ Order of operations:
 - install nix stuff
 - symlink stuff from here
 - symlink stuff from dropbox
+- clone chemacs2 to ~/.emacs.d
 
 TODO:
 - replace stow usage w/home manager
