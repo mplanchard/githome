@@ -3,6 +3,7 @@
   lib,
   config,
   pkgs,
+  unstable,
   ...
 }: {
   imports = [
@@ -13,5 +14,9 @@
     ./gnome.nix
     # inputs.stasis.homeModules.default
     ./niri.nix
+  ];
+
+  home.packages = [
+    unstable.zed-editor
   ];
 }

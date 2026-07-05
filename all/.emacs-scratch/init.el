@@ -214,6 +214,9 @@ Passes `ARG' to `vterm':
   (evil-normal-state)
   (evil-visual-restore))
 
+(defvar my/popterm-load #'(lambda () (require 'vterm))
+  "A function to ensure the term library is loaded.")
+
 (defvar my/popterm-shell-fn #'vterm-mode
   "The function to run after opening the popterm window.")
 
@@ -251,6 +254,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
       (let ((default-directory (if (project-current)
                                    (project-root (project-current))
                                  (or default-directory "~"))))
+        (funcall my/popterm-load)
         (funcall my/popterm-shell-fn)))))
 
 (defun my/popterm-hide ()
@@ -1059,6 +1063,10 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
    ;; When pressing return, continue comments if writing comments
    "<return>" #'indent-new-comment-line)
 
+  (general-define-key
+   :keymaps 'prog-mode-map
+   "C-c C-t e" #'eldoc-mode)
+
   (general-evil-define-key '(insert) 'sql-interactive-mode-map
     ;; shift-return to insert a newline instead of submitting
     "<S-return>" #'newline
@@ -1072,7 +1080,8 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :after eglot
   :config
   (setopt svelte-basic-offset 4)
-  (add-to-list 'eglot-server-programs '(typescript-mode . ("svelteserver" "--stdio"))))
+  ;; (add-to-list 'eglot-server-programs '(typescript-mode . ("svelteserver" "--stdio")))
+  )
 
 (use-package typescript-mode :ensure t)
 
@@ -1173,6 +1182,10 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
                `(typescript-ts-mode . ,(eglot-alternatives
                                         '(("typescript-language-server" "--stdio")
                                           ("deno" "lsp")))))
+
+  (add-to-list 'eglot-server-programs
+               `(typescript-mode . ,(eglot-alternatives
+                                     '(("typescript-language-server" "--stdio")))))
 
   (add-to-list 'eglot-server-programs
                `(sql-mode . ("postgrestools" "lsp-proxy")))
@@ -1318,9 +1331,12 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
           chatgpt-shell-anthropic-thinking nil
           chatgpt-shell-model-version "claude-4-opus-20250514"))
 
-(use-package agent-shell :ensure t
+(use-package agent-shell
+  :ensure (:type git :host github :repo "xenodium/agent-shell" :branch "main")
   :config
   (setopt
+   agent-shell-markdown-render-function #'agent-shell-markdown-replace-markup
+   agent-shell-highlight-blocks t
    agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
    agent-shell-anthropic-claude-environment
         (agent-shell-make-environment-variables :inherit-env t)))
@@ -1389,6 +1405,11 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :after (company auctex)
   :config (company-auctex-init))
 
+;; Smart quotes.
+(use-package typopunct
+  :ensure (:type git :host github :repo "emacsattic/typopunct")
+  :config
+  (setopt typopunct-buffer-language 'english))
 
 ;; -------------------------------------------------------------------
 ;; General Editing
@@ -1581,6 +1602,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   ;; target other open dired buffer for copy
   (setq my/emacs-backup-directory
         (concat (or (getenv "XDG_RUNTIME_DIR") "~/.local") "/emacs-backups"))
+  (set-face-background 'lazy-highlight "gray3")
   (setopt delete-selection-mode t
           dired-auto-revert-buffer t
           dired-dwim-target t
@@ -1656,8 +1678,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   (load-theme 'modus-vivendi-deuteranopia t)
   ;; font settings
   ;; top fonts: codenewroman, hasklug, comicshans
-  (set-frame-font "SauceCodePro Nerd Font" nil t)
-  ;; height is x10 of usual font size
+  ;; (set-frame-font "SauceCodePro Nerd Font" nil t)
+  (set-frame-font "ComicShannsMono Nerd Font Mono" nil t)
+  ;; height is x10 of usual font size, works in increments of 5
   (set-face-attribute 'default nil :height 130)
   ;; turn off the toolbar
   (tool-bar-mode -1)

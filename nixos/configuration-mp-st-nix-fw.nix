@@ -10,6 +10,17 @@
     ./hardware-mp-st-nix-fw.nix
   ];
 
+  systemd.services.nix-daemon = {
+    enable = true;
+    serviceConfig = {
+      Environment = [
+        "NIX_CURL_FLAGS=\"--cacert /etc/ssl/certs/ca-certificates.crt\""
+        # NOTE: this must be `ca-certificates.crt`, not `ca-bundle.crt` or any other value
+        "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
+      ];
+    };
+  };
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -237,7 +248,7 @@
   # services.openssh.enable = true;
 
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
+  networking.firewall.allowedTCPPorts = [ 5000 ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;

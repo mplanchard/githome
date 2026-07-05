@@ -5,8 +5,11 @@
 }:
 let
   transmissionPort = 9091;
+  peerPort = 51413;
 in
 {
+  networking.firewall.allowedUDPPorts = [ 51413 ];
+  networking.firewall.allowedTCPPorts = [ 51413 ];
   services.transmission = {
     enable = true;
     package = pkgs.transmission_4;
@@ -16,6 +19,8 @@ in
     settings = {
       anti_brute_force_enabled = true;
       anti_brute_force_threshold = 100;
+
+      peer_port = peerPort;
 
       rpc_authentication_required = true;
       rpc_bind_address = "0.0.0.0";

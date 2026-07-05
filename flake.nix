@@ -203,7 +203,6 @@
           modules = [
             ./nixos/configuration-mp-st-nix-fw.nix
             nixos-hardware.nixosModules.framework-13th-gen-intel
-            ./nixos/crowdstrike-falcon-sensor/module.nix
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -250,7 +249,6 @@
           pkgs = pkgs.x86_64-linux;
           modules = [
             ./nixos/configuration-mp-st-nix.nix
-            ./nixos/crowdstrike-falcon-sensor/module.nix
             home-manager.nixosModules.home-manager {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

@@ -201,6 +201,7 @@
   #  };
   home.packages = with pkgs; [
     brightnessctl
+    gpu-screen-recorder
     playerctl
     swaybg
     swayidle
@@ -255,7 +256,7 @@
     # environment = {
     #   DISPLAY = ":0";
     # };
-    # prefer-no-csd = true;
+    prefer-no-csd = true;
     spawn-at-startup = [
       # { command = ["xwayland-satellite"]; }
       # { argv = [ "waybar" ]; }
@@ -270,7 +271,8 @@
     };
     clipboard.disable-primary = true;
     window-rules = [
-      # Open the Firefox picture-in-picture player as floating by default.
+      # Open the Firefox picturpawn
+      # -in-picture player as floating by default.
       # This app-id regular expression will work for both:
       # - host Firefox (app-id is "firefox")
       # - Flatpak Firefox (app-id is "org.mozilla.firefox")
@@ -344,6 +346,7 @@
       "Mod+Shift+Slash".action.show-hotkey-overlay = [ ];
 
       "Print".action.screenshot = [ ];
+      # "Print".action.spawn = ["dms" "ipc" "call" "screenCaptureToolbar" "toggle"];
 
       "Mod+H".action.focus-column-or-monitor-left = [ ];
       "Mod+L".action.focus-column-or-monitor-right = [ ];

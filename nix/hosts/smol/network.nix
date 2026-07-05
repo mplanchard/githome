@@ -115,6 +115,11 @@ in
           Priority = 3;
           Table = "main";
         }
+        {
+          SourcePort = config.services.transmission.settings.peer_port;
+          Priority = 3;
+          Table = "main";
+        }
       ]
       ++ lib.optionals config.services.plex.enable [
         {

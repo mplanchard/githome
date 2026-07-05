@@ -108,10 +108,8 @@
         PWS=$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")
         export GITLAB_TOKEN=$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')
         export GITHUB_TOKEN=$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')
-        export ANTHROPIC_API_KEY=$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')
-        export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
-        export CROWDSTRIKE_CID="$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
-        export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine cachix\.com/ { print $NF }')"
+        export ANTHROPIC_API_KEY=$(echo "$PWS" | awk '/machine api\.anthropic\.com/ { print $NF }')
+        export CACHIX_AUTH_TOKEN="$(echo "$PWS" | awk '/machine cachix\.org login mplanchard/ { print $NF }')"
         set_profile() {
             export AWS_PROFILE="$1"
         }
@@ -143,10 +141,8 @@
           set PWS "$(gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg || echo "fail")"
           set -gx GITLAB_TOKEN "$(echo "$PWS" | awk '/machine gitlab\.com\/api login mplanchard/ { print $NF }')"
           set -gx GITHUB_TOKEN "$(echo "$PWS" | awk '/machine api\.github\.com login mplanchard\^forge/ { print $NF }')"
-          set -gx ANTHROPIC_API_KEY "$(echo "$PWS" | awk '/machine api\.anthropic\.com login matthew@spec-trust\.com/ { print $NF }')"
-          set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine app\.cachix\.org login mplanchard/ { print $NF }')"
-          set -gx CROWDSTRIKE_CID "$(echo "$PWS" | awk '/machine crowdstrike\.com/ { print $NF }')"
-          set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine cachix\.com/ { print $NF }')"
+          set -gx ANTHROPIC_API_KEY "$(echo "$PWS" | awk '/machine api\.anthropic\.com/ { print $NF }')"
+          set -gx CACHIX_AUTH_TOKEN "$(echo "$PWS" | awk '/machine cachix\.org/ { print $NF }')"
         end
         set -gx EDITOR "emacsclient"
         # Setting this env var to the empty string makes it so that emacs
@@ -178,7 +174,7 @@
     # Always want emacs, this assumes the emacs overlay is present on pkgs
     emacs = {
       enable = true;
-      package = pkgs.emacs;
+      package = pkgs.emacs-pgtk;
       extraPackages = epkgs: with epkgs; [
         mbsync
         mu4e
@@ -330,6 +326,7 @@
     cachix
     unstable.claude-agent-acp
     unstable.claude-code
+    unstable.codex-acp
     # cargo
     chromium
     cmake
@@ -361,6 +358,7 @@
     (hunspell.withDicts (dicts: [
       dicts.en_US-large
     ]))
+    imagemagick
     unstable.iosevka-comfy.comfy
     unstable.iosevka-comfy.comfy-motion
     unstable.iosevka-comfy.comfy-motion-fixed
@@ -371,7 +369,9 @@
     lsof
     mu.mu4e
     neovim
+    comic-mono
     nerd-fonts.code-new-roman
+    nerd-fonts.comic-shanns-mono
     nerd-fonts.envy-code-r
     nerd-fonts.hack
     nerd-fonts.jetbrains-mono
@@ -392,11 +392,15 @@
     openssh
     pandoc
     pass
+    poppler-utils  # pdf tools
     # pinentry
     # pinentry-curses
     pinentry-gnome3
     procps
-    python3Minimal
+    (python3.withPackages (p: with p; [
+      requests
+      tqdm
+    ]))
     ripgrep
     # rnix-lsp
     # rustup
@@ -406,7 +410,8 @@
     spotify
     sqlite
     stow
-    texlive.combined.scheme-full
+    # texlive.combined.scheme-full
+    texliveFull
     tmux
     tokei
     tree
