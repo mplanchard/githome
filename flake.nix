@@ -201,7 +201,7 @@
                 previous = previous.x86_64-linux;
           };
           modules = [
-            ./hosts/emplanada
+            ./nix/hosts/emplanada
           ];
         };
       };
