@@ -621,6 +621,7 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :custom
   (vterm-max-scrollback 100000)
   :config
+  (setopt vterm-shell "fish")
   (general-def vterm-mode-map
     :states 'insert
     "C-j" #'(lambda () (interactive) (vterm-send-key "<down>"))
@@ -632,7 +633,9 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
   :commands exec-path-from-shell-initialize
   :init
   ;; only run when in graphical mode, essentially
-  (when (daemonp) (exec-path-from-shell-initialize)))
+  (when (or (daemonp) (memq window-system '(mac ns x pgtk)))
+    (exec-path-from-shell-initialize)
+    (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")))
 
 ;; -------------------------------------------------------------------
 ;; Completion, Search, Help
@@ -1331,15 +1334,15 @@ Used to chceck if it needs to be invoked when swapping to the buffer.")
           chatgpt-shell-anthropic-thinking nil
           chatgpt-shell-model-version "claude-4-opus-20250514"))
 
-(use-package agent-shell
-  :ensure (:type git :host github :repo "xenodium/agent-shell" :branch "main")
-  :config
-  (setopt
-   agent-shell-markdown-render-function #'agent-shell-markdown-replace-markup
-   agent-shell-highlight-blocks t
-   agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
-   agent-shell-anthropic-claude-environment
-        (agent-shell-make-environment-variables :inherit-env t)))
+;; (use-package agent-shell
+;;   :ensure (:type git :host github :repo "xenodium/agent-shell" :branch "main")
+;;   :config
+;;   (setopt
+;;    agent-shell-markdown-render-function #'agent-shell-markdown-replace-markup
+;;    agent-shell-highlight-blocks t
+;;    agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :api-key (my/get-anthropic-api-key))
+;;    agent-shell-anthropic-claude-environment
+;;         (agent-shell-make-environment-variables :inherit-env t)))
 
 ;; -------------------------------------------------------------------
 ;; Envrc

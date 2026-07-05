@@ -13,15 +13,15 @@
   };
 
   inputs = {
-    nixpkgs.url = "nixpkgs/release-25.11";
+    nixpkgs.url = "nixpkgs/release-26.05";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
-    nixpkgs-previous.url = "nixpkgs/release-24.05";
+    nixpkgs-previous.url = "nixpkgs/release-25.11";
 
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
 
     # must match nixpkgs version
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin.url = "github:LnL7/nix-darwin";

@@ -1,7 +1,9 @@
 { pkgs, ... }:
 {
   home.packages = with pkgs; [
+    delta
     emacs-all-the-icons-fonts
+    nixfmt-rfc-style
   ];
   home.sessionVariables = {
     EDITOR = "emacsclient";
