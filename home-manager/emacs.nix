@@ -1,5 +1,11 @@
 { pkgs, ... }:
 {
+  home.packages = with pkgs; [
+    emacs-all-the-icons-fonts
+  ];
+  home.sessionVariables = {
+    EDITOR = "emacsclient";
+  };
   programs.emacs = {
       enable = true;
       package = pkgs.emacs-pgtk;
