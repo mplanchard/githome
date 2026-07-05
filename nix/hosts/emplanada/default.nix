@@ -3,8 +3,7 @@
   ...
 }:
 {
-  inputs = [
+  imports = [
     ../../../home-manager/core.nix
   ];
-
 }
