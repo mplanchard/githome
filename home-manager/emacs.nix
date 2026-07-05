@@ -4,6 +4,7 @@
     delta
     emacs-all-the-icons-fonts
     nixfmt-rfc-style
+    shellcheck
   ];
   home.sessionVariables = {
     EDITOR = "emacsclient";

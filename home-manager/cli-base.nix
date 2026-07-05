@@ -1,0 +1,26 @@
+{
+  pkgs,
+  ...
+}:
+{
+  home.packages = with pkgs; [
+    coreutils
+    curl
+    file
+    findutils
+    fzf
+    git
+    gawk
+    gnugrep
+    gnumake
+    neovim
+    procps
+    ripgrep
+    stow
+    tree
+    unzip
+    wget
+    which
+    zip
+  ];
+}

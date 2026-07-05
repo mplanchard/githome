@@ -76,6 +76,7 @@
         iam = "set_profile";
       };
     };
+
     fish = {
       enable = true;
       functions = { };
